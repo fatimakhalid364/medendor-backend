@@ -1,0 +1,38 @@
+{
+  "name": "demo-claricus-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "module-alias": "^2.2.3",
+    "mongoose": "^8.15.0",
+    "nodemailer": "^7.0.3",
+    "redis": "^5.5.6",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "_moduleAliases": {
+    "src": "./src",
+    "config": "./src/config",
+    "controllers": "./src/controllers",
+    "routes": "./src/routes",
+    "middlewares": "./src/middlewares",
+    "models": "./src/models",
+    "utils": "./src/utils",
+    "services": "./src/services",
+    "constants": "./src/constants"
+  }
+}
