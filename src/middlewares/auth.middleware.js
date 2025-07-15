@@ -1,4 +1,5 @@
 const {roles: {rolesArray}} = require('constants');
+const rateLimit = require('express-rate-limit');
 
 const validateSignup = (req, res, next) => {
     const { body, query: { role } } = req;
@@ -17,6 +18,7 @@ const validateSignup = (req, res, next) => {
 }
 
 const validateCode = (req, res, next) => {
+    console.log('Validating code:', req.body);
     const { email, code } = req.body;
 
     if (!email || !code) {
@@ -35,7 +37,26 @@ const validateCode = (req, res, next) => {
     next();
 };
 
+const validateLogin = (req, res, next) => {
+    console.log('Validating login:', req.body);
+    const { email, password } = req.body;
+    if (!email || !password) 
+        return res.status(400).json({ error: 'Email and password are required' });
+    next();
+};
+
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 5, 
+    message: { error: 'Too many login attempts. Please try again later.' },
+    standardHeaders: true, 
+    legacyHeaders: false   
+});
+
+
 module.exports = {
     validateSignup,
-    validateCode
+    validateCode,
+    validateLogin,
+    loginLimiter
 };

@@ -3,7 +3,7 @@ const { basicUtils } = require('utils');
 const createEnumWithArray = basicUtils.createEnumWithArray;
 
 const {obj: rolesObj, array: rolesArray} = createEnumWithArray({
-    USER: 'user',
+    PATIENT: 'patient',
     DOCTOR: 'doctor',
     ADMIN: 'admin'
 });

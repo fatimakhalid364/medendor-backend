@@ -37,6 +37,7 @@ const signup = async (data, role) => {
 
 
 const verifyCode = async (email, code) => {
+    console.log("inside verifyCode service: ", email, code)
     try {
         const user = await User.findOne({ email });
 
@@ -78,5 +79,47 @@ const verifyCode = async (email, code) => {
 };
 
 
+const login = async (email, password, ip, userAgent) => {
+    try {
+        console.log("inside login service:", email, password, ip, userAgent)
+        const user = await User.findOne({ email });
+        if (!user) throw new Error('User does not exist');
 
-module.exports = { signup, verifyCode };
+        const isMatch = await comparePassword(password, user.password);
+        if (!isMatch) throw new Error('Email or password is incorrect');
+
+        const { accessToken, refreshToken, csrfToken, jti } = generateTokens(user._id.toString());
+
+        await redisClient.setEx(
+            `access:${jti}`,
+            15 * 60,
+            accessToken
+        );
+
+        await Token.create({
+            user: user._id,
+            jti,
+            type: 'refresh',
+            ip,
+            userAgent,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+        });
+
+        return {
+            success: true,
+            message: "User logged in successfully",
+            accessToken,
+            refreshToken,
+            csrfToken,
+            user,
+            jti
+        };
+    } catch (error) {
+        console.error("Login error:", error);
+        throw new Error(error.message || 'Login failed');
+    }
+};
+
+
+
+module.exports = { signup, verifyCode, login };
