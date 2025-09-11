@@ -1,17 +1,18 @@
-const {roles: {rolesArray}} = require('constants');
+const {enum: {rolesArray}} = require('constants');
 const rateLimit = require('express-rate-limit');
+const {jwtUtils: {verifyAccessToken, verifyCsrfToken}} = require('utils');
 
 const validateSignup = (req, res, next) => {
-    const { body, query: { role } } = req;
-    console.log('Validating signup request:', body, role);
+    const { role, ...data } = req.body;
+    console.log('Validating signup request:', role, data);
     if (!role || !rolesArray.includes(role)) {
         return res.status(400).json({ message: 'Invalid or missing role' });
     }
 
-    const { name, email, password } = body;
+    const { firstName, lastName, email, password } = data;
 
-    if (!name || !email || !password) {
-        return res.status(400).json({ message: 'Name, email, and password are required' });
+    if (!firstName || !lastName || !email || !password) {
+        return res.status(400).json({ message: 'First name, last name, email, and password are required' });
     }
 
     next(); 
@@ -45,6 +46,7 @@ const validateLogin = (req, res, next) => {
     next();
 };
 
+
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
     max: 5, 
@@ -53,10 +55,87 @@ const loginLimiter = rateLimit({
     legacyHeaders: false   
 });
 
+const authenticateSession = async (req, res, next) => {
+    try {
+        const csrfToken = req.headers['csrf-token'];
+        if (!csrfToken) {
+        return res.status(400).json({ message: 'CSRF token is missing' });
+        }
+
+        const accessToken = req.cookies['access-token'];
+        if (!accessToken) {
+        return res.status(401).json({ message: 'Access token is missing' });
+        }
+
+        let decodedAccess, decodedCsrf;
+        try {
+        decodedAccess = verifyAccessToken(accessToken);
+        decodedCsrf = verifyCsrfToken(csrfToken);
+        } catch (err) {
+        return res.status(401).json({
+            message: 'Access token or CSRF Token has expired',
+        });
+        }
+
+        const {jti: accessJti, role, sub} = decodedAccess;
+        const {jti: csrfJti} = decodedCsrf;
+
+        if (accessJti !== csrfJti) {
+        return res.status(403).json({ message: 'JTI mismatch between access and csrf tokens' });
+        }
+
+        const isTokenActive = await redisClient.get(`access:${accessJti}`);
+        if (!isTokenActive) {
+        return res.status(401).json({
+            message: 'Access token has been revoked',
+        });
+        }
+
+        const isValidRole = rolesArray.includes(role);
+        if (!isValidRole) {
+        return res.status(403).json({ message: 'Invalid user role' });
+        }
+        req.user = {
+        id: sub,
+        role: role,
+        };
+
+        next();
+    } catch (error) {
+        console.error('An error occured while authenticating the session:', error);
+        return res.status(500).json({ message: error.message || 'Internal server error' });
+    }
+};
+
+const validateIsDoctor = (req, res, next) => {
+    const user = req.user; 
+
+    if (!user || user.role !== 'doctor') {
+        return res.status(403).json({ message: 'Access denied. Only doctors can create, update or get doctor details.' });
+    }
+
+    next();
+}
+
+const validateIsPatient = (req, res, next) => {
+    const user = req.user; 
+
+    if (!user || user.role !== 'patient') {
+        return res.status(403).json({ message: 'Access denied. Only patients can create, update or get patient details.' });
+    }
+
+    next();
+}
+
+
+
 
 module.exports = {
     validateSignup,
     validateCode,
     validateLogin,
-    loginLimiter
+    loginLimiter,
+    authenticateSession,
+    validateIsDoctor,
+    validateIsPatient
 };

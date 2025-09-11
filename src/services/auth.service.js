@@ -10,18 +10,23 @@ const signup = async (data, role) => {
         throw new Error('Email already registered');
         }
 
-        const { name, email, password } = data;
+        const { firstName, lastName, email, password } = data;
         const hashedPassword = await hashPassword(password);
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); 
-        const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000); 
+        // const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000); 
+
+        await redisClient.setEx(
+            `verifyCode:${email}`,
+            300,
+            verificationCode
+        );
 
         const newUserData = {
-        name,
+        firstName,
+        lastName,
         email,
         password: hashedPassword,
         role,
-        verificationCode,
-        verificationCodeExpires,
         };
 
         const newUser = new User(newUserData);
@@ -49,24 +54,29 @@ const verifyCode = async (email, code) => {
         throw new Error('Email is already verified');
         }
 
-        if (!user.verificationCode || !user.verificationCodeExpires) {
-        throw new Error('No verification code found');
+        const storedCode = await redisClient.get(`verifyCode:${email}`);
+        if (!storedCode) {
+            throw new Error('Verification code not found or expired');
         }
 
-        if (Date.now() > user.verificationCodeExpires.getTime()) {
-            user.verificationCode = undefined;
-            user.verificationCodeExpires = undefined;
-            await user.save();
-        throw new Error('Verification code has expired');
-        }
+        // if (!user.verificationCode || !user.verificationCodeExpires) {
+        // throw new Error('No verification code found');
+        // }
 
-        if (user.verificationCode !== code) {
+        // if (Date.now() > user.verificationCodeExpires.getTime()) {
+        //     user.verificationCode = undefined;
+        //     user.verificationCodeExpires = undefined;
+        //     await user.save();
+        // throw new Error('Verification code has expired');
+        // }
+
+        if (storedCode !== code) {
         throw new Error('Incorrect verification code');
         }
 
         user.isEmailVerified = true;
-        user.verificationCode = undefined;
-        user.verificationCodeExpires = undefined;
+        // user.verificationCode = undefined;
+        // user.verificationCodeExpires = undefined;
 
         await user.save();
 
@@ -88,7 +98,7 @@ const login = async (email, password, ip, userAgent) => {
         const isMatch = await comparePassword(password, user.password);
         if (!isMatch) throw new Error('Email or password is incorrect');
 
-        const { accessToken, refreshToken, csrfToken, jti } = generateTokens(user._id.toString());
+        const { accessToken, refreshToken, csrfToken, jti } = generateTokens(user._id.toString(), user.role);
 
         await redisClient.setEx(
             `access:${jti}`,

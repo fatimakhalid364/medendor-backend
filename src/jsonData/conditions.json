@@ -1,0 +1,2311 @@
+[
+    {
+        "name": "Migraine",
+        "description": "A neurological condition causing intense headaches.",
+        "symptoms": ["headache", "nausea", "sensitivity to light"]
+    },
+    {
+        "name": "Flu",
+        "description": "A viral infection causing fever, chills, and fatigue.",
+        "symptoms": ["fever", "fatigue", "cough", "headache"]
+    },
+    {
+        "name": "Food Poisoning",
+        "description": "Illness caused by contaminated food.",
+        "symptoms": ["nausea", "vomiting", "abdominal pain"]
+    },
+    {
+    "name": "Asthma",
+    "description": "A medical condition characterized by neck pain, hallucinations.",
+    "symptoms": [
+      "neck pain",
+      "hallucinations",
+      "cough"
+    ]
+  },
+  {
+    "name": "Bronchitis",
+    "description": "A medical condition characterized by earache, high blood sugar.",
+    "symptoms": [
+      "earache",
+      "high blood sugar",
+      "anxiety",
+      "cramps"
+    ]
+  },
+  {
+    "name": "Pneumonia",
+    "description": "A medical condition characterized by palpitations, delayed healing.",
+    "symptoms": [
+      "palpitations",
+      "delayed healing",
+      "chills",
+      "seizures",
+      "sneezing"
+    ]
+  },
+  {
+    "name": "Chronic Obstructive Pulmonary Disease",
+    "description": "A medical condition characterized by cramps, sneezing.",
+    "symptoms": [
+      "cramps",
+      "sneezing"
+    ]
+  },
+  {
+    "name": "Hypertension",
+    "description": "A medical condition characterized by muscle aches, hearing loss.",
+    "symptoms": [
+      "muscle aches",
+      "hearing loss",
+      "lightheadedness",
+      "vomiting"
+    ]
+  },
+  {
+    "name": "Hypotension",
+    "description": "A medical condition characterized by dizziness, bloating.",
+    "symptoms": [
+      "dizziness",
+      "bloating"
+    ]
+  },
+  {
+    "name": "Heart Failure",
+    "description": "A medical condition characterized by hearing loss, confusion.",
+    "symptoms": [
+      "hearing loss",
+      "confusion",
+      "cramps"
+    ]
+  },
+  {
+    "name": "Coronary Artery Disease",
+    "description": "A medical condition characterized by dry skin, sneezing.",
+    "symptoms": [
+      "dry skin",
+      "sneezing"
+    ]
+  },
+  {
+    "name": "Atrial Fibrillation",
+    "description": "A medical condition characterized by chills, vomiting.",
+    "symptoms": [
+      "chills",
+      "vomiting",
+      "frequent urination",
+      "runny nose"
+    ]
+  },
+  {
+    "name": "Arrhythmia",
+    "description": "A medical condition characterized by high blood pressure, tremors.",
+    "symptoms": [
+      "high blood pressure",
+      "tremors",
+      "red eyes"
+    ]
+  },
+  {
+    "name": "Stroke",
+    "description": "A medical condition characterized by loss of appetite, high blood sugar.",
+    "symptoms": [
+      "loss of appetite",
+      "high blood sugar",
+      "diarrhea"
+    ]
+  },
+  {
+    "name": "Transient Ischemic Attack",
+    "description": "A medical condition characterized by joint pain, fatigue.",
+    "symptoms": [
+      "joint pain",
+      "fatigue",
+      "yellow skin"
+    ]
+  },
+  {
+    "name": "Diabetes Type 1",
+    "description": "A medical condition characterized by sneezing, headache.",
+    "symptoms": [
+      "sneezing",
+      "headache",
+      "low blood sugar",
+      "nausea",
+      "sore throat"
+    ]
+  },
+  {
+    "name": "Diabetes Type 2",
+    "description": "A medical condition characterized by neck pain, shortness of breath.",
+    "symptoms": [
+      "neck pain",
+      "shortness of breath"
+    ]
+  },
+  {
+    "name": "Hyperthyroidism",
+    "description": "A medical condition characterized by shoulder pain, hiccups.",
+    "symptoms": [
+      "shoulder pain",
+      "hiccups",
+      "runny nose",
+      "high blood pressure"
+    ]
+  },
+  {
+    "name": "Hypothyroidism",
+    "description": "A medical condition characterized by dry skin, sensitivity to light.",
+    "symptoms": [
+      "dry skin",
+      "sensitivity to light",
+      "delayed healing"
+    ]
+  },
+  {
+    "name": "Anemia",
+    "description": "A medical condition characterized by burning urination, nasal congestion.",
+    "symptoms": [
+      "burning urination",
+      "nasal congestion"
+    ]
+  },
+  {
+    "name": "Iron Deficiency Anemia",
+    "description": "A medical condition characterized by cold intolerance, dry mouth.",
+    "symptoms": [
+      "cold intolerance",
+      "dry mouth",
+      "dry skin",
+      "numbness"
+    ]
+  },
+  {
+    "name": "Vitamin B12 Deficiency",
+    "description": "A medical condition characterized by sore throat, blood in urine.",
+    "symptoms": [
+      "sore throat",
+      "blood in urine",
+      "diarrhea"
+    ]
+  },
+  {
+    "name": "Leukemia",
+    "description": "A medical condition characterized by dizziness, seizures.",
+    "symptoms": [
+      "dizziness",
+      "seizures"
+    ]
+  },
+  {
+    "name": "Lymphoma",
+    "description": "A medical condition characterized by sore throat, dizziness.",
+    "symptoms": [
+      "sore throat",
+      "dizziness",
+      "red eyes",
+      "weight gain",
+      "runny nose"
+    ]
+  },
+  {
+    "name": "Multiple Myeloma",
+    "description": "A medical condition characterized by hearing loss, low blood pressure.",
+    "symptoms": [
+      "hearing loss",
+      "low blood pressure",
+      "cold intolerance",
+      "pale skin"
+    ]
+  },
+  {
+    "name": "Gastroesophageal Reflux Disease",
+    "description": "A medical condition characterized by double vision, rash.",
+    "symptoms": [
+      "double vision",
+      "rash",
+      "cold intolerance",
+      "swelling"
+    ]
+  },
+  {
+    "name": "Peptic Ulcer Disease",
+    "description": "A medical condition characterized by runny nose, hiccups.",
+    "symptoms": [
+      "runny nose",
+      "hiccups"
+    ]
+  },
+  {
+    "name": "Irritable Bowel Syndrome",
+    "description": "A medical condition characterized by tremors, double vision.",
+    "symptoms": [
+      "tremors",
+      "double vision",
+      "weight gain",
+      "hair loss"
+    ]
+  },
+  {
+    "name": "Crohn\u2019s Disease",
+    "description": "A medical condition characterized by sneezing, insomnia.",
+    "symptoms": [
+      "sneezing",
+      "insomnia",
+      "dry mouth",
+      "knee pain"
+    ]
+  },
+  {
+    "name": "Ulcerative Colitis",
+    "description": "A medical condition characterized by low blood sugar, itchiness.",
+    "symptoms": [
+      "low blood sugar",
+      "itchiness",
+      "headache"
+    ]
+  },
+  {
+    "name": "Celiac Disease",
+    "description": "A medical condition characterized by high blood sugar, sweating.",
+    "symptoms": [
+      "high blood sugar",
+      "sweating",
+      "wheezing",
+      "confusion"
+    ]
+  },
+  {
+    "name": "Lactose Intolerance",
+    "description": "A medical condition characterized by lightheadedness, swelling.",
+    "symptoms": [
+      "lightheadedness",
+      "swelling",
+      "burning urination",
+      "constipation"
+    ]
+  },
+  {
+    "name": "Pancreatitis",
+    "description": "A medical condition characterized by muscle aches, trouble swallowing.",
+    "symptoms": [
+      "muscle aches",
+      "trouble swallowing",
+      "weight gain"
+    ]
+  },
+  {
+    "name": "Hepatitis A",
+    "description": "A medical condition characterized by insomnia, high blood sugar.",
+    "symptoms": [
+      "insomnia",
+      "high blood sugar"
+    ]
+  },
+  {
+    "name": "Hepatitis B",
+    "description": "A medical condition characterized by lightheadedness, vomiting.",
+    "symptoms": [
+      "lightheadedness",
+      "vomiting",
+      "palpitations",
+      "joint pain",
+      "numbness"
+    ]
+  },
+  {
+    "name": "Hepatitis C",
+    "description": "A medical condition characterized by blood in urine, nausea.",
+    "symptoms": [
+      "blood in urine",
+      "nausea"
+    ]
+  },
+  {
+    "name": "Cirrhosis",
+    "description": "A medical condition characterized by delayed healing, high blood sugar.",
+    "symptoms": [
+      "delayed healing",
+      "high blood sugar",
+      "depression"
+    ]
+  },
+  {
+    "name": "Gallstones",
+    "description": "A medical condition characterized by cramps, confusion.",
+    "symptoms": [
+      "cramps",
+      "confusion",
+      "burning urination",
+      "rash"
+    ]
+  },
+  {
+    "name": "Kidney Stones",
+    "description": "A medical condition characterized by hallucinations, back pain.",
+    "symptoms": [
+      "hallucinations",
+      "back pain",
+      "irregular heartbeat",
+      "depression"
+    ]
+  },
+  {
+    "name": "Urinary Tract Infection",
+    "description": "A medical condition characterized by constipation, shortness of breath.",
+    "symptoms": [
+      "constipation",
+      "shortness of breath"
+    ]
+  },
+  {
+    "name": "Pyelonephritis",
+    "description": "A medical condition characterized by dry skin, yellow skin.",
+    "symptoms": [
+      "dry skin",
+      "yellow skin"
+    ]
+  },
+  {
+    "name": "Glomerulonephritis",
+    "description": "A medical condition characterized by earache, abdominal pain.",
+    "symptoms": [
+      "earache",
+      "abdominal pain",
+      "tremors",
+      "fever"
+    ]
+  },
+  {
+    "name": "Prostatitis",
+    "description": "A medical condition characterized by itchiness, low blood pressure.",
+    "symptoms": [
+      "itchiness",
+      "low blood pressure",
+      "headache",
+      "chest pain",
+      "back pain"
+    ]
+  },
+  {
+    "name": "Benign Prostatic Hyperplasia",
+    "description": "A medical condition characterized by sneezing, gas.",
+    "symptoms": [
+      "sneezing",
+      "gas",
+      "hearing loss"
+    ]
+  },
+  {
+    "name": "Osteoarthritis",
+    "description": "A medical condition characterized by delayed healing, rash.",
+    "symptoms": [
+      "delayed healing",
+      "rash",
+      "yellow skin",
+      "low blood pressure",
+      "irregular heartbeat"
+    ]
+  },
+  {
+    "name": "Rheumatoid Arthritis",
+    "description": "A medical condition characterized by fever, high blood pressure.",
+    "symptoms": [
+      "fever",
+      "high blood pressure",
+      "depression",
+      "hair loss",
+      "joint pain"
+    ]
+  },
+  {
+    "name": "Gout",
+    "description": "A medical condition characterized by irregular heartbeat, red eyes.",
+    "symptoms": [
+      "irregular heartbeat",
+      "red eyes"
+    ]
+  },
+  {
+    "name": "Systemic Lupus Erythematosus",
+    "description": "A medical condition characterized by weight loss, red eyes.",
+    "symptoms": [
+      "weight loss",
+      "red eyes",
+      "knee pain",
+      "shoulder pain"
+    ]
+  },
+  {
+    "name": "Psoriasis",
+    "description": "A medical condition characterized by nasal congestion, sore throat.",
+    "symptoms": [
+      "nasal congestion",
+      "sore throat",
+      "knee pain",
+      "hearing loss",
+      "sweating"
+    ]
+  },
+  {
+    "name": "Eczema",
+    "description": "A medical condition characterized by cramps, frequent urination.",
+    "symptoms": [
+      "cramps",
+      "frequent urination",
+      "seizures",
+      "rash"
+    ]
+  },
+  {
+    "name": "Dermatitis",
+    "description": "A medical condition characterized by depression, weight loss.",
+    "symptoms": [
+      "depression",
+      "weight loss",
+      "seizures",
+      "red eyes",
+      "hiccups"
+    ]
+  },
+  {
+    "name": "Acne",
+    "description": "A medical condition characterized by gas, tremors.",
+    "symptoms": [
+      "gas",
+      "tremors"
+    ]
+  },
+  {
+    "name": "Rosacea",
+    "description": "A medical condition characterized by chest pain, muscle aches.",
+    "symptoms": [
+      "chest pain",
+      "muscle aches",
+      "shortness of breath"
+    ]
+  },
+  {
+    "name": "Melanoma",
+    "description": "A medical condition characterized by tingling, hiccups.",
+    "symptoms": [
+      "tingling",
+      "hiccups"
+    ]
+  },
+  {
+    "name": "Basal Cell Carcinoma",
+    "description": "A medical condition characterized by earache, low blood sugar.",
+    "symptoms": [
+      "earache",
+      "low blood sugar"
+    ]
+  },
+  {
+    "name": "Squamous Cell Carcinoma",
+    "description": "A medical condition characterized by dry skin, anxiety.",
+    "symptoms": [
+      "dry skin",
+      "anxiety"
+    ]
+  },
+  {
+    "name": "Skin Tag",
+    "description": "A medical condition characterized by shoulder pain, gas.",
+    "symptoms": [
+      "shoulder pain",
+      "gas",
+      "weight gain"
+    ]
+  },
+  {
+    "name": "Warts",
+    "description": "A medical condition characterized by earache, knee pain.",
+    "symptoms": [
+      "earache",
+      "knee pain",
+      "frequent urination"
+    ]
+  },
+  {
+    "name": "Herpes Simplex",
+    "description": "A medical condition characterized by sneezing, diarrhea.",
+    "symptoms": [
+      "sneezing",
+      "diarrhea",
+      "weight loss",
+      "depression"
+    ]
+  },
+  {
+    "name": "Chickenpox",
+    "description": "A medical condition characterized by muscle aches, gas.",
+    "symptoms": [
+      "muscle aches",
+      "gas"
+    ]
+  },
+  {
+    "name": "Shingles",
+    "description": "A medical condition characterized by cramps, tingling.",
+    "symptoms": [
+      "cramps",
+      "tingling",
+      "wheezing"
+    ]
+  },
+  {
+    "name": "Measles",
+    "description": "A medical condition characterized by delayed healing, neck pain.",
+    "symptoms": [
+      "delayed healing",
+      "neck pain",
+      "confusion"
+    ]
+  },
+  {
+    "name": "Mumps",
+    "description": "A medical condition characterized by bloating, disorientation.",
+    "symptoms": [
+      "bloating",
+      "disorientation"
+    ]
+  },
+  {
+    "name": "Rubella",
+    "description": "A medical condition characterized by neck pain, sneezing.",
+    "symptoms": [
+      "neck pain",
+      "sneezing",
+      "fever",
+      "blood in urine"
+    ]
+  },
+  {
+    "name": "Scarlet Fever",
+    "description": "A medical condition characterized by disorientation, dry mouth.",
+    "symptoms": [
+      "disorientation",
+      "dry mouth",
+      "joint pain",
+      "tingling",
+      "cramps"
+    ]
+  },
+  {
+    "name": "Whooping Cough",
+    "description": "A medical condition characterized by back pain, red eyes.",
+    "symptoms": [
+      "back pain",
+      "red eyes",
+      "gas",
+      "cough"
+    ]
+  },
+  {
+    "name": "Tetanus",
+    "description": "A medical condition characterized by trouble swallowing, hallucinations.",
+    "symptoms": [
+      "trouble swallowing",
+      "hallucinations",
+      "hearing loss",
+      "vomiting",
+      "insomnia"
+    ]
+  },
+  {
+    "name": "Diphtheria",
+    "description": "A medical condition characterized by sore throat, wheezing.",
+    "symptoms": [
+      "sore throat",
+      "wheezing",
+      "chest pain"
+    ]
+  },
+  {
+    "name": "Tuberculosis",
+    "description": "A medical condition characterized by abdominal pain, rash.",
+    "symptoms": [
+      "abdominal pain",
+      "rash",
+      "cold intolerance"
+    ]
+  },
+  {
+    "name": "COVID-19",
+    "description": "A medical condition characterized by hiccups, hallucinations.",
+    "symptoms": [
+      "hiccups",
+      "hallucinations",
+      "depression",
+      "cramps",
+      "back pain"
+    ]
+  },
+  {
+    "name": "Common Cold",
+    "description": "A medical condition characterized by tremors, fatigue.",
+    "symptoms": [
+      "tremors",
+      "fatigue",
+      "neck pain"
+    ]
+  },
+  {
+    "name": "Influenza",
+    "description": "A medical condition characterized by shortness of breath, weight gain.",
+    "symptoms": [
+      "shortness of breath",
+      "weight gain",
+      "frequent urination",
+      "delayed healing",
+      "depression"
+    ]
+  },
+  {
+    "name": "Mononucleosis",
+    "description": "A medical condition characterized by red eyes, memory loss.",
+    "symptoms": [
+      "red eyes",
+      "memory loss",
+      "itchiness",
+      "hair loss",
+      "dry mouth"
+    ]
+  },
+  {
+    "name": "Tonsillitis",
+    "description": "A medical condition characterized by loss of appetite, trouble swallowing.",
+    "symptoms": [
+      "loss of appetite",
+      "trouble swallowing",
+      "hearing loss",
+      "weight gain",
+      "bloating"
+    ]
+  },
+  {
+    "name": "Sinusitis",
+    "description": "A medical condition characterized by high blood sugar, blood in urine.",
+    "symptoms": [
+      "high blood sugar",
+      "blood in urine"
+    ]
+  },
+  {
+    "name": "Otitis Media",
+    "description": "A medical condition characterized by blurred vision, frequent urination.",
+    "symptoms": [
+      "blurred vision",
+      "frequent urination",
+      "headache",
+      "red eyes"
+    ]
+  },
+  {
+    "name": "Labyrinthitis",
+    "description": "A medical condition characterized by nasal congestion, fatigue.",
+    "symptoms": [
+      "nasal congestion",
+      "fatigue"
+    ]
+  },
+  {
+    "name": "Meniere\u2019s Disease",
+    "description": "A medical condition characterized by nausea, memory loss.",
+    "symptoms": [
+      "nausea",
+      "memory loss",
+      "high blood pressure",
+      "irregular heartbeat",
+      "runny nose"
+    ]
+  },
+  {
+    "name": "Vertigo",
+    "description": "A medical condition characterized by seizures, red eyes.",
+    "symptoms": [
+      "seizures",
+      "red eyes",
+      "double vision"
+    ]
+  },
+  {
+    "name": "Conjunctivitis",
+    "description": "A medical condition characterized by dizziness, neck pain.",
+    "symptoms": [
+      "dizziness",
+      "neck pain",
+      "cold intolerance",
+      "pale skin"
+    ]
+  },
+  {
+    "name": "Glaucoma",
+    "description": "A medical condition characterized by nausea, dizziness.",
+    "symptoms": [
+      "nausea",
+      "dizziness"
+    ]
+  },
+  {
+    "name": "Cataracts",
+    "description": "A medical condition characterized by anxiety, swelling.",
+    "symptoms": [
+      "anxiety",
+      "swelling",
+      "heat intolerance"
+    ]
+  },
+  {
+    "name": "Macular Degeneration",
+    "description": "A medical condition characterized by chest pain, headache.",
+    "symptoms": [
+      "chest pain",
+      "headache",
+      "frequent urination",
+      "vomiting",
+      "trouble swallowing"
+    ]
+  },
+  {
+    "name": "Retinal Detachment",
+    "description": "A medical condition characterized by earache, hearing loss.",
+    "symptoms": [
+      "earache",
+      "hearing loss",
+      "back pain",
+      "lightheadedness"
+    ]
+  },
+  {
+    "name": "Dry Eye Syndrome",
+    "description": "A medical condition characterized by numbness, blurred vision.",
+    "symptoms": [
+      "numbness",
+      "blurred vision",
+      "tingling",
+      "depression",
+      "rash"
+    ]
+  },
+  {
+    "name": "Blepharitis",
+    "description": "A medical condition characterized by hallucinations, shortness of breath.",
+    "symptoms": [
+      "hallucinations",
+      "shortness of breath",
+      "depression",
+      "constipation",
+      "muscle aches"
+    ]
+  },
+  {
+    "name": "Tooth Decay",
+    "description": "A medical condition characterized by pale skin, vomiting.",
+    "symptoms": [
+      "pale skin",
+      "vomiting",
+      "swelling"
+    ]
+  },
+  {
+    "name": "Gingivitis",
+    "description": "A medical condition characterized by headache, low blood pressure.",
+    "symptoms": [
+      "headache",
+      "low blood pressure",
+      "pale skin",
+      "lightheadedness",
+      "trouble swallowing"
+    ]
+  },
+  {
+    "name": "Periodontitis",
+    "description": "A medical condition characterized by pale skin, weight gain.",
+    "symptoms": [
+      "pale skin",
+      "weight gain",
+      "hiccups"
+    ]
+  },
+  {
+    "name": "Temporomandibular Joint Disorder",
+    "description": "A medical condition characterized by nausea, hair loss.",
+    "symptoms": [
+      "nausea",
+      "hair loss",
+      "seizures"
+    ]
+  },
+  {
+    "name": "Tension Headache",
+    "description": "A medical condition characterized by irregular heartbeat, cramps.",
+    "symptoms": [
+      "irregular heartbeat",
+      "cramps"
+    ]
+  },
+  {
+    "name": "Cluster Headache",
+    "description": "A medical condition characterized by red eyes, chest pain.",
+    "symptoms": [
+      "red eyes",
+      "chest pain"
+    ]
+  },
+  {
+    "name": "Epilepsy",
+    "description": "A medical condition characterized by abdominal pain, confusion.",
+    "symptoms": [
+      "abdominal pain",
+      "confusion",
+      "burning urination",
+      "fatigue",
+      "dry skin"
+    ]
+  },
+  {
+    "name": "Parkinson\u2019s Disease",
+    "description": "A medical condition characterized by delayed healing, confusion.",
+    "symptoms": [
+      "delayed healing",
+      "confusion"
+    ]
+  },
+  {
+    "name": "Alzheimer\u2019s Disease",
+    "description": "A medical condition characterized by yellow skin, disorientation.",
+    "symptoms": [
+      "yellow skin",
+      "disorientation",
+      "blood in urine"
+    ]
+  },
+  {
+    "name": "Dementia",
+    "description": "A medical condition characterized by disorientation, low blood pressure.",
+    "symptoms": [
+      "disorientation",
+      "low blood pressure",
+      "dry mouth"
+    ]
+  },
+  {
+    "name": "Multiple Sclerosis",
+    "description": "A medical condition characterized by sneezing, disorientation.",
+    "symptoms": [
+      "sneezing",
+      "disorientation",
+      "double vision",
+      "delayed healing",
+      "nasal congestion"
+    ]
+  },
+  {
+    "name": "ALS",
+    "description": "A medical condition characterized by high blood pressure, hiccups.",
+    "symptoms": [
+      "high blood pressure",
+      "hiccups",
+      "wheezing"
+    ]
+  },
+  {
+    "name": "Cerebral Palsy",
+    "description": "A medical condition characterized by low blood pressure, neck pain.",
+    "symptoms": [
+      "low blood pressure",
+      "neck pain",
+      "depression",
+      "chest pain",
+      "fever"
+    ]
+  },
+  {
+    "name": "Brain Tumor",
+    "description": "A medical condition characterized by back pain, memory loss.",
+    "symptoms": [
+      "back pain",
+      "memory loss",
+      "double vision",
+      "neck pain"
+    ]
+  },
+  {
+    "name": "Spinal Cord Injury",
+    "description": "A medical condition characterized by bloating, knee pain.",
+    "symptoms": [
+      "bloating",
+      "knee pain",
+      "high blood pressure"
+    ]
+  },
+  {
+    "name": "Depression",
+    "description": "A medical condition characterized by tremors, chest pain.",
+    "symptoms": [
+      "tremors",
+      "chest pain",
+      "bloating",
+      "earache"
+    ]
+  },
+  {
+    "name": "Anxiety Disorder",
+    "description": "A medical condition characterized by low blood sugar, insomnia.",
+    "symptoms": [
+      "low blood sugar",
+      "insomnia"
+    ]
+  },
+  {
+    "name": "Bipolar Disorder",
+    "description": "A medical condition characterized by chest pain, swelling.",
+    "symptoms": [
+      "chest pain",
+      "swelling"
+    ]
+  },
+  {
+    "name": "Schizophrenia",
+    "description": "A medical condition characterized by dry mouth, knee pain.",
+    "symptoms": [
+      "dry mouth",
+      "knee pain",
+      "nasal congestion",
+      "loss of appetite"
+    ]
+  },
+  {
+    "name": "Obsessive-Compulsive Disorder",
+    "description": "A medical condition characterized by yellow skin, earache.",
+    "symptoms": [
+      "yellow skin",
+      "earache"
+    ]
+  },
+  {
+    "name": "Post-Traumatic Stress Disorder",
+    "description": "A medical condition characterized by rash, gas.",
+    "symptoms": [
+      "rash",
+      "gas",
+      "high blood sugar"
+    ]
+  },
+  {
+    "name": "Attention Deficit Hyperactivity Disorder",
+    "description": "A medical condition characterized by sneezing, anxiety.",
+    "symptoms": [
+      "sneezing",
+      "anxiety",
+      "low blood pressure",
+      "runny nose",
+      "seizures"
+    ]
+  },
+  {
+    "name": "Autism Spectrum Disorder",
+    "description": "A medical condition characterized by frequent urination, burning urination.",
+    "symptoms": [
+      "frequent urination",
+      "burning urination",
+      "hearing loss"
+    ]
+  },
+  {
+    "name": "Insomnia",
+    "description": "A medical condition characterized by muscle aches, shortness of breath.",
+    "symptoms": [
+      "muscle aches",
+      "shortness of breath"
+    ]
+  },
+  {
+    "name": "Sleep Apnea",
+    "description": "A medical condition characterized by knee pain, blurred vision.",
+    "symptoms": [
+      "knee pain",
+      "blurred vision",
+      "loss of appetite",
+      "weight loss"
+    ]
+  },
+  {
+    "name": "Narcolepsy",
+    "description": "A medical condition characterized by insomnia, sore throat.",
+    "symptoms": [
+      "insomnia",
+      "sore throat",
+      "wheezing"
+    ]
+  },
+  {
+    "name": "Restless Leg Syndrome",
+    "description": "A medical condition characterized by blurred vision, abdominal pain.",
+    "symptoms": [
+      "blurred vision",
+      "abdominal pain",
+      "irregular heartbeat"
+    ]
+  },
+  {
+    "name": "Endometriosis",
+    "description": "A medical condition characterized by cough, low blood pressure.",
+    "symptoms": [
+      "cough",
+      "low blood pressure",
+      "burning urination",
+      "headache"
+    ]
+  },
+  {
+    "name": "Polycystic Ovary Syndrome",
+    "description": "A medical condition characterized by nausea, cough.",
+    "symptoms": [
+      "nausea",
+      "cough",
+      "nasal congestion"
+    ]
+  },
+  {
+    "name": "Menopause",
+    "description": "A medical condition characterized by diarrhea, back pain.",
+    "symptoms": [
+      "diarrhea",
+      "back pain",
+      "memory loss",
+      "shoulder pain"
+    ]
+  },
+  {
+    "name": "PMS",
+    "description": "A medical condition characterized by low blood sugar, fever.",
+    "symptoms": [
+      "low blood sugar",
+      "fever"
+    ]
+  },
+  {
+    "name": "Pelvic Inflammatory Disease",
+    "description": "A medical condition characterized by depression, swelling.",
+    "symptoms": [
+      "depression",
+      "swelling",
+      "rash",
+      "hair loss",
+      "neck pain"
+    ]
+  },
+  {
+    "name": "Ectopic Pregnancy",
+    "description": "A medical condition characterized by dry mouth, confusion.",
+    "symptoms": [
+      "dry mouth",
+      "confusion"
+    ]
+  },
+  {
+    "name": "Miscarriage",
+    "description": "A medical condition characterized by hiccups, yellow skin.",
+    "symptoms": [
+      "hiccups",
+      "yellow skin",
+      "loss of appetite",
+      "insomnia"
+    ]
+  },
+  {
+    "name": "Pre-eclampsia",
+    "description": "A medical condition characterized by high blood pressure, trouble swallowing.",
+    "symptoms": [
+      "high blood pressure",
+      "trouble swallowing",
+      "tingling",
+      "seizures"
+    ]
+  },
+  {
+    "name": "Gestational Diabetes",
+    "description": "A medical condition characterized by swelling, seizures.",
+    "symptoms": [
+      "swelling",
+      "seizures",
+      "hearing loss"
+    ]
+  },
+  {
+    "name": "Infertility",
+    "description": "A medical condition characterized by cough, burning urination.",
+    "symptoms": [
+      "cough",
+      "burning urination",
+      "disorientation",
+      "hiccups",
+      "trouble swallowing"
+    ]
+  },
+  {
+    "name": "Erectile Dysfunction",
+    "description": "A medical condition characterized by tingling, sensitivity to light.",
+    "symptoms": [
+      "tingling",
+      "sensitivity to light",
+      "burning urination"
+    ]
+  },
+  {
+    "name": "Testicular Cancer",
+    "description": "A medical condition characterized by weight gain, disorientation.",
+    "symptoms": [
+      "weight gain",
+      "disorientation",
+      "tremors"
+    ]
+  },
+  {
+    "name": "Prostate Cancer",
+    "description": "A medical condition characterized by anxiety, tingling.",
+    "symptoms": [
+      "anxiety",
+      "tingling",
+      "lightheadedness",
+      "nausea"
+    ]
+  },
+  {
+    "name": "Breast Cancer",
+    "description": "A medical condition characterized by chills, joint pain.",
+    "symptoms": [
+      "chills",
+      "joint pain",
+      "muscle aches",
+      "confusion"
+    ]
+  },
+  {
+    "name": "Ovarian Cancer",
+    "description": "A medical condition characterized by sneezing, disorientation.",
+    "symptoms": [
+      "sneezing",
+      "disorientation",
+      "pale skin",
+      "hearing loss",
+      "hallucinations"
+    ]
+  },
+  {
+    "name": "Cervical Cancer",
+    "description": "A medical condition characterized by sweating, runny nose.",
+    "symptoms": [
+      "sweating",
+      "runny nose",
+      "yellow skin"
+    ]
+  },
+  {
+    "name": "Colon Cancer",
+    "description": "A medical condition characterized by delayed healing, low blood pressure.",
+    "symptoms": [
+      "delayed healing",
+      "low blood pressure"
+    ]
+  },
+  {
+    "name": "Lung Cancer",
+    "description": "A medical condition characterized by pale skin, seizures.",
+    "symptoms": [
+      "pale skin",
+      "seizures",
+      "burning urination"
+    ]
+  },
+  {
+    "name": "Liver Cancer",
+    "description": "A medical condition characterized by cold intolerance, muscle aches.",
+    "symptoms": [
+      "cold intolerance",
+      "muscle aches"
+    ]
+  },
+  {
+    "name": "Pancreatic Cancer",
+    "description": "A medical condition characterized by back pain, vomiting.",
+    "symptoms": [
+      "back pain",
+      "vomiting",
+      "blood in urine",
+      "cold intolerance",
+      "runny nose"
+    ]
+  },
+  {
+    "name": "Bladder Cancer",
+    "description": "A medical condition characterized by headache, double vision.",
+    "symptoms": [
+      "headache",
+      "double vision",
+      "weight gain",
+      "sore throat"
+    ]
+  },
+  {
+    "name": "Esophageal Cancer",
+    "description": "A medical condition characterized by disorientation, seizures.",
+    "symptoms": [
+      "disorientation",
+      "seizures",
+      "delayed healing",
+      "irregular heartbeat"
+    ]
+  },
+  {
+    "name": "Stomach Cancer",
+    "description": "A medical condition characterized by double vision, blood in urine.",
+    "symptoms": [
+      "double vision",
+      "blood in urine",
+      "abdominal pain",
+      "yellow skin",
+      "constipation"
+    ]
+  },
+  {
+    "name": "Thyroid Cancer",
+    "description": "A medical condition characterized by constipation, sensitivity to light.",
+    "symptoms": [
+      "constipation",
+      "sensitivity to light",
+      "cough",
+      "irregular heartbeat"
+    ]
+  },
+  {
+    "name": "Bone Cancer",
+    "description": "A medical condition characterized by dry skin, disorientation.",
+    "symptoms": [
+      "dry skin",
+      "disorientation"
+    ]
+  },
+  {
+    "name": "Sarcoma",
+    "description": "A medical condition characterized by double vision, shortness of breath.",
+    "symptoms": [
+      "double vision",
+      "shortness of breath",
+      "diarrhea",
+      "sore throat",
+      "trouble swallowing"
+    ]
+  },
+  {
+    "name": "Leukoplakia",
+    "description": "A medical condition characterized by low blood pressure, nasal congestion.",
+    "symptoms": [
+      "low blood pressure",
+      "nasal congestion",
+      "hair loss",
+      "sneezing",
+      "trouble swallowing"
+    ]
+  },
+  {
+    "name": "Fibromyalgia",
+    "description": "A medical condition characterized by shoulder pain, sensitivity to light.",
+    "symptoms": [
+      "shoulder pain",
+      "sensitivity to light",
+      "frequent urination",
+      "low blood pressure"
+    ]
+  },
+  {
+    "name": "Chronic Fatigue Syndrome",
+    "description": "A medical condition characterized by sensitivity to light, rash.",
+    "symptoms": [
+      "sensitivity to light",
+      "rash",
+      "back pain",
+      "diarrhea"
+    ]
+  },
+  {
+    "name": "Heat Stroke",
+    "description": "A medical condition characterized by abdominal pain, weight loss.",
+    "symptoms": [
+      "abdominal pain",
+      "weight loss",
+      "loss of appetite",
+      "blood in urine",
+      "hiccups"
+    ]
+  },
+  {
+    "name": "Hypothermia",
+    "description": "A medical condition characterized by dry skin, frequent urination.",
+    "symptoms": [
+      "dry skin",
+      "frequent urination",
+      "blood in urine",
+      "sweating"
+    ]
+  },
+  {
+    "name": "Dehydration",
+    "description": "A medical condition characterized by trouble swallowing, diarrhea.",
+    "symptoms": [
+      "trouble swallowing",
+      "diarrhea"
+    ]
+  },
+  {
+    "name": "Malnutrition",
+    "description": "A medical condition characterized by swelling, chills.",
+    "symptoms": [
+      "swelling",
+      "chills",
+      "blurred vision"
+    ]
+  },
+  {
+    "name": "Obesity",
+    "description": "A medical condition characterized by sweating, gas.",
+    "symptoms": [
+      "sweating",
+      "gas",
+      "earache",
+      "nausea",
+      "swelling"
+    ]
+  },
+  {
+    "name": "Overweight",
+    "description": "A medical condition characterized by sore throat, confusion.",
+    "symptoms": [
+      "sore throat",
+      "confusion",
+      "runny nose",
+      "back pain",
+      "nasal congestion"
+    ]
+  },
+  {
+    "name": "Underweight",
+    "description": "A medical condition characterized by lightheadedness, burning urination.",
+    "symptoms": [
+      "lightheadedness",
+      "burning urination",
+      "bloating"
+    ]
+  },
+  {
+    "name": "Lead Poisoning",
+    "description": "A medical condition characterized by nausea, seizures.",
+    "symptoms": [
+      "nausea",
+      "seizures",
+      "weight loss"
+    ]
+  },
+  {
+    "name": "Carbon Monoxide Poisoning",
+    "description": "A medical condition characterized by high blood pressure, weight gain.",
+    "symptoms": [
+      "high blood pressure",
+      "weight gain"
+    ]
+  },
+  {
+    "name": "Alcohol Poisoning",
+    "description": "A medical condition characterized by dry skin, anxiety.",
+    "symptoms": [
+      "dry skin",
+      "anxiety",
+      "vomiting",
+      "constipation",
+      "delayed healing"
+    ]
+  },
+  {
+    "name": "Drug Overdose",
+    "description": "A medical condition characterized by dizziness, vomiting.",
+    "symptoms": [
+      "dizziness",
+      "vomiting",
+      "pale skin",
+      "hiccups",
+      "chest pain"
+    ]
+  },
+  {
+    "name": "Sepsis",
+    "description": "A medical condition characterized by depression, seizures.",
+    "symptoms": [
+      "depression",
+      "seizures",
+      "muscle aches",
+      "sneezing"
+    ]
+  },
+  {
+    "name": "Septic Shock",
+    "description": "A medical condition characterized by shortness of breath, runny nose.",
+    "symptoms": [
+      "shortness of breath",
+      "runny nose",
+      "palpitations"
+    ]
+  },
+  {
+    "name": "Anaphylaxis",
+    "description": "A medical condition characterized by muscle aches, cough.",
+    "symptoms": [
+      "muscle aches",
+      "cough"
+    ]
+  },
+  {
+    "name": "Food Allergy",
+    "description": "A medical condition characterized by earache, sensitivity to light.",
+    "symptoms": [
+      "earache",
+      "sensitivity to light",
+      "lightheadedness",
+      "weight loss"
+    ]
+  },
+  {
+    "name": "Pollen Allergy",
+    "description": "A medical condition characterized by hearing loss, anxiety.",
+    "symptoms": [
+      "hearing loss",
+      "anxiety"
+    ]
+  },
+  {
+    "name": "Dust Allergy",
+    "description": "A medical condition characterized by high blood pressure, chills.",
+    "symptoms": [
+      "high blood pressure",
+      "chills",
+      "cough",
+      "heat intolerance",
+      "fever"
+    ]
+  },
+  {
+    "name": "Pet Allergy",
+    "description": "A medical condition characterized by loss of appetite, hair loss.",
+    "symptoms": [
+      "loss of appetite",
+      "hair loss",
+      "chills",
+      "burning urination"
+    ]
+  },
+  {
+    "name": "Latex Allergy",
+    "description": "A medical condition characterized by hallucinations, disorientation.",
+    "symptoms": [
+      "hallucinations",
+      "disorientation",
+      "sneezing",
+      "hearing loss",
+      "headache"
+    ]
+  },
+  {
+    "name": "Insect Sting Allergy",
+    "description": "A medical condition characterized by neck pain, low blood pressure.",
+    "symptoms": [
+      "neck pain",
+      "low blood pressure"
+    ]
+  },
+  {
+    "name": "Cystic Fibrosis",
+    "description": "A medical condition characterized by yellow skin, frequent urination.",
+    "symptoms": [
+      "yellow skin",
+      "frequent urination"
+    ]
+  },
+  {
+    "name": "Hemophilia",
+    "description": "A medical condition characterized by sore throat, loss of appetite.",
+    "symptoms": [
+      "sore throat",
+      "loss of appetite",
+      "fatigue",
+      "shoulder pain"
+    ]
+  },
+  {
+    "name": "Thalassemia",
+    "description": "A medical condition characterized by hair loss, gas.",
+    "symptoms": [
+      "hair loss",
+      "gas",
+      "vomiting",
+      "confusion",
+      "trouble swallowing"
+    ]
+  },
+  {
+    "name": "Sickle Cell Disease",
+    "description": "A medical condition characterized by palpitations, nasal congestion.",
+    "symptoms": [
+      "palpitations",
+      "nasal congestion",
+      "dizziness"
+    ]
+  },
+  {
+    "name": "Marfan Syndrome",
+    "description": "A medical condition characterized by pale skin, earache.",
+    "symptoms": [
+      "pale skin",
+      "earache",
+      "cramps"
+    ]
+  },
+  {
+    "name": "Ehlers-Danlos Syndrome",
+    "description": "A medical condition characterized by seizures, low blood pressure.",
+    "symptoms": [
+      "seizures",
+      "low blood pressure",
+      "trouble swallowing"
+    ]
+  },
+  {
+    "name": "Turner Syndrome",
+    "description": "A medical condition characterized by sweating, anxiety.",
+    "symptoms": [
+      "sweating",
+      "anxiety",
+      "chest pain",
+      "depression"
+    ]
+  },
+  {
+    "name": "Klinefelter Syndrome",
+    "description": "A medical condition characterized by confusion, hair loss.",
+    "symptoms": [
+      "confusion",
+      "hair loss",
+      "cramps"
+    ]
+  },
+  {
+    "name": "Down Syndrome",
+    "description": "A medical condition characterized by wheezing, neck pain.",
+    "symptoms": [
+      "wheezing",
+      "neck pain",
+      "joint pain"
+    ]
+  },
+  {
+    "name": "Phenylketonuria",
+    "description": "A medical condition characterized by gas, earache.",
+    "symptoms": [
+      "gas",
+      "earache"
+    ]
+  },
+  {
+    "name": "Tay-Sachs Disease",
+    "description": "A medical condition characterized by knee pain, weight loss.",
+    "symptoms": [
+      "knee pain",
+      "weight loss",
+      "fever",
+      "pale skin"
+    ]
+  },
+  {
+    "name": "Huntington's Disease",
+    "description": "A medical condition characterized by sneezing, pale skin.",
+    "symptoms": [
+      "sneezing",
+      "pale skin",
+      "cramps",
+      "weight loss"
+    ]
+  },
+  {
+    "name": "Wilson's Disease",
+    "description": "A medical condition characterized by chest pain, fever.",
+    "symptoms": [
+      "chest pain",
+      "fever",
+      "palpitations"
+    ]
+  },
+  {
+    "name": "Gaucher Disease",
+    "description": "A medical condition characterized by fever, shoulder pain.",
+    "symptoms": [
+      "fever",
+      "shoulder pain",
+      "cramps",
+      "insomnia"
+    ]
+  },
+  {
+    "name": "Rickets",
+    "description": "A medical condition characterized by runny nose, depression.",
+    "symptoms": [
+      "runny nose",
+      "depression",
+      "nasal congestion"
+    ]
+  },
+  {
+    "name": "Scurvy",
+    "description": "A medical condition characterized by hiccups, hair loss.",
+    "symptoms": [
+      "hiccups",
+      "hair loss",
+      "joint pain"
+    ]
+  },
+  {
+    "name": "Beriberi",
+    "description": "A medical condition characterized by rash, tremors.",
+    "symptoms": [
+      "rash",
+      "tremors",
+      "depression",
+      "low blood pressure"
+    ]
+  },
+  {
+    "name": "Kwashiorkor",
+    "description": "A medical condition characterized by bloating, yellow skin.",
+    "symptoms": [
+      "bloating",
+      "yellow skin",
+      "low blood sugar"
+    ]
+  },
+  {
+    "name": "Goiter",
+    "description": "A medical condition characterized by chest pain, nausea.",
+    "symptoms": [
+      "chest pain",
+      "nausea",
+      "frequent urination",
+      "yellow skin",
+      "blurred vision"
+    ]
+  },
+  {
+    "name": "Tinnitus",
+    "description": "A medical condition characterized by loss of appetite, irregular heartbeat.",
+    "symptoms": [
+      "loss of appetite",
+      "irregular heartbeat",
+      "palpitations",
+      "pale skin"
+    ]
+  },
+  {
+    "name": "Barrett's Esophagus",
+    "description": "A medical condition characterized by seizures, sensitivity to light.",
+    "symptoms": [
+      "seizures",
+      "sensitivity to light"
+    ]
+  },
+  {
+    "name": "Hiatal Hernia",
+    "description": "A medical condition characterized by cramps, seizures.",
+    "symptoms": [
+      "cramps",
+      "seizures"
+    ]
+  },
+  {
+    "name": "Diverticulitis",
+    "description": "A medical condition characterized by weight loss, knee pain.",
+    "symptoms": [
+      "weight loss",
+      "knee pain",
+      "trouble swallowing",
+      "hair loss",
+      "blood in urine"
+    ]
+  },
+  {
+    "name": "Appendicitis",
+    "description": "A medical condition characterized by shoulder pain, cough.",
+    "symptoms": [
+      "shoulder pain",
+      "cough",
+      "hiccups",
+      "neck pain",
+      "depression"
+    ]
+  },
+  {
+    "name": "Anal Fissure",
+    "description": "A medical condition characterized by memory loss, numbness.",
+    "symptoms": [
+      "memory loss",
+      "numbness",
+      "hiccups",
+      "gas"
+    ]
+  },
+  {
+    "name": "Hemorrhoids",
+    "description": "A medical condition characterized by hair loss, sweating.",
+    "symptoms": [
+      "hair loss",
+      "sweating",
+      "depression",
+      "runny nose",
+      "itchiness"
+    ]
+  },
+  {
+    "name": "Fistula",
+    "description": "A medical condition characterized by earache, shortness of breath.",
+    "symptoms": [
+      "earache",
+      "shortness of breath"
+    ]
+  },
+  {
+    "name": "Bursitis",
+    "description": "A medical condition characterized by seizures, pale skin.",
+    "symptoms": [
+      "seizures",
+      "pale skin",
+      "muscle aches",
+      "nausea"
+    ]
+  },
+  {
+    "name": "Plantar Fasciitis",
+    "description": "A medical condition characterized by earache, cold intolerance.",
+    "symptoms": [
+      "earache",
+      "cold intolerance",
+      "high blood sugar"
+    ]
+  },
+  {
+    "name": "Shin Splints",
+    "description": "A medical condition characterized by red eyes, runny nose.",
+    "symptoms": [
+      "red eyes",
+      "runny nose",
+      "frequent urination",
+      "muscle aches",
+      "low blood pressure"
+    ]
+  },
+  {
+    "name": "Sciatica",
+    "description": "A medical condition characterized by vomiting, confusion.",
+    "symptoms": [
+      "vomiting",
+      "confusion",
+      "irregular heartbeat",
+      "chills",
+      "swelling"
+    ]
+  },
+  {
+    "name": "Herniated Disc",
+    "description": "A medical condition characterized by diarrhea, weight gain.",
+    "symptoms": [
+      "diarrhea",
+      "weight gain",
+      "pale skin",
+      "tremors"
+    ]
+  },
+  {
+    "name": "Scoliosis",
+    "description": "A medical condition characterized by headache, fever.",
+    "symptoms": [
+      "headache",
+      "fever",
+      "heat intolerance"
+    ]
+  },
+  {
+    "name": "Kyphosis",
+    "description": "A medical condition characterized by weight loss, tingling.",
+    "symptoms": [
+      "weight loss",
+      "tingling"
+    ]
+  },
+  {
+    "name": "Lordosis",
+    "description": "A medical condition characterized by delayed healing, high blood sugar.",
+    "symptoms": [
+      "delayed healing",
+      "high blood sugar"
+    ]
+  },
+  {
+    "name": "Flatfoot",
+    "description": "A medical condition characterized by joint pain, abdominal pain.",
+    "symptoms": [
+      "joint pain",
+      "abdominal pain"
+    ]
+  },
+  {
+    "name": "Clubfoot",
+    "description": "A medical condition characterized by hiccups, swelling.",
+    "symptoms": [
+      "hiccups",
+      "swelling"
+    ]
+  },
+  {
+    "name": "Sprain",
+    "description": "A medical condition characterized by heat intolerance, constipation.",
+    "symptoms": [
+      "heat intolerance",
+      "constipation",
+      "bloating",
+      "hiccups"
+    ]
+  },
+  {
+    "name": "Strain",
+    "description": "A medical condition characterized by chest pain, double vision.",
+    "symptoms": [
+      "chest pain",
+      "double vision",
+      "dry skin",
+      "low blood pressure",
+      "pale skin"
+    ]
+  },
+  {
+    "name": "Fracture",
+    "description": "A medical condition characterized by earache, wheezing.",
+    "symptoms": [
+      "earache",
+      "wheezing",
+      "fever",
+      "weight loss"
+    ]
+  },
+  {
+    "name": "Dislocation",
+    "description": "A medical condition characterized by headache, nasal congestion.",
+    "symptoms": [
+      "headache",
+      "nasal congestion",
+      "muscle aches"
+    ]
+  },
+  {
+    "name": "Whiplash",
+    "description": "A medical condition characterized by burning urination, sweating.",
+    "symptoms": [
+      "burning urination",
+      "sweating",
+      "joint pain",
+      "pale skin"
+    ]
+  },
+  {
+    "name": "Burn",
+    "description": "A medical condition characterized by delayed healing, blood in urine.",
+    "symptoms": [
+      "delayed healing",
+      "blood in urine",
+      "low blood sugar",
+      "memory loss",
+      "sneezing"
+    ]
+  },
+  {
+    "name": "Frostbite",
+    "description": "A medical condition characterized by shoulder pain, insomnia.",
+    "symptoms": [
+      "shoulder pain",
+      "insomnia",
+      "low blood pressure",
+      "hearing loss"
+    ]
+  },
+  {
+    "name": "Sunburn",
+    "description": "A medical condition characterized by red eyes, headache.",
+    "symptoms": [
+      "red eyes",
+      "headache",
+      "back pain",
+      "numbness"
+    ]
+  },
+  {
+    "name": "Hives",
+    "description": "A medical condition characterized by memory loss, hallucinations.",
+    "symptoms": [
+      "memory loss",
+      "hallucinations",
+      "hair loss",
+      "dizziness"
+    ]
+  },
+  {
+    "name": "Cellulitis",
+    "description": "A medical condition characterized by sweating, pale skin.",
+    "symptoms": [
+      "sweating",
+      "pale skin"
+    ]
+  },
+  {
+    "name": "Impetigo",
+    "description": "A medical condition characterized by blood in urine, nausea.",
+    "symptoms": [
+      "blood in urine",
+      "nausea"
+    ]
+  },
+  {
+    "name": "Ringworm",
+    "description": "A medical condition characterized by earache, chest pain.",
+    "symptoms": [
+      "earache",
+      "chest pain",
+      "lightheadedness",
+      "palpitations"
+    ]
+  },
+  {
+    "name": "Athlete\u2019s Foot",
+    "description": "A medical condition characterized by hearing loss, diarrhea.",
+    "symptoms": [
+      "hearing loss",
+      "diarrhea"
+    ]
+  },
+  {
+    "name": "Jock Itch",
+    "description": "A medical condition characterized by dry mouth, lightheadedness.",
+    "symptoms": [
+      "dry mouth",
+      "lightheadedness"
+    ]
+  },
+  {
+    "name": "Scabies",
+    "description": "A medical condition characterized by irregular heartbeat, weight loss.",
+    "symptoms": [
+      "irregular heartbeat",
+      "weight loss",
+      "yellow skin",
+      "double vision",
+      "fatigue"
+    ]
+  },
+  {
+    "name": "Lice Infestation",
+    "description": "A medical condition characterized by disorientation, anxiety.",
+    "symptoms": [
+      "disorientation",
+      "anxiety",
+      "hearing loss",
+      "memory loss",
+      "high blood pressure"
+    ]
+  },
+  {
+    "name": "Trichomoniasis",
+    "description": "A medical condition characterized by high blood sugar, joint pain.",
+    "symptoms": [
+      "high blood sugar",
+      "joint pain",
+      "cold intolerance",
+      "memory loss"
+    ]
+  },
+  {
+    "name": "Chlamydia",
+    "description": "A medical condition characterized by confusion, weight loss.",
+    "symptoms": [
+      "confusion",
+      "weight loss",
+      "numbness"
+    ]
+  },
+  {
+    "name": "Gonorrhea",
+    "description": "A medical condition characterized by fever, sensitivity to light.",
+    "symptoms": [
+      "fever",
+      "sensitivity to light",
+      "chest pain",
+      "hallucinations"
+    ]
+  },
+  {
+    "name": "Syphilis",
+    "description": "A medical condition characterized by headache, anxiety.",
+    "symptoms": [
+      "headache",
+      "anxiety",
+      "earache"
+    ]
+  },
+  {
+    "name": "HIV/AIDS",
+    "description": "A medical condition characterized by tremors, depression.",
+    "symptoms": [
+      "tremors",
+      "depression",
+      "numbness",
+      "itchiness",
+      "frequent urination"
+    ]
+  },
+  {
+    "name": "Genital Herpes",
+    "description": "A medical condition characterized by loss of appetite, sensitivity to light.",
+    "symptoms": [
+      "loss of appetite",
+      "sensitivity to light"
+    ]
+  },
+  {
+    "name": "Bacterial Vaginosis",
+    "description": "A medical condition characterized by headache, chest pain.",
+    "symptoms": [
+      "headache",
+      "chest pain",
+      "muscle aches"
+    ]
+  },
+  {
+    "name": "Pelvic Floor Dysfunction",
+    "description": "A medical condition characterized by seizures, shoulder pain.",
+    "symptoms": [
+      "seizures",
+      "shoulder pain"
+    ]
+  },
+  {
+    "name": "Urge Incontinence",
+    "description": "A medical condition characterized by knee pain, joint pain.",
+    "symptoms": [
+      "knee pain",
+      "joint pain"
+    ]
+  },
+  {
+    "name": "Stress Incontinence",
+    "description": "A medical condition characterized by palpitations, chills.",
+    "symptoms": [
+      "palpitations",
+      "chills",
+      "lightheadedness",
+      "double vision",
+      "shoulder pain"
+    ]
+  },
+  {
+    "name": "Interstitial Cystitis",
+    "description": "A medical condition characterized by insomnia, loss of appetite.",
+    "symptoms": [
+      "insomnia",
+      "loss of appetite",
+      "yellow skin",
+      "swelling"
+    ]
+  },
+  {
+    "name": "Enlarged Spleen",
+    "description": "A medical condition characterized by hearing loss, nasal congestion.",
+    "symptoms": [
+      "hearing loss",
+      "nasal congestion",
+      "cough",
+      "knee pain"
+    ]
+  },
+  {
+    "name": "Splenic Rupture",
+    "description": "A medical condition characterized by double vision, hiccups.",
+    "symptoms": [
+      "double vision",
+      "hiccups",
+      "chest pain"
+    ]
+  },
+  {
+    "name": "Pancreatic Insufficiency",
+    "description": "A medical condition characterized by fatigue, hair loss.",
+    "symptoms": [
+      "fatigue",
+      "hair loss",
+      "shortness of breath"
+    ]
+  },
+  {
+    "name": "Portal Hypertension",
+    "description": "A medical condition characterized by sensitivity to light, frequent urination.",
+    "symptoms": [
+      "sensitivity to light",
+      "frequent urination",
+      "constipation",
+      "burning urination",
+      "low blood pressure"
+    ]
+  },
+  {
+    "name": "Ascites",
+    "description": "A medical condition characterized by blood in urine, fever.",
+    "symptoms": [
+      "blood in urine",
+      "fever",
+      "delayed healing",
+      "sore throat",
+      "blurred vision"
+    ]
+  },
+  {
+    "name": "Rectal Prolapse",
+    "description": "A medical condition characterized by heat intolerance, disorientation.",
+    "symptoms": [
+      "heat intolerance",
+      "disorientation",
+      "dizziness",
+      "low blood sugar",
+      "dry skin"
+    ]
+  },
+  {
+    "name": "Anal Cancer",
+    "description": "A medical condition characterized by hallucinations, dizziness.",
+    "symptoms": [
+      "hallucinations",
+      "dizziness"
+    ]
+  },
+  {
+    "name": "Penile Cancer",
+    "description": "A medical condition characterized by confusion, irregular heartbeat.",
+    "symptoms": [
+      "confusion",
+      "irregular heartbeat",
+      "hearing loss",
+      "seizures",
+      "muscle aches"
+    ]
+  },
+  {
+    "name": "Vaginal Cancer",
+    "description": "A medical condition characterized by constipation, weight gain.",
+    "symptoms": [
+      "constipation",
+      "weight gain",
+      "sneezing",
+      "seizures",
+      "memory loss"
+    ]
+  },
+  {
+    "name": "Fallopian Tube Cancer",
+    "description": "A medical condition characterized by burning urination, yellow skin.",
+    "symptoms": [
+      "burning urination",
+      "yellow skin",
+      "rash"
+    ]
+  },
+  {
+    "name": "Primary Biliary Cholangitis",
+    "description": "A medical condition characterized by chest pain, bloating.",
+    "symptoms": [
+      "chest pain",
+      "bloating",
+      "cough",
+      "hearing loss"
+    ]
+  },
+  {
+    "name": "Primary Sclerosing Cholangitis",
+    "description": "A medical condition characterized by chills, swelling.",
+    "symptoms": [
+      "chills",
+      "swelling",
+      "vomiting",
+      "insomnia"
+    ]
+  },
+  {
+    "name": "Nephrotic Syndrome",
+    "description": "A medical condition characterized by burning urination, numbness.",
+    "symptoms": [
+      "burning urination",
+      "numbness",
+      "sneezing",
+      "weight loss",
+      "dry mouth"
+    ]
+  },
+  {
+    "name": "Nephritic Syndrome",
+    "description": "A medical condition characterized by hiccups, wheezing.",
+    "symptoms": [
+      "hiccups",
+      "wheezing",
+      "runny nose"
+    ]
+  },
+  {
+    "name": "Renal Failure",
+    "description": "A medical condition characterized by rash, back pain.",
+    "symptoms": [
+      "rash",
+      "back pain",
+      "lightheadedness",
+      "heat intolerance",
+      "hearing loss"
+    ]
+  },
+  {
+    "name": "Acute Kidney Injury",
+    "description": "A medical condition characterized by weight gain, rash.",
+    "symptoms": [
+      "weight gain",
+      "rash"
+    ]
+  },
+  {
+    "name": "Chronic Kidney Disease",
+    "description": "A medical condition characterized by sneezing, dizziness.",
+    "symptoms": [
+      "sneezing",
+      "dizziness"
+    ]
+  },
+  {
+    "name": "Hydronephrosis",
+    "description": "A medical condition characterized by dizziness, gas.",
+    "symptoms": [
+      "dizziness",
+      "gas",
+      "lightheadedness",
+      "insomnia"
+    ]
+  }
+
+]

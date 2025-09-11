@@ -1,21 +1,21 @@
 const mongoose = require('mongoose');
-const { roles: {rolesArray, rolesObj} } = require('constants');
+const { enum: { rolesArray } } = require('constants');
 
 const UserSchema = new mongoose.Schema({
-    name: String,
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    firstName: { type: String, required: true, trim: true },
+    lastName: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, trim: true },
+    password: { type: String, required: true, trim: true },
     role: {
         type: String,
         enum: rolesArray,
-        required: true
+        required: true,
+        trim: true
     },
-    verificationCode: String,
-    verificationCodeExpires: Date,
     isEmailVerified: {
-    type: Boolean,
-    default: false
-    }
-});
+        type: Boolean,
+        default: false
+    },
+}, { timestamps: true });
 
 module.exports = mongoose.model('User', UserSchema);

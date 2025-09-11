@@ -2,8 +2,8 @@ const {authServices: {signup, verifyCode, login}} = require('services');
 
 const handleSignup = async(req, res) => {
     try {
-        console.log('Handling signup request:', req.body, req.query.role);
-        const { body: data, query: {role} } = req;
+        console.log('Handling signup request:', req.body);
+        const { role, ...data } = req.body;
         const result = await signup(data, role);
         res.status(201).json(result);
     } catch (error) {

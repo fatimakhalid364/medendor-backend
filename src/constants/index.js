@@ -1,3 +1,3 @@
 module.exports = {
-    roles: require('./roles')
+    enum: require('./enum')
 }

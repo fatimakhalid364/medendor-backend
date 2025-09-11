@@ -1,5 +1,5 @@
 {
-  "name": "demo-claricus-backend",
+  "name": "medendor-backend",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -35,6 +35,8 @@
     "models": "./src/models",
     "utils": "./src/utils",
     "services": "./src/services",
-    "constants": "./src/constants"
+    "constants": "./src/constants",
+    "docProfile": "./src/models/profileChunks/doctor",
+    "patientProfile": "./src/models/profileChunks/patient"
   }
 }

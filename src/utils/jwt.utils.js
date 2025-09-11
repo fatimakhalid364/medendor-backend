@@ -2,11 +2,11 @@ const {env: {ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, CSRF_TOKEN_SECRET}} = re
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 
-const generateTokens = (userId) => {
+const generateTokens = (userId, role) => {
     const jti = uuidv4();
 
     const accessToken = jwt.sign(
-        { sub: userId, jti, type: 'access' },
+        { sub: userId, jti, type: 'access', role },
         ACCESS_TOKEN_SECRET,
         { expiresIn: '15m' }
     );
@@ -26,4 +26,13 @@ const generateTokens = (userId) => {
     return { accessToken, refreshToken, csrfToken, jti };
 };
 
-module.exports = { generateTokens };
+const verifyAccessToken = (token) => jwt.verify(token, ACCESS_TOKEN_SECRET);
+const verifyRefreshToken = (token) => jwt.verify(token, REFRESH_TOKEN_SECRET);
+const verifyCsrfToken = (token) => jwt.verify(token, CSRF_TOKEN_SECRET);
+
+module.exports = {
+    generateTokens,
+    verifyAccessToken,
+    verifyRefreshToken,
+    verifyCsrfToken,
+};
