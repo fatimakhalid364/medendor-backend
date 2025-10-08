@@ -1,5 +1,5 @@
 module.exports = {
-    healthInterestsModel: require('./healthInterests.model'),
-    privacyPreferencesModel: require('./privacyPreferences.model'),
-    finalTouchesModel: require('./finalTouches.model'),
+    healthInterestsModel: require('./healthInterests.schema'),
+    privacyPreferencesModel: require('./privacyPreferences.schema'),
+    finalTouchesModel: require('./finalTouches.schema'),
 }

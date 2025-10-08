@@ -107,25 +107,6 @@ const authenticateSession = async (req, res, next) => {
     }
 };
 
-const validateIsDoctor = (req, res, next) => {
-    const user = req.user; 
-
-    if (!user || user.role !== 'doctor') {
-        return res.status(403).json({ message: 'Access denied. Only doctors can create, update or get doctor details.' });
-    }
-
-    next();
-}
-
-const validateIsPatient = (req, res, next) => {
-    const user = req.user; 
-
-    if (!user || user.role !== 'patient') {
-        return res.status(403).json({ message: 'Access denied. Only patients can create, update or get patient details.' });
-    }
-
-    next();
-}
 
 
 
@@ -136,6 +117,4 @@ module.exports = {
     validateLogin,
     loginLimiter,
     authenticateSession,
-    validateIsDoctor,
-    validateIsPatient
 };

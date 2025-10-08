@@ -4,4 +4,5 @@ module.exports = {
     conditions: require('./conditions.model'),
     doctor: require('./doctor.model'),
     patient: require('./patient.model'),
+    basicProfile: require('./basicProfile.model'),
 }

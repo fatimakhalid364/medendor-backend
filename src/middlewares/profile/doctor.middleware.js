@@ -1,15 +1,35 @@
-const {enum: {workPlacesArray}} = require('constants');
+const {enum: {workPlacesArray, mimeTypesArray}} = require('constants');
 
-const validateDoctorBasicInfo = (req, res, next) => {
+
+const validateIsDoctor = (req, res, next) => {
+    const user = req.user; 
+
+    if (!user || user.role !== 'doctor') {
+        return res.status(403).json({ message: 'Access denied. Only doctors can create, update or get doctor details.' });
+    }
+
+    next();
+}
+
+const validateBasicDoctorInfo = (req, res, next) => {
     const {
         gender,
         country,
         city,
+        age,
         languagesSpoken,
     } = req.body;
 
-    if (!gender || !country || !city || !languagesSpoken?.length) {
+    const profilePicture = req.file;
+
+    if (!gender || !country || !city || !age || !languagesSpoken?.length || !profilePicture) {
         return res.status(400).json({ message: 'Missing required basic info for doctor.' });
+    }
+
+    if (!mimeTypesArray.includes(profilePicture.mimetype)) {
+        return res.status(400).json({ 
+            message: 'Invalid file type. Only JPEG, PNG, JPG, AVIF, and WEBP images are allowed.' 
+        });
     }
 
     next();
@@ -88,7 +108,7 @@ const validateDoctorAvailabilityDetails = (req, res, next) => {
 };
 
 
-const validateDoctorCredentialDetails = (req, res, next) => {
+const validateCredentialDetails = (req, res, next) => {
     const { credentials } = req.body;
     if (!credentials || typeof credentials !== 'object') {
         return res.status(400).json({ error: 'Credentials are required for doctors.' });
@@ -145,7 +165,7 @@ const validateDoctorCredentialDetails = (req, res, next) => {
 };
 
 
-const validateProfessionalDetails = (req, res, next) => {
+const validateDoctorProfessionalDetails = (req, res, next) => {
     const { professionalDetails } = req.body;
     if (!professionalDetails || typeof professionalDetails !== 'object') {
         return res.status(400).json({ error: 'Professional details are required for doctors.' });
@@ -186,7 +206,7 @@ const validateProfessionalDetails = (req, res, next) => {
 
 
 
-const validateFinalTouches = (req, res, next) => {
+const validateDoctorFinalTouches = (req, res, next) => {
     const data = req.body.finalTouches;
 
     if (!data || typeof data !== 'object') {
@@ -237,3 +257,5 @@ const validateFinalTouches = (req, res, next) => {
 
     next();
 };
+
+module.exports = {validateIsDoctor, validateBasicDoctorInfo, validateDoctorAvailabilityDetails, validateCredentialDetails, validateDoctorProfessionalDetails, validateDoctorFinalTouches};

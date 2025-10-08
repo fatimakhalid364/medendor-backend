@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 mongoose.set('strictQuery', true);
-const { MONGO_URI } = require('./env');
+const { MONGO_URI, MODE } = require('./env');
 
 const connection = function () {
     return new Promise((resolve, reject) => {
         mongoose
-            .connect(MONGO_URI)
+            .connect(MONGO_URI, {autoIndex: MODE !== 'production'})
             .then(() => {
                 console.log('db connected');
                 resolve();

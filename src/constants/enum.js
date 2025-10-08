@@ -23,7 +23,16 @@ const {obj: workPlacesObj, array: workPlacesArray} = createEnumWithArray({
 
 const {obj: genderObj, array: genderArray} = createEnumWithArray({
     MALE: 'MALE',
-    FEMALE: 'FEMALE'
+    FEMALE: 'FEMALE',
+    OTHER: 'OTHER'
+});
+
+const {obj: mimeTypesObj, array: mimeTypesArray} = createEnumWithArray({
+    JPEG: 'image/jpeg',
+    PNG: 'image/png',
+    JPG: 'image/jpg',
+    AVIF: 'image/avif',
+    WEBP: 'image/webp',
 });
 
 module.exports = {
@@ -34,5 +43,7 @@ module.exports = {
     workPlacesObj, 
     workPlacesArray,
     genderObj,
-    genderArray
+    genderArray,
+    mimeTypesObj,
+    mimeTypesArray
 }
