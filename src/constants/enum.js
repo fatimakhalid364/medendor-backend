@@ -1,49 +1,66 @@
 const { basicUtils } = require('utils');
 
-const createEnumWithArray = basicUtils.createEnumWithArray;
+const createFrozenEnumArray = basicUtils.createFrozenEnumArray;
 
-const {obj: rolesObj, array: rolesArray} = createEnumWithArray({
-    PATIENT: 'patient',
-    DOCTOR: 'doctor',
-    ADMIN: 'admin',
-    SUPERADMIN: 'super-admin',
-});
+const rolesArray = createFrozenEnumArray(['doctor', 'patient', 'admin', 'super-admin']);
 
-const {obj: issuingAuthObj, array: issuingAuthArray} = createEnumWithArray({
-    PMC: 'PMC',
-    NMC: 'NMC',
-    GMC: 'GMC',
-    OTHER: 'OTHER',
-});
+const issuingAuthArray = createFrozenEnumArray(['PMC', 'SMC', 'NMC', 'GMC', 'other']);
 
-const {obj: workPlacesObj, array: workPlacesArray} = createEnumWithArray({
-    CURRENT: 'CURRENT',
-    PREVIOUS: 'PREVIOUS'
-});
+const workPlaceStatusArray = createFrozenEnumArray(['current', 'previous']);
 
-const {obj: genderObj, array: genderArray} = createEnumWithArray({
-    MALE: 'MALE',
-    FEMALE: 'FEMALE',
-    OTHER: 'OTHER'
-});
+const genderArray = createFrozenEnumArray(['male', 'female', 'other']);
 
-const {obj: mimeTypesObj, array: mimeTypesArray} = createEnumWithArray({
-    JPEG: 'image/jpeg',
-    PNG: 'image/png',
-    JPG: 'image/jpg',
-    AVIF: 'image/avif',
-    WEBP: 'image/webp',
-});
+const mimeTypesArray = createFrozenEnumArray([
+    'image/jpeg',
+    'image/png',
+    'image/jpg',
+    'image/avif',
+    'image/webp',
+]);
+
+const openToArray = createFrozenEnumArray([
+    'collaborations',
+    'jobOpportunities',
+    'mentoring'
+]);
+
+const notifKeysArray = createFrozenEnumArray([
+    'emailNotifications',
+    'inAppNotifications',
+    'newsletterUpdates',
+    'allNotifications'
+]);
+
+const visibilityKeysArray = createFrozenEnumArray([
+    'showContactInfo',
+    'showEducation',
+    'showWorkExperience',
+    'showLanguagesSpoken',
+    'showAvailabilityStatus'
+]);
+
+const communitiesArray = Object.freeze([
+    'generalCare',
+    'cardiovascularCare',
+    'diabeticCare',
+    'respiratoryCare',
+    'renalCare',
+    'cancerCare',
+    'jointBoneMuscleCare',
+    'mentalCare',
+    'neurologicalCare',
+    'childCare',
+    'pregnancyCare'
+]);
 
 module.exports = {
-    rolesObj, 
-    rolesArray, 
-    issuingAuthObj, 
+    rolesArray,  
     issuingAuthArray, 
-    workPlacesObj, 
-    workPlacesArray,
-    genderObj,
+    workPlaceStatusArray,
     genderArray,
-    mimeTypesObj,
-    mimeTypesArray
+    mimeTypesArray,
+    openToArray,
+    notifKeysArray,
+    visibilityKeysArray,
+    communitiesArray
 }

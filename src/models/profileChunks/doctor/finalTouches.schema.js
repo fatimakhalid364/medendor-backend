@@ -15,10 +15,14 @@ const finalTouchesSchema = new mongoose.Schema({
         type: Boolean,
         default: true,
         },
-        newsletterSubscribed: {
+        newsletterUpdates: {
         type: Boolean,
         default: false,
         },
+        allNotifications: {
+        type: Boolean,
+        default: false,
+        }
     },
     visibilitySettings: {
         showContactInfo: { type: Boolean, default: true },

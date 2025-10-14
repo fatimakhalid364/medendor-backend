@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const {enum: {workPlacesArray}} = require('constants');
+const {enum: {workPlaceStatusArray}} = require('constants');
 
 const availabilitySchema = new mongoose.Schema({
   workplaces: {
@@ -9,7 +9,7 @@ const availabilitySchema = new mongoose.Schema({
         location: { type: String, trim: true },
         type: {
           type: String,
-          enum: workPlacesArray,
+          enum: workPlaceStatusArray,
         }
       }
     ],

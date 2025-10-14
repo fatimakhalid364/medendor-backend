@@ -1,4 +1,4 @@
-const {enum: {workPlacesArray, mimeTypesArray}} = require('constants');
+const {enum: {workPlaceStatusArray, mimeTypesArray, openToArray, notifKeysArray, visibilityKeysArray}} = require('constants');
 
 
 const validateIsDoctor = (req, res, next) => {
@@ -36,85 +36,91 @@ const validateBasicDoctorInfo = (req, res, next) => {
 };
 
 
-const validateDoctorAvailabilityDetails = (req, res, next) => {
-  const { availability } = req.body;
+const validateAvailabilityDetails = (req, res, next) => {
+    const availability = req.body;
 
-  if (!availability || typeof availability !== 'object') {
-    return res.status(400).json({ error: 'Availability information is required for doctors.' });
-  }
+    if (!availability || typeof availability !== 'object') {
+        return res.status(400).json({ error: 'Availability information is required for doctors.' });
+    }
 
-  const {
-    workplaces,
-    availableForOnlineConsultation,
-    acceptingNewPatients,
-    consultationFee,
-    appointmentTimeSlots
-  } = availability;
+    const {
+        workplaces,
+        availableForOnlineConsultation,
+        acceptingNewPatients,
+        consultationFee,
+        appointmentTimeSlots
+    } = availability;
 
-  // Validate workplaces array
-  if (!workplaces || (!Array.isArray(workplaces)) || (!workplaces.every(place => {
-    return (
-      place &&
-      typeof place.name === 'string' &&
-      place.name.trim() &&
-      typeof place.location === 'string' &&
-      place.location.trim() &&
-      typeof place.type === 'string' &&
-      workPlacesArray.includes(place.type)
-    );
-  }))) {
-    return res.status(400).json({
-      error: 'Workplaces are required. Each workplace must include a valid name, location, and a type from the allowed list.'
-    });
-  }
+    // Validate workplaces array
+    if (!workplaces || (!Array.isArray(workplaces)) || workplaces.length == 0 || (!workplaces.every(place => {
+        return (
+        place &&
+        typeof place.name === 'string' &&
+        place.name.trim() &&
+        typeof place.location === 'string' &&
+        place.location.trim() &&
+        typeof place.type === 'string' &&
+        workPlaceStatusArray.includes(place.type)
+        );
+    }))) {
+        return res.status(400).json({
+        error: 'Workplaces are required. Each workplace must include a valid name, location, and a type from the allowed list.'
+        });
+    }
 
-  if (!consultationFee ||
-    typeof consultationFee !== 'number' || consultationFee < 0) {
-    return res.status(400).json({
-      error: 'consultationFee is required and must be a non-negative number.'
-    });
-  }
+    if (!consultationFee ||
+        typeof consultationFee !== 'number' || consultationFee < 0) {
+        return res.status(400).json({
+        error: 'consultationFee is required and must be a non-negative number.'
+        });
+    }
 
-  if (
-    !appointmentTimeSlots ||
-    !Array.isArray(appointmentTimeSlots) ||
-    !appointmentTimeSlots.every(slot => typeof slot === 'string')) {
-    return res.status(400).json({
-      error: 'appointmentTimeSlots must be an array of strings.'
-    });
-  }
-
-
-  if (
-    availableForOnlineConsultation !== undefined &&
-    typeof availableForOnlineConsultation !== 'boolean'
-  ) {
-    return res.status(400).json({
-      error: 'availableForOnlineConsultation must be a boolean value.'
-    });
-  }
+    if (
+        !appointmentTimeSlots ||
+        !Array.isArray(appointmentTimeSlots) || appointmentTimeSlots.length === 0 ||
+        !appointmentTimeSlots.every(slot => typeof slot === 'string')) {
+        return res.status(400).json({
+        error: 'appointmentTimeSlots must be an array of strings.'
+        });
+    }
 
 
-  if (
-    acceptingNewPatients !== undefined &&
-    typeof acceptingNewPatients !== 'boolean'
-  ) {
-    return res.status(400).json({
-      error: 'acceptingNewPatients must be a boolean value.'
-    });
-  }
-  
-  next();
+    if (
+        availableForOnlineConsultation == undefined ||
+        typeof availableForOnlineConsultation !== 'boolean'
+    ) {
+        return res.status(400).json({
+        error: 'availableForOnlineConsultation must be a boolean value.'
+        });
+    }
+
+
+    if (
+        acceptingNewPatients == undefined ||
+        typeof acceptingNewPatients !== 'boolean'
+    ) {
+        return res.status(400).json({
+        error: 'acceptingNewPatients must be a boolean value.'
+        });
+    }
+    
+    next();
 };
 
 
 const validateCredentialDetails = (req, res, next) => {
-    const { credentials } = req.body;
+    const credentials = req.body;
     if (!credentials || typeof credentials !== 'object') {
         return res.status(400).json({ error: 'Credentials are required for doctors.' });
     }
 
-    const { medicalLicenseNumber, education, issuingAuthority, licenseCertificateUrl, certifications} = credentials;
+    const { 
+            medicalLicenseNumber, 
+            education, 
+            issuingAuthority, 
+            licenseCertificateUrl, 
+            certifications
+        } = credentials;
 
     if (
         !medicalLicenseNumber ||
@@ -128,7 +134,7 @@ const validateCredentialDetails = (req, res, next) => {
         return res.status(400).json({ error: 'Issuing authority is required and must be a non-empty string.' });
     }
 
-    if (!Array.isArray(education) || education.length === 0) {
+    if (!education || !Array.isArray(education) || education.length === 0) {
         return res.status(400).json({ error: 'Education history is required for doctors.' });
     }
 
@@ -140,7 +146,7 @@ const validateCredentialDetails = (req, res, next) => {
         return res.status(400).json({ error: 'License certificate URL must be a string.' });
     }
 
-    const invalidEntry = education.find(entry => {
+    const invalidEducationEntry = education.find(entry => {
         if (
             (!entry.degree || typeof entry.degree !== 'string' || !entry.degree.trim()) ||
             (!entry.institute || typeof entry.institute !== 'string' || !entry.institute.trim()) ||
@@ -155,7 +161,7 @@ const validateCredentialDetails = (req, res, next) => {
         return false;
         });
 
-        if (invalidEntry) {
+        if (invalidEducationEntry) {
         return res.status(400).json({
             error: 'Each education entry must include valid degree, institute, country, and a valid startYear. Optional fields like endYear must be properly typed if present.'
         });
@@ -165,8 +171,8 @@ const validateCredentialDetails = (req, res, next) => {
 };
 
 
-const validateDoctorProfessionalDetails = (req, res, next) => {
-    const { professionalDetails } = req.body;
+const validateProfessionalDetails = (req, res, next) => {
+    const professionalDetails = req.body;
     if (!professionalDetails || typeof professionalDetails !== 'object') {
         return res.status(400).json({ error: 'Professional details are required for doctors.' });
     }
@@ -177,7 +183,7 @@ const validateDoctorProfessionalDetails = (req, res, next) => {
         return res.status(400).json({ error: 'Specialty is required for doctors.' });
     }
 
-    if (!Array.isArray(experience) || experience.length === 0) {
+    if (!experience || !Array.isArray(experience) || experience.length === 0) {
         return res.status(400).json({ error: 'At least one experience entry is required for doctors.' });
     }
 
@@ -207,9 +213,9 @@ const validateDoctorProfessionalDetails = (req, res, next) => {
 
 
 const validateDoctorFinalTouches = (req, res, next) => {
-    const data = req.body.finalTouches;
+    const finalTouches = req.body;
 
-    if (!data || typeof data !== 'object') {
+    if (!finalTouches || typeof finalTouches !== 'object') {
         return res.status(400).json({ error: 'Missing or invalid finalTouches object.' });
     }
 
@@ -217,45 +223,55 @@ const validateDoctorFinalTouches = (req, res, next) => {
         openTo,
         notificationPreferences,
         visibilitySettings
-    } = data;
+    } = finalTouches;
 
 
-    if (openTo && typeof openTo === 'object') {
-        const allowedOpenToKeys = ['collaborations', 'jobOpportunities', 'mentoring'];
+    if (openTo) {
+        if (typeof openTo !== 'object') {
+            return res.status(400).json({ error: 'Invalid openTo format. Must be an object.' });
+        }
+
         for (let key of Object.keys(openTo)) {
-        if (!allowedOpenToKeys.includes(key) || typeof openTo[key] !== 'boolean') {
-            return res.status(400).json({ error: `Invalid openTo.${key} value.` });
-        }
+            if (!openToArray.includes(key) || typeof openTo[key] !== 'boolean') {
+                return res.status(400).json({ error: `Invalid openTo.${key} value.` });
+            }
         }
     }
 
 
-    if (notificationPreferences && typeof notificationPreferences === 'object') {
-        const allowedNotifKeys = ['emailNotifications', 'inAppNotifications', 'newsletterSubscribed'];
+    if (notificationPreferences) {
+        if (typeof notificationPreferences !== 'object') {
+            return res.status(400).json({ error: 'Invalid notificationPreferences format. Must be an object.' });
+        }
+
         for (let key of Object.keys(notificationPreferences)) {
-        if (!allowedNotifKeys.includes(key) || typeof notificationPreferences[key] !== 'boolean') {
-            return res.status(400).json({ error: `Invalid notificationPreferences.${key} value.` });
-        }
+            if (!notifKeysArray.includes(key) || typeof notificationPreferences[key] !== 'boolean') {
+                return res.status(400).json({ error: `Invalid notificationPreferences.${key} value.` });
+            }
         }
     }
 
+    if (visibilitySettings) {
+        if (typeof visibilitySettings !== 'object') {
+            return res.status(400).json({ error: 'Invalid visibilitySettings format. Must be an object.' });
+        }
 
-    if (visibilitySettings && typeof visibilitySettings === 'object') {
-        const allowedVisibilityKeys = [
-        'showContactInfo',
-        'showEducation',
-        'showWorkExperience',
-        'showLanguagesSpoken',
-        'showAvailabilityStatus'
-        ];
         for (let key of Object.keys(visibilitySettings)) {
-        if (!allowedVisibilityKeys.includes(key) || typeof visibilitySettings[key] !== 'boolean') {
-            return res.status(400).json({ error: `Invalid visibilitySettings.${key} value.` });
-        }
+            if (!visibilityKeysArray.includes(key) || typeof visibilitySettings[key] !== 'boolean') {
+                return res.status(400).json({ error: `Invalid visibilitySettings.${key} value.` });
+            }
         }
     }
+
 
     next();
 };
 
-module.exports = {validateIsDoctor, validateBasicDoctorInfo, validateDoctorAvailabilityDetails, validateCredentialDetails, validateDoctorProfessionalDetails, validateDoctorFinalTouches};
+module.exports = {
+    validateIsDoctor, 
+    validateBasicDoctorInfo, 
+    validateAvailabilityDetails, 
+    validateCredentialDetails, 
+    validateProfessionalDetails, 
+    validateDoctorFinalTouches
+};

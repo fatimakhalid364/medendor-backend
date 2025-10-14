@@ -156,23 +156,23 @@ const updateCredentials = async (userId, credentialsData) => {
 //availability
 
 
-const addAvailabilityDetails = async (userId, availabilityDetailsData) => {
+const addAvailabilityDetails = async (userId, availabilityDetails) => {
     try {
-        console.log('Inside addAvailabilityDetails service:', 'data:',availabilityDetailsData, 'and id:', userId);
+        console.log('Inside addAvailabilityDetails service:', 'data:',availabilityDetails, 'and id:', userId);
         let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
         if (!existingDoctorDetails) {
             const doctorDetails = new Doctor({
             user: userId,
-            availabilityDetails: availabilityDetailsData,
+            availability: availabilityDetails,
             });
             await doctorDetails.save();
             return { success: true, message: `Availability details added successfully.` };
         }
-        if (existingDoctorDetails.availabilityDetails &&  Object.keys(existingDoctorDetails.availabilityDetails.toObject()).length > 0) {
+        if (existingDoctorDetails.availability &&  Object.keys(existingDoctorDetails.availability.toObject()).length > 0) {
             throw new Error('Availability details already added');
         } else {
-            existingDoctorDetails.availabilityDetails = availabilityDetailsData;
+            existingDoctorDetails.availability = availabilityDetails;
             await existingDoctorDetails.save();
             return { success: true, message: `Availability details added successfully.` };
         }
@@ -183,20 +183,20 @@ const addAvailabilityDetails = async (userId, availabilityDetailsData) => {
 };
 
 
-const updateAvailabilityDetails = async (userId, availabilityDetailsData) => {
+const updateAvailabilityDetails = async (userId, availabilityDetails) => {
     try {
         const doctorDetails = await Doctor.findOne({ user: userId });
         if (!doctorDetails) {
         throw new Error("Doctor details not found for this user.");
         }
 
-        if (!doctorDetails.availabilityDetails || Object.keys(doctorDetails.availabilityDetails.toObject()).length === 0) {
+        if (!doctorDetails.availability || Object.keys(doctorDetails.availability.toObject()).length === 0) {
         throw new Error("Availability details not found. Please add them before updating.");
         }
 
-        doctorDetails.availabilityDetails = {
-        ...doctorDetails.availabilityDetails.toObject(),
-        ...availabilityDetailsData
+        doctorDetails.availability = {
+        ...doctorDetails.availability.toObject(),
+        ...availabilityDetails
         };
 
         await doctorDetails.save();
@@ -211,23 +211,23 @@ const updateAvailabilityDetails = async (userId, availabilityDetailsData) => {
 
 //communitiesToJoin
 
-const addCommunitiesToJoin = async (userId, communitiesToJoin) => {
+const addJoinedCommunitiesArray = async (userId, joinedCommunitiesArray) => {
     try {
-        console.log('Inside addCommunitiesToJoin service:', 'data:',communitiesToJoin, 'and id:', userId);
+        console.log('Inside addJoinedCommunities service:', 'data:',joinedCommunitiesArray, 'and id:', userId);
         let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
         if (!existingDoctorDetails) {
             const doctorDetails = new Doctor({
             user: userId,
-            joinCommunities: communitiesToJoin,
+            joinedCommunities: joinedCommunitiesArray,
             });
             await doctorDetails.save();
             return { success: true, message: `Joined communities added successfully.` };
         }
-        if (existingDoctorDetails.joinCommunities &&  Object.keys(existingDoctorDetails.joinCommunities.toObject()).length > 0) {
-            throw new Error('Joined communities already added');
-        } else {
-            existingDoctorDetails.joinCommunities = communitiesToJoin;
+        if (existingDoctorDetails.joinedCommunities) {
+            existingDoctorDetails.joinedCommunities = [
+                ...new Set([...existingDoctorDetails.joinedCommunities, ...joinedCommunitiesArray])
+            ];
             await existingDoctorDetails.save();
             return { success: true, message: `Joined communities added successfully.` };
         }
@@ -238,31 +238,93 @@ const addCommunitiesToJoin = async (userId, communitiesToJoin) => {
 };
 
 
-const updateCommunitiesToJoin = async (userId, communitiesToJoin) => {
+const leaveCommunities = async (userId, leftCommunitiesArray) => {
+    try {
+        console.log('Inside leaveCommunities service:', 'data:',leftCommunitiesArray, 'and id:', userId);
+        let existingDoctorDetails = await Doctor.findOne({ user: userId });
+        if (!existingDoctorDetails) {
+            throw new Error('Doctor profile not found');
+        }
+        if (Array.isArray(existingDoctorDetails.joinedCommunities && existingDoctorDetails.joinedCommunities.length > 0)) {
+            existingDoctorDetails.joinedCommunities = existingDoctorDetails.joinedCommunities.filter(
+                (community) => !leftCommunitiesArray.includes(community)
+            );
+            await existingDoctorDetails.save();
+            return { success: true, message: `Communities left successfully.` };
+        }
+    } catch (error) {
+        console.error('Error during leaving communities:', error);
+        throw new Error(error.message || 'leaveCommunities failed');
+    }
+};
+
+
+//final touches
+
+const addFinalTouches = async (userId, finalTouchesData) => {
+    try {
+        console.log('Inside addFinalTouches service:', 'data:',finalTouchesData, 'and id:', userId);
+        let existingDoctorDetails = await Doctor.findOne({ user: userId });
+
+        if (!existingDoctorDetails) {
+            const doctorDetails = new Doctor({
+            user: userId,
+            finalTouches: finalTouchesData,
+            });
+            await doctorDetails.save();
+            return { success: true, message: `Final touches added successfully.` };
+        }
+        if (existingDoctorDetails.finalTouches &&  Object.keys(existingDoctorDetails.finalTouches.toObject()).length > 0) {
+            throw new Error('Final touches already added');
+        } else {
+            existingDoctorDetails.finalTouches = finalTouchesData;
+            await existingDoctorDetails.save();
+            return { success: true, message: `Final touches added successfully.` };
+        }
+    } catch (error) {
+        console.error('Error during adding final touches:', error);
+        throw new Error(error.message || 'addFinalTouches failed');
+    }
+};
+
+
+const updateFinalTouches = async (userId, finalTouchesData) => {
     try {
         const doctorDetails = await Doctor.findOne({ user: userId });
         if (!doctorDetails) {
         throw new Error("Doctor details not found for this user.");
         }
 
-        if (!doctorDetails.availabilityDetails || Object.keys(doctorDetails.availabilityDetails.toObject()).length === 0) {
-        throw new Error("Availability details not found. Please add them before updating.");
+        if (!doctorDetails.finalTouches || Object.keys(doctorDetails.finalTouches.toObject()).length === 0) {
+        throw new Error("Final touches not found. Please add them before updating.");
         }
 
-        doctorDetails.availabilityDetails = {
-        ...doctorDetails.availabilityDetails.toObject(),
-        ...availabilityDetailsData
+        doctorDetails.finalTouches = {
+        ...doctorDetails.finalTouches.toObject(),
+        ...finalTouchesData
         };
 
         await doctorDetails.save();
 
-        return { success: true, message: "Availability details updated successfully." };
+        return { success: true, message: "Final touches updated successfully." };
     } catch (error) {
-        console.error("Error in updateAvailabilityDetails service:", error);
-        throw new Error(error.message || "Unable to update availability details");
+        console.error("Error in updateFinalTouches service:", error);
+        throw new Error(error.message || "Unable to update final touches");
     }
 };
 
-
-
+module.exports = {
+    addBasicDoctorInfo,
+    updateBasicDoctorInfo,
+    addProfessionalDetails,
+    updateProfessionalDetails,
+    addCredentials,
+    updateCredentials,
+    addAvailabilityDetails,
+    updateAvailabilityDetails,
+    addJoinedCommunitiesArray,
+    leaveCommunities,
+    addFinalTouches,
+    updateFinalTouches
+};
 

@@ -1,6 +1,9 @@
-const createEnumWithArray = (obj) => {
-    const frozenObject = Object.freeze({ ...obj });
-    return { obj: frozenObject, array: Object.freeze(Object.values(obj)) 
-}};
+const createFrozenEnumArray = (arr) => {
+    return Object.freeze(arr) 
+};
 
-module.exports = {createEnumWithArray}
+const createFrozenKeysArray = (obj) => {
+    return Object.freeze(Object.values(obj)) 
+};
+
+module.exports = {createFrozenEnumArray}

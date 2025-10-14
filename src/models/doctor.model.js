@@ -3,18 +3,20 @@ const {
     availabilityModel: {availabilitySchema}, 
     credentialsModel: {credentialsSchema}, 
     professionalDetailsModel: {professionalDetailsSchema},
-    joinCommunitiesModel: {joinCommunitiesSchema}, 
     finalTouchesModel: {finalTouchesSchema}} = require('doctorProfile');
 
 
 const doctorSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     basicProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'BasicProfile', required: true },
-    professionalDetails: professionalDetailsSchema,
-    credentials: credentialsSchema,
-    availability: availabilitySchema,
-    joinCommunities: joinCommunitiesSchema,
-    finalTouches: finalTouchesSchema,
+    professionalDetails: {type: professionalDetailsSchema, default: {}},
+    credentials: {type: credentialsSchema, default: {}},
+    availability: {type: availabilitySchema, default: {}},
+    joinedCommunities: {
+        type: [String],
+        default: [],
+    },
+    finalTouches: {type: finalTouchesSchema, default: {}},
     isVerifiedDoctor: {
         type: Boolean,
         default: false,
