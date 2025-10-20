@@ -57,6 +57,7 @@ const loginLimiter = rateLimit({
 
 const authenticateSession = async (req, res, next) => {
     try {
+        console.log('Authenticating session with headers and cookies:', req.headers, req.cookies);
         const csrfToken = req.headers['csrf-token'];
         if (!csrfToken) {
         return res.status(400).json({ message: 'CSRF token is missing' });

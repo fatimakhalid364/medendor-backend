@@ -1,16 +1,22 @@
 const express = require('express');
 const router = express.Router();
-const {doctorProfileMiddlewares: {validateIsDoctor, validateBasicDoctorInfo} } = require('middlewares');
+const {
+        doctorProfileMiddlewares: {validateIsDoctor, validateBasicDoctorInfo},
+        authMiddlewares: {authenticateSession}
+    } = require('middlewares');
 const multer = require('multer');
 const { cloudinary: {storage} } = require('config');
+const { doctorProfileControllers: {handleAddBasicDoctorInfo} } = require('controllers');
 
 const upload = multer({ storage });
 
 router.post(
-    '/doctor', 
+    '/doctor',
+    authenticateSession, 
     validateIsDoctor,
     upload.single('profilePicture'),
-    validateBasicDoctorInfo, 
+    validateBasicDoctorInfo,
+    handleAddBasicDoctorInfo
 );
 
 

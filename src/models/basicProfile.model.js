@@ -4,7 +4,7 @@ const { enum: { genderArray } } = require('constants');
 const basicProfileSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     gender: { type: String, trim: true, enum: genderArray },
-    age: { type: Number, min: 0 },
+    age: { type: Number, min: 25 },
     profilePicture: { type: String, trim: true },
     country: { type: String, trim: true },
     city: { type: String, trim: true },
@@ -17,7 +17,7 @@ const basicProfileSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-}, { timestamps: true });
+}, { timestamps: true, strict: true, optimisticConcurrency: true });
 
 basicProfileSchema.index({ user: 1 });
 

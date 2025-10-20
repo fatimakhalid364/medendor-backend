@@ -12,11 +12,13 @@ const credentialsSchema = new mongoose.Schema({
     licenseCertificateUrl: { type: String },
     education: {
         type: [educationSchema],
-        default: []
+        default: [],
+        validate: [arr => arr.length <= 5, 'Maximum 5 degree entries allowed.']
     },
     certifications: {
         type: [String],
-        default: []
+        default: [],
+        validate: [arr => arr.length <= 5, 'Maximum 5 certfication entries allowed.']
     }
 }, { _id: false });
 

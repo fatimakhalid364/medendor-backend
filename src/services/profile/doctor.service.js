@@ -25,18 +25,15 @@ const addBasicDoctorInfo = async (userId, basicDoctorInfo) => {
 
 const updateBasicDoctorInfo = async (userId, basicDoctorInfo) => {
     try {
-        let basicProfile = await BasicProfile.findOneAndUpdate({ user: userId });
+        const updatedProfile = await BasicProfile.findOneAndUpdate(
+            { user: userId },
+            { $set: basicDoctorInfo },
+            { runValidators: true, strict: true }, 
+        );
 
-        if (!basicProfile) {
+        if (!updatedProfile) {
         throw new Error("Basic doctor info not found for this user.");
         }
-
-        basicProfile = {
-        ...basicProfile.toObject(),
-        ...basicDoctorInfo
-        }
-
-        await basicProfile.save();
 
         return { success: true, message: `Basic Doctor Info updated successfully.` };
         } catch (error) {
@@ -75,19 +72,17 @@ const addProfessionalDetails = async (userId, professionalDetailsData) => {
 
 const updateProfessionalDetails = async (userId, professionalDetailsData) => {
     try {
-        const doctorDetails = await Doctor.findOne({ user: userId });
+        const doctorDetails = await Doctor.findOne({ user: userId, professionalDetails: { $exists: true, $ne: {} } });
+
         if (!doctorDetails) {
-        throw new Error("Doctor details not found for this user.");
+        throw new Error("Doctor profile or professional details not found. Please add them before updating");
         }
 
-        if (!doctorDetails.professionalDetails || Object.keys(doctorDetails.professionalDetails.toObject()).length === 0) {
-        throw new Error("Professional details not found. Please add them before updating.");
-        }
+        const {professionalDetails} = doctorDetails; 
+        for (const [k, v] of Object.entries(professionalDetailsData)) { professionalDetails[k] = v; }
 
-        doctorDetails.professionalDetails = {
-        ...doctorDetails.professionalDetails.toObject(),
-        ...professionalDetailsData
-        };
+        doctorDetails.markModified('professionalDetails');
+        doctorDetails.markModified('professionalDetails.experience');
 
         await doctorDetails.save();
 
@@ -130,19 +125,18 @@ const addCredentials = async (userId, credentialsData) => {
 
 const updateCredentials = async (userId, credentialsData) => {
     try {
-        const doctorDetails = await Doctor.findOne({ user: userId });
+        const doctorDetails = await Doctor.findOne({ user: userId, credentials: { $exists: true, $ne: {} } });
+
         if (!doctorDetails) {
-        throw new Error("Doctor details not found for this user.");
+        throw new Error("Doctor profile or credentials not found. Please add them before updating");
         }
 
-        if (!doctorDetails.credentials || Object.keys(doctorDetails.credentials.toObject()).length === 0) {
-        throw new Error("Credentials not found. Please add them before updating.");
-        }
-
-        doctorDetails.credentials = {
-        ...doctorDetails.credentials.toObject(),
-        ...credentialsData
-        };
+        const {credentials} = doctorDetails; 
+        for (const [k, v] of Object.entries(credentialsData)) { credentials[k] = v; }
+        
+        doctorDetails.markModified('credentials');
+        doctorDetails.markModified('credentials.education');
+        doctorDetails.markModified('credentials.certifications');
 
         await doctorDetails.save();
 
@@ -185,19 +179,18 @@ const addAvailabilityDetails = async (userId, availabilityDetails) => {
 
 const updateAvailabilityDetails = async (userId, availabilityDetails) => {
     try {
-        const doctorDetails = await Doctor.findOne({ user: userId });
+        const doctorDetails = await Doctor.findOne({ user: userId, availability: { $exists: true, $ne: {} } });
+
         if (!doctorDetails) {
-        throw new Error("Doctor details not found for this user.");
+        throw new Error("Doctor profile or availability not found. Please add them before updating");
         }
 
-        if (!doctorDetails.availability || Object.keys(doctorDetails.availability.toObject()).length === 0) {
-        throw new Error("Availability details not found. Please add them before updating.");
-        }
-
-        doctorDetails.availability = {
-        ...doctorDetails.availability.toObject(),
-        ...availabilityDetails
-        };
+        const {availability} = doctorDetails; 
+        for (const [k, v] of Object.entries(availabilityDetails)) { availability[k] = v; }
+        
+        doctorDetails.markModified('availability');
+        doctorDetails.markModified('availability.appiontmentTimeSlots');
+        doctorDetails.markModified('availability.workplaces');
 
         await doctorDetails.save();
 
@@ -240,23 +233,30 @@ const addJoinedCommunitiesArray = async (userId, joinedCommunitiesArray) => {
 
 const leaveCommunities = async (userId, leftCommunitiesArray) => {
     try {
-        console.log('Inside leaveCommunities service:', 'data:',leftCommunitiesArray, 'and id:', userId);
-        let existingDoctorDetails = await Doctor.findOne({ user: userId });
+        console.log('Inside leaveCommunities service:', 'data:', leftCommunitiesArray, 'and id:', userId);
+
+        const existingDoctorDetails = await Doctor.findOne({ user: userId });
         if (!existingDoctorDetails) {
             throw new Error('Doctor profile not found');
         }
-        if (Array.isArray(existingDoctorDetails.joinedCommunities && existingDoctorDetails.joinedCommunities.length > 0)) {
+
+        if (Array.isArray(existingDoctorDetails.joinedCommunities) && existingDoctorDetails.joinedCommunities.length > 0) {
             existingDoctorDetails.joinedCommunities = existingDoctorDetails.joinedCommunities.filter(
                 (community) => !leftCommunitiesArray.includes(community)
             );
+
             await existingDoctorDetails.save();
-            return { success: true, message: `Communities left successfully.` };
+            return { success: true, message: 'Communities left successfully.' };
         }
+
+        return { success: false, message: 'No joined communities found.' };
+
     } catch (error) {
         console.error('Error during leaving communities:', error);
         throw new Error(error.message || 'leaveCommunities failed');
     }
 };
+
 
 
 //final touches
@@ -290,19 +290,26 @@ const addFinalTouches = async (userId, finalTouchesData) => {
 
 const updateFinalTouches = async (userId, finalTouchesData) => {
     try {
-        const doctorDetails = await Doctor.findOne({ user: userId });
+        const doctorDetails = await Doctor.findOne({ user: userId, finalTouches: { $exists: true, $ne: {} } });
+
         if (!doctorDetails) {
-        throw new Error("Doctor details not found for this user.");
+        throw new Error("Doctor profile or final touches not found. Please add them before updating");
         }
 
-        if (!doctorDetails.finalTouches || Object.keys(doctorDetails.finalTouches.toObject()).length === 0) {
-        throw new Error("Final touches not found. Please add them before updating.");
-        }
+        const {finalTouches} = doctorDetails; 
 
-        doctorDetails.finalTouches = {
-        ...doctorDetails.finalTouches.toObject(),
-        ...finalTouchesData
-        };
+        for (const [section, values] of Object.entries(finalTouchesData)) {
+            if (finalTouches[section] !== undefined) {
+                if (typeof values === 'object' && values !== null) {
+                for (const [key, val] of Object.entries(values)) {
+                    finalTouches[section][key] = val;
+                }
+                doctorDetails.markModified(`finalTouches.${section}`);
+                }
+            } else {
+                throw new Error(`Final touches section '${section}' does not exist.`);
+            }
+        }
 
         await doctorDetails.save();
 

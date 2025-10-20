@@ -13,9 +13,10 @@ const professionalDetailsSchema = new mongoose.Schema({
         currentlyWorking: { type: Boolean, default: false }
         }
     ],
-    default: []
+    default: [],
+    validate: [arr => arr.length <= 5, 'Maximum 5 experience entries allowed.']
     },
     about: { type: String, trim: true }
-}, { _id: false });
+}, { _id: false, strict: true });
 
 module.exports = { professionalDetailsSchema };

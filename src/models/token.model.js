@@ -8,6 +8,6 @@ const TokenSchema = new mongoose.Schema({
     userAgent: String,
     createdAt: { type: Date, default: Date.now },
     expiresAt: Date,
-});
+}, { timestamps: true, strict: true, optimisticConcurrency: true });
 
 module.exports = mongoose.model('Token', TokenSchema);

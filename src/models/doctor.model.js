@@ -7,16 +7,16 @@ const {
 
 
 const doctorSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    basicProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'BasicProfile', required: true },
-    professionalDetails: {type: professionalDetailsSchema, default: {}},
-    credentials: {type: credentialsSchema, default: {}},
-    availability: {type: availabilitySchema, default: {}},
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+    basicProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'BasicProfile', required: true, unique: true },
+    professionalDetails: {type: professionalDetailsSchema, default: () => ({})},
+    credentials: {type: credentialsSchema, default: () => ({})},
+    availability: {type: availabilitySchema, default: () => ({})},
     joinedCommunities: {
         type: [String],
         default: [],
     },
-    finalTouches: {type: finalTouchesSchema, default: {}},
+    finalTouches: {type: finalTouchesSchema, default: () => ({})},
     isVerifiedDoctor: {
         type: Boolean,
         default: false,
@@ -30,7 +30,7 @@ const doctorSchema = new mongoose.Schema({
         type: Date,
         default: null,
     },
-}, { timestamps: true });
+}, { timestamps: true, strict: true, optimisticConcurrency: true });
 
 doctorSchema.index({ user: 1 });
 

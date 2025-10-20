@@ -16,6 +16,6 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-}, { timestamps: true });
+}, { timestamps: true, strict: true, optimisticConcurrency: true });
 
 module.exports = mongoose.model('User', UserSchema);

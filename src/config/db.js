@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+mongoose.set('runValidators', true);
 mongoose.set('strictQuery', true);
 const { MONGO_URI, MODE } = require('./env');
 

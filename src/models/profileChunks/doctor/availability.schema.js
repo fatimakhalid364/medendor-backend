@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const {enum: {workPlaceStatusArray}} = require('constants');
 
 const availabilitySchema = new mongoose.Schema({
   workplaces: {
@@ -7,13 +6,10 @@ const availabilitySchema = new mongoose.Schema({
       {
         name: { type: String, trim: true },
         location: { type: String, trim: true },
-        type: {
-          type: String,
-          enum: workPlaceStatusArray,
-        }
       }
     ],
-    default: []
+    default: [],
+    validate: [arr => arr.length <= 5, 'Maximum 5 workplaces entries allowed.']
   },
   availableForOnlineConsultation: {
     type: Boolean,
@@ -30,7 +26,8 @@ const availabilitySchema = new mongoose.Schema({
   },
   appointmentTimeSlots: {
     type: [String],
-    default: []
+    default: [],
+    validate: [arr => arr.length <= 5, 'Maximum 5 appointment-slot entries allowed.']
   }
 }, { _id: false });
 

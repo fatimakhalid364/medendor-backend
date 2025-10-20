@@ -1,8 +1,9 @@
-const {enum: {workPlaceStatusArray, mimeTypesArray, openToArray, notifKeysArray, visibilityKeysArray}} = require('constants');
+const {enum: {workPlaceStatusArray, mimeTypesArray, openToArray, notifKeysArray, visibilityKeysArray, communitiesArray}} = require('constants');
 
 
 const validateIsDoctor = (req, res, next) => {
     const user = req.user; 
+    console.log('Validating if user is doctor:', user);
 
     if (!user || user.role !== 'doctor') {
         return res.status(403).json({ message: 'Access denied. Only doctors can create, update or get doctor details.' });
@@ -52,19 +53,17 @@ const validateAvailabilityDetails = (req, res, next) => {
     } = availability;
 
     // Validate workplaces array
-    if (!workplaces || (!Array.isArray(workplaces)) || workplaces.length == 0 || (!workplaces.every(place => {
+    if (!workplaces || (!Array.isArray(workplaces)) || workplaces.length == 0 || workplaces.length > 5 || (!workplaces.every(place => {
         return (
         place &&
         typeof place.name === 'string' &&
         place.name.trim() &&
         typeof place.location === 'string' &&
-        place.location.trim() &&
-        typeof place.type === 'string' &&
-        workPlaceStatusArray.includes(place.type)
+        place.location.trim()
         );
     }))) {
         return res.status(400).json({
-        error: 'Workplaces are required. Each workplace must include a valid name, location, and a type from the allowed list.'
+        error: '1 - 5 workplaces are required. Each workplace must include a valid name, and location from the allowed list.'
         });
     }
 
@@ -77,10 +76,10 @@ const validateAvailabilityDetails = (req, res, next) => {
 
     if (
         !appointmentTimeSlots ||
-        !Array.isArray(appointmentTimeSlots) || appointmentTimeSlots.length === 0 ||
+        !Array.isArray(appointmentTimeSlots) || appointmentTimeSlots.length === 0 || appointmentTimeSlots.length > 5 ||
         !appointmentTimeSlots.every(slot => typeof slot === 'string')) {
         return res.status(400).json({
-        error: 'appointmentTimeSlots must be an array of strings.'
+        error: ' 1 - 5 appointment slots are required. AppointmentTimeSlots must be an array of strings.'
         });
     }
 
@@ -134,12 +133,12 @@ const validateCredentialDetails = (req, res, next) => {
         return res.status(400).json({ error: 'Issuing authority is required and must be a non-empty string.' });
     }
 
-    if (!education || !Array.isArray(education) || education.length === 0) {
-        return res.status(400).json({ error: 'Education history is required for doctors.' });
+    if (!education || !Array.isArray(education) || education.length === 0 || education.length > 5) {
+        return res.status(400).json({ error: '1 -5 degrees are required. The data must be an array of objects.' });
     }
 
-    if (certifications && (!Array.isArray(certifications) || certifications.length === 0 || !certifications.every(cert => typeof cert === 'string'))) {
-        return res.status(400).json({ error: 'Certifications must be an array, cannot be empty and each entry must be a string.' });
+    if (certifications && (!Array.isArray(certifications) || certifications.length === 0 || certifications.length > 5 || !certifications.every(cert => typeof cert === 'string'))) {
+        return res.status(400).json({ error: '1 - 5 certifications are allowed. Certifications must be an array, cannot be empty and each entry must be a string.' });
     }
 
     if (licenseCertificateUrl && typeof licenseCertificateUrl !== 'string') {
@@ -183,8 +182,8 @@ const validateProfessionalDetails = (req, res, next) => {
         return res.status(400).json({ error: 'Specialty is required for doctors.' });
     }
 
-    if (!experience || !Array.isArray(experience) || experience.length === 0) {
-        return res.status(400).json({ error: 'At least one experience entry is required for doctors.' });
+    if (!experience || !Array.isArray(experience) || experience.length === 0 || experience.length > 5) {
+        return res.status(400).json({ error: '1 -5 experiences are required. Data must be an array of objects.' });
     }
 
     if (subSpecialty && typeof subSpecialty !== 'string') {
@@ -267,11 +266,23 @@ const validateDoctorFinalTouches = (req, res, next) => {
     next();
 };
 
+const validateCommunitiesArray = (req, res, next) => {
+    const communities = req.body;
+    if (!communities || !Array.isArray(communities) || communities.length === 0) {
+        return res.status(400).json({ error: 'At least one community is required.' });
+    }
+    if ((!communities.every(comm => typeof comm === 'string')) || (!communities.every(comm => communitiesArray.includes(comm)))) {
+        return res.status(400).json({ error: 'Invalid community name.' });
+    }
+}
+
+
 module.exports = {
     validateIsDoctor, 
     validateBasicDoctorInfo, 
     validateAvailabilityDetails, 
     validateCredentialDetails, 
     validateProfessionalDetails, 
-    validateDoctorFinalTouches
+    validateDoctorFinalTouches,
+    validateCommunitiesArray
 };
