@@ -4,11 +4,12 @@ const {
     credentialsModel: {credentialsSchema}, 
     professionalDetailsModel: {professionalDetailsSchema},
     finalTouchesModel: {finalTouchesSchema}} = require('doctorProfile');
+const {enum: {verificationStatusArray}} = require('constants');
 
 
 const doctorSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-    basicProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'BasicProfile', required: true, unique: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
+    basicProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'BasicProfile', required: true},
     professionalDetails: {type: professionalDetailsSchema, default: () => ({})},
     credentials: {type: credentialsSchema, default: () => ({})},
     availability: {type: availabilitySchema, default: () => ({})},
@@ -17,9 +18,10 @@ const doctorSchema = new mongoose.Schema({
         default: [],
     },
     finalTouches: {type: finalTouchesSchema, default: () => ({})},
-    isVerifiedDoctor: {
-        type: Boolean,
-        default: false,
+    verificationStatus: {
+        type: String,
+        enum: verificationStatusArray,
+        default: 'pending'
     },
     verifiedBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -32,6 +34,12 @@ const doctorSchema = new mongoose.Schema({
     },
 }, { timestamps: true, strict: true, optimisticConcurrency: true });
 
-doctorSchema.index({ user: 1 });
+doctorSchema.index({ user: 1 }, { unique: true });
+
+doctorSchema.index(
+    { verificationStatus: 1, createdAt: -1 },
+    { partialFilterExpression: { verificationStatus: 'pending' } }
+);
+
 
 module.exports = mongoose.model('Doctor', doctorSchema);

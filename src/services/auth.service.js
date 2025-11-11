@@ -1,6 +1,7 @@
 const {user: User, token: Token} = require('models');
-const {bcryptUtils: {hashPassword, comparePassword}, mailerUtils: {sendCode}, jwtUtils: {generateTokens}} = require('utils');
+const {bcryptUtils: {hashPassword, comparePassword}, mailerUtils: {sendMail}, jwtUtils: {generateTokens}} = require('utils');
 const {redis: {redisClient}} = require('config');
+const {mails: {codeMailSub, codeMailHtml}} = require('constants');
 
 const signup = async (data, role) => {
     try {
@@ -32,7 +33,7 @@ const signup = async (data, role) => {
         const newUser = new User(newUserData);
         await newUser.save();
 
-        await sendCode(email, verificationCode);
+        await sendMail(email, verificationCode, codeMailSub, codeMailHtml(verificationCode));
         return { success: true, message: `User created successfully and verification code sent to ${email} .` };
     } catch (error) {
         console.error('Error during signup:', error);

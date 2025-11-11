@@ -39,7 +39,7 @@ const visibilityKeysArray = createFrozenEnumArray([
     'showAvailabilityStatus'
 ]);
 
-const communitiesArray = Object.freeze([
+const communitiesArray = createFrozenEnumArray([
     'generalCare',
     'cardiovascularCare',
     'diabeticCare',
@@ -53,6 +53,39 @@ const communitiesArray = Object.freeze([
     'pregnancyCare'
 ]);
 
+const specialtiesArray = createFrozenEnumArray([
+    "Allergy & Immunology",
+    "Anesthesiology",
+    "Colon & Rectal Surgery",
+    "Dermatology",
+    "Emergency Medicine",
+    "Family Medicine",
+    "Internal Medicine",
+    "Medical Genetics & Genomics",
+    "Neurological Surgery",
+    "Nuclear Medicine",
+    "Obstetrics & Gynecology",
+    "Ophthalmology",
+    "Orthopaedic Surgery",
+    "Otolaryngology",
+    "Pathology",
+    "Pediatrics",
+    "Physical Medicine & Rehabilitation",
+    "Plastic Surgery",
+    "Preventive Medicine",
+    "Psychiatry & Neurology",
+    "Radiology",
+    "Surgery",
+    "Thoracic Surgery",
+    "Urology",
+    "Other Specialty"
+]
+);
+
+const verificationStatusArray = createFrozenEnumArray(['pending', 'verified', 'rejected']);
+
+const adminStatusArray = createFrozenEnumArray(['invited','active','suspended','disabled']);
+
 module.exports = {
     rolesArray,  
     issuingAuthArray, 
@@ -62,5 +95,8 @@ module.exports = {
     openToArray,
     notifKeysArray,
     visibilityKeysArray,
-    communitiesArray
+    communitiesArray,
+    verificationStatusArray,
+    specialtiesArray,
+    adminStatusArray
 }

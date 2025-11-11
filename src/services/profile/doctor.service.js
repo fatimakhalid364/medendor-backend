@@ -1,25 +1,51 @@
 const {basicProfile: BasicProfile, doctor: Doctor} = require('models');
+const mongoose = require('mongoose');
+const {basicUtils: { isEmptyDeep }} = require('utils');
+const {mails: {verifyDocMailSub, verifyDocMailHtml}} = require('constants');
+
 
 //basicDoctorInfo
 
 const addBasicDoctorInfo = async (userId, basicDoctorInfo) => {
+    const session = await mongoose.startSession();
+
     try {
-        console.log('Inside addDoctorBasicInfo service:', 'data:',basicDoctorInfo, 'and id:', userId);
-        const existingProfile = await BasicProfile.findOne({ user: userId });
+        session.startTransaction();
+
+        console.log('Inside addDoctorBasicInfo service:', { userId, basicDoctorInfo });
+
+        const existingProfile = await BasicProfile.findOne({ user: userId }).session(session);
         if (existingProfile) {
-        throw new Error('BasicdoctorInfo already registered');
+            throw new Error('Basic doctor info already registered.');
         }
 
         const basicProfile = new BasicProfile({
-        user: userId,
-        ...basicDoctorInfo
+            user: userId,
+            ...basicDoctorInfo,
         });
+        await basicProfile.save({ session });
 
-        await basicProfile.save();
-        return { success: true, message: `Basic Doctor Info created successfully.` };
+        const doctor = new Doctor({
+            user: userId,
+            basicProfile: basicProfile._id,
+        });
+        await doctor.save({ session });
+
+        await session.commitTransaction();
+
+        return {
+            success: true,
+            message: 'Basic doctor info created and linked successfully.',
+        };
     } catch (error) {
+        if (session.inTransaction()) {
+            await session.abortTransaction();
+        }
+
         console.error('Error during adding basic doctor info:', error);
-        throw new Error(error.message || 'addBasicDoctorInfo failed');
+        throw new Error(`addBasicDoctorInfo failed: ${error.message}`);
+    } finally {
+        session.endSession();
     }
 };
 
@@ -50,20 +76,18 @@ const addProfessionalDetails = async (userId, professionalDetailsData) => {
         let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
         if (!existingDoctorDetails) {
-            const doctorDetails = new Doctor({
-            user: userId,
-            professionalDetails: professionalDetailsData,
-            });
-            await doctorDetails.save();
-            return { success: true, message: `Professional details added successfully.` };
+            throw new Error('Please add basic profile before adding professional details.');
         }
-        if (existingDoctorDetails.professionalDetails &&  Object.keys(existingDoctorDetails.professionalDetails.toObject()).length > 0) {
-            throw new Error('Professional details already added');
-        } else {
-            existingDoctorDetails.professionalDetails = professionalDetailsData;
-            await existingDoctorDetails.save();
-            return { success: true, message: `Professional details added successfully.` };
-        }
+
+        const detailsObj = existingDoctorDetails.professionalDetails?.toObject?.() ?? {};
+        if (!isEmptyDeep(detailsObj)) {
+            throw new Error("Professional details already added");
+        } 
+
+        existingDoctorDetails.professionalDetails = professionalDetailsData;
+        await existingDoctorDetails.save();
+        return { success: true, message: `Professional details added successfully.` };
+
     } catch (error) {
         console.error('Error during adding professsional details:', error);
         throw new Error(error.message || 'addProfessionalDetails failed');
@@ -81,8 +105,8 @@ const updateProfessionalDetails = async (userId, professionalDetailsData) => {
         const {professionalDetails} = doctorDetails; 
         for (const [k, v] of Object.entries(professionalDetailsData)) { professionalDetails[k] = v; }
 
-        doctorDetails.markModified('professionalDetails');
-        doctorDetails.markModified('professionalDetails.experience');
+        // doctorDetails.markModified('professionalDetails');
+        // doctorDetails.markModified('professionalDetails.experience');
 
         await doctorDetails.save();
 
@@ -102,20 +126,18 @@ const addCredentials = async (userId, credentialsData) => {
         let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
         if (!existingDoctorDetails) {
-            const doctorDetails = new Doctor({
-            user: userId,
-            credentials: credentialsData,
-            });
-            await doctorDetails.save();
-            return { success: true, message: `Credentials added successfully.` };
+            throw new Error('Please add basic profile before adding credentials.');
         }
-        if (existingDoctorDetails.credentials &&  Object.keys(existingDoctorDetails.credentials.toObject()).length > 0) {
-            throw new Error('Credentials already added');
-        } else {
-            existingDoctorDetails.credentials = credentialsData;
-            await existingDoctorDetails.save();
-            return { success: true, message: `Credentials added successfully.` };
-        }
+
+        const detailsObj = existingDoctorDetails.credentials?.toObject?.() ?? {};
+        if (!isEmptyDeep(detailsObj)) {
+            throw new Error("Credentials already added");
+        } 
+
+        existingDoctorDetails.credentials = credentialsData;
+        await existingDoctorDetails.save();
+        return { success: true, message: `Credentials added successfully.` };
+
     } catch (error) {
         console.error('Error during adding credentials:', error);
         throw new Error(error.message || 'addCredentials failed');
@@ -134,9 +156,9 @@ const updateCredentials = async (userId, credentialsData) => {
         const {credentials} = doctorDetails; 
         for (const [k, v] of Object.entries(credentialsData)) { credentials[k] = v; }
         
-        doctorDetails.markModified('credentials');
-        doctorDetails.markModified('credentials.education');
-        doctorDetails.markModified('credentials.certifications');
+        // doctorDetails.markModified('credentials');
+        // doctorDetails.markModified('credentials.education');
+        // doctorDetails.markModified('credentials.certifications');
 
         await doctorDetails.save();
 
@@ -156,20 +178,18 @@ const addAvailabilityDetails = async (userId, availabilityDetails) => {
         let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
         if (!existingDoctorDetails) {
-            const doctorDetails = new Doctor({
-            user: userId,
-            availability: availabilityDetails,
-            });
-            await doctorDetails.save();
-            return { success: true, message: `Availability details added successfully.` };
+            throw new Error('Please add basic profile before adding availability details.');
         }
-        if (existingDoctorDetails.availability &&  Object.keys(existingDoctorDetails.availability.toObject()).length > 0) {
-            throw new Error('Availability details already added');
-        } else {
-            existingDoctorDetails.availability = availabilityDetails;
-            await existingDoctorDetails.save();
-            return { success: true, message: `Availability details added successfully.` };
-        }
+
+        const detailsObj = existingDoctorDetails.availability?.toObject?.() ?? {};
+        if (!isEmptyDeep(detailsObj)) {
+            throw new Error("Availability details already added");
+        } 
+
+        existingDoctorDetails.availability = availabilityDetails;
+        await existingDoctorDetails.save();
+        return { success: true, message: `Availability details added successfully.` };
+
     } catch (error) {
         console.error('Error during adding availability details:', error);
         throw new Error(error.message || 'addAvailabilityDetails failed');
@@ -188,9 +208,9 @@ const updateAvailabilityDetails = async (userId, availabilityDetails) => {
         const {availability} = doctorDetails; 
         for (const [k, v] of Object.entries(availabilityDetails)) { availability[k] = v; }
         
-        doctorDetails.markModified('availability');
-        doctorDetails.markModified('availability.appiontmentTimeSlots');
-        doctorDetails.markModified('availability.workplaces');
+        // doctorDetails.markModified('availability');
+        // doctorDetails.markModified('availability.appiontmentTimeSlots');
+        // doctorDetails.markModified('availability.workplaces');
 
         await doctorDetails.save();
 
@@ -210,12 +230,7 @@ const addJoinedCommunitiesArray = async (userId, joinedCommunitiesArray) => {
         let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
         if (!existingDoctorDetails) {
-            const doctorDetails = new Doctor({
-            user: userId,
-            joinedCommunities: joinedCommunitiesArray,
-            });
-            await doctorDetails.save();
-            return { success: true, message: `Joined communities added successfully.` };
+            throw new Error('Please add basic profile before adding communities.');
         }
         if (existingDoctorDetails.joinedCommunities) {
             existingDoctorDetails.joinedCommunities = [
@@ -267,20 +282,18 @@ const addFinalTouches = async (userId, finalTouchesData) => {
         let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
         if (!existingDoctorDetails) {
-            const doctorDetails = new Doctor({
-            user: userId,
-            finalTouches: finalTouchesData,
-            });
-            await doctorDetails.save();
-            return { success: true, message: `Final touches added successfully.` };
+            throw new Error('Please add basic profile before adding final touches.');
         }
-        if (existingDoctorDetails.finalTouches &&  Object.keys(existingDoctorDetails.finalTouches.toObject()).length > 0) {
-            throw new Error('Final touches already added');
-        } else {
-            existingDoctorDetails.finalTouches = finalTouchesData;
-            await existingDoctorDetails.save();
-            return { success: true, message: `Final touches added successfully.` };
-        }
+
+        const detailsObj = existingDoctorDetails.finalTouches?.toObject?.() ?? {};
+        if (!isEmptyDeep(detailsObj)) {
+            throw new Error("Final touches already added");
+        } 
+
+        existingDoctorDetails.finalTouches = finalTouchesData;
+        await existingDoctorDetails.save();
+        return { success: true, message: `Final touches added successfully.` };
+
     } catch (error) {
         console.error('Error during adding final touches:', error);
         throw new Error(error.message || 'addFinalTouches failed');
@@ -293,7 +306,7 @@ const updateFinalTouches = async (userId, finalTouchesData) => {
         const doctorDetails = await Doctor.findOne({ user: userId, finalTouches: { $exists: true, $ne: {} } });
 
         if (!doctorDetails) {
-        throw new Error("Doctor profile or final touches not found. Please add them before updating");
+            throw new Error("Doctor profile or final touches not found. Please add them before updating");
         }
 
         const {finalTouches} = doctorDetails; 
@@ -304,7 +317,7 @@ const updateFinalTouches = async (userId, finalTouchesData) => {
                 for (const [key, val] of Object.entries(values)) {
                     finalTouches[section][key] = val;
                 }
-                doctorDetails.markModified(`finalTouches.${section}`);
+                // doctorDetails.markModified(`finalTouches.${section}`);
                 }
             } else {
                 throw new Error(`Final touches section '${section}' does not exist.`);

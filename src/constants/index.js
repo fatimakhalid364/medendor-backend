@@ -1,3 +1,4 @@
 module.exports = {
-    enum: require('./enum')
+    enum: require('./enum'),
+    mails: require('./mails'),
 }
