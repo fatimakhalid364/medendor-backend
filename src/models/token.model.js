@@ -1,13 +1,41 @@
-const mongoose = require('mongoose');
-
 const TokenSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    jti: String,
-    type: { type: String, enum: ['access', 'refresh'] },
-    ip: String,
-    userAgent: String,
-    createdAt: { type: Date, default: Date.now },
-    expiresAt: Date,
-}, { timestamps: true, strict: true, optimisticConcurrency: true });
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
 
-module.exports = mongoose.model('Token', TokenSchema);
+    jti: {
+        type: String,
+        required: true
+    },
+
+    type: {
+        type: String,
+        enum: ['access', 'refresh'],
+        required: true
+    },
+
+    revoked: {
+        type: Boolean,
+        default: false
+    },
+
+    ip: String,
+
+    userAgent: String,
+
+    expiresAt: {
+        type: Date,
+        required: true
+    },
+
+     absoluteExpiresAt: {
+        type: Date,
+        required: true
+    }
+
+}, {
+    timestamps: true,
+    strict: true,
+    optimisticConcurrency: true
+});
