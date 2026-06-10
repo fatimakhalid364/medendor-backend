@@ -1,4 +1,4 @@
-const {authServices: {signup, verifyCode, login}} = require('services');
+const {authServices: {signup, verifyCode, login, logout}} = require('services');
 
 const handleSignup = async(req, res) => {
     try {
@@ -43,19 +43,22 @@ const handleLogin = async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: 'none',
-            maxAge: 15 * 60 * 1000
+            maxAge: 15 * 60 * 1000,
+            path: '/'
         })
         .cookie('refresh_token', refreshToken, {
             httpOnly: true,
             secure: true,
             sameSite: 'none',
-            maxAge: 7 * 24 * 60 * 60 * 1000
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/'
         })
         .cookie('csrf_token', csrfToken, {
             httpOnly: false,
             secure: true,
             sameSite: 'none',
-            maxAge: 15 * 60 * 1000
+            maxAge: 15 * 60 * 1000,
+            path: '/'
         })
         .json({
             success: success,
@@ -75,5 +78,42 @@ const handleLogin = async (req, res) => {
         });
     }
 };
+
+const handlelogout = async(req, res) => {
+    try {
+        console.log('Handling logout request:', req.cookies['access-token'], req.cookies['refresh-token'])
+        const accessToken = req.cookies['access-token'];
+        const refreshToken = req.cookies['refresh-token'];
+
+        const {success, message} = await logout(accessToken, refreshToken);
+
+        res.clearCookie('access-token', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            path: '/'
+        });
+
+        res.clearCookie('refresh-token', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            path: '/'
+        });
+
+        res.clearCookie('csrf-token', {
+            httpOnly: false,
+            secure: true,
+            sameSite: 'none',
+            path: '/'
+        });
+
+    } catch (error) {
+        res.status(400).json({
+            success: false,
+            message: error.message || 'An error occurred during logout',
+        });
+    }
+}
 
 module.exports = {handleSignup, handleVerifyCode, handleLogin}

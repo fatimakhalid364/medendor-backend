@@ -143,10 +143,9 @@ const login = async (email, password, ip, userAgent) => {
     }
 };
 
-const logout = async (req, res) => {
+const logout = async (accessToken, refreshToken) => {
     try {
-        const accessToken = req.cookies['access-token'];
-        const refreshToken = req.cookies['refresh-token'];
+       
 
         if (!accessToken) throw new Error ('Access token missing')
 
@@ -190,28 +189,7 @@ const logout = async (req, res) => {
             }
         }
 
-        // 4. Clear cookies
-        // res.clearCookie('access-token', {
-        //     httpOnly: true,
-        //     secure: true,
-        //     sameSite: 'none',
-        //     path: '/'
-        // });
-
-        // res.clearCookie('refresh-token', {
-        //     httpOnly: true,
-        //     secure: true,
-        //     sameSite: 'none',
-        //     path: '/'
-        // });
-
-        // res.clearCookie('csrf-token', {
-        //     httpOnly: false,
-        //     secure: true,
-        //     sameSite: 'none',
-        //     path: '/'
-        // });
-
+        
         return res.status(200).json({
             success: true,
             message: 'Logged out successfully'
