@@ -55,6 +55,42 @@ const loginLimiter = rateLimit({
     legacyHeaders: false   
 });
 
+const validateLogoutRequest = (req, res, next) => {
+    const accessToken = req.cookies?.access_token;
+    const refreshToken = req.cookies?.refresh_token
+
+    if (!accessToken) {
+        return res.status(401).json({
+            success: false,
+            message: 'Access token missing'
+        });
+    }
+
+    req.auth = {
+        accessToken,
+        refreshToken
+    };
+
+    next();
+};
+
+const validateRefreshAccessToken = (req, res, next) => {
+        const refreshToken = req.cookies['refreshToken'];
+        const csrfToken = req.cookies['csrfToken'];
+        if (!refreshToken) 
+            throw new Error ('Refresh token msising');
+
+        if (!csrfToken) 
+            throw new Error('CSRF token missing');
+
+        req.auth = {
+            refreshToken,
+            csrfToken
+        };
+        
+        next();
+}
+
 const authenticateSession = async (req, res, next) => {
     try {
         console.log('Authenticating session with headers and cookies:', req.headers, req.cookies);
@@ -68,29 +104,35 @@ const authenticateSession = async (req, res, next) => {
         return res.status(401).json({ message: 'Access token is missing' });
         }
 
-        let decodedAccess, decodedCsrf;
+        let decodedAccess;
         try {
         decodedAccess = verifyAccessToken(accessToken);
-        decodedCsrf = verifyCsrfToken(csrfToken);
         } catch (err) {
         return res.status(401).json({
-            message: 'Access token or CSRF Token has expired',
+            message: 'Access token has expired or is invalid',
         });
         }
 
-        const {jti: accessJti, role, sub} = decodedAccess;
-        const {jti: csrfJti} = decodedCsrf;
+        const {accessJti, role, sub} = decodedAccess;
 
-        if (accessJti !== csrfJti) {
-        return res.status(403).json({ message: 'JTI mismatch between access and csrf tokens' });
+         const sessionData = await redisClient.get(
+            `session:${accessJti}`
+        );
+
+        if (!sessionData) {
+            return res.status(401).json({
+                message: 'Session has expired or been revoked'
+            });
         }
 
-        const isTokenActive = await redisClient.get(`access:${accessJti}`);
-        if (!isTokenActive) {
-        return res.status(401).json({
-            message: 'Access token has been revoked',
-        });
+        const session = JSON.parse(sessionData);
+
+        if (session.csrfToken !== csrfToken) {
+            return res.status(403).json({
+                message: 'Invalid CSRF token'
+            });
         }
+
 
         const isValidRole = rolesArray.includes(role);
         if (!isValidRole) {

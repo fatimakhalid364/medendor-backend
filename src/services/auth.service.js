@@ -145,9 +145,6 @@ const login = async (email, password, ip, userAgent) => {
 
 const logout = async (accessToken, refreshToken) => {
     try {
-       
-
-        if (!accessToken) throw new Error ('Access token missing')
 
         let decoded;
 
@@ -190,10 +187,10 @@ const logout = async (accessToken, refreshToken) => {
         }
 
         
-        return res.status(200).json({
+        return {
             success: true,
             message: 'Logged out successfully'
-        });
+        };
 
     } catch (error) {
         console.error('Logout error:', error);
@@ -201,15 +198,10 @@ const logout = async (accessToken, refreshToken) => {
     }
 };
 
-const refreshAccessToken = async (req, res) => {
+const refreshAccessToken = async (refreshToken, csrfToken) => {
     try {
 
-        const refreshToken =
-            req.cookies['refresh_token'];
-
         if (!refreshToken) throw new Error ('Refresh token msising');
-
-        const csrfToken = req.headers['csrf-token'];
 
         if (!csrfToken) 
             throw new Error('CSRF token missing');
@@ -249,7 +241,7 @@ const refreshAccessToken = async (req, res) => {
 
         // 7-day inactivity timeout
         if (now > tokenRecord.expiresAt) 
-            throw new Error ('Session expires due to inactivity');
+            throw new Error ('Session expired due to inactivity');
 
         // 30-day hard session limit
         if (
@@ -322,58 +314,14 @@ const refreshAccessToken = async (req, res) => {
             })
         );
 
-        // res
-        //     .cookie(
-        //         'access_token',
-        //         accessToken,
-        //         {
-        //             httpOnly: true,
-        //             secure: true,
-        //             sameSite: 'none',
-        //             maxAge:
-        //                 15 * 60 * 1000
-        //         }
-        //     )
-        //     .cookie(
-        //         'refresh_token',
-        //         newRefreshToken,
-        //         {
-        //             httpOnly: true,
-        //             secure: true,
-        //             sameSite: 'none',
-        //             path: '/auth/refresh',
-        //             maxAge:
-        //                 7 *
-        //                 24 *
-        //                 60 *
-        //                 60 *
-        //                 1000
-        //         }
-        //     )
-        //     .cookie(
-        //         'csrf_token',
-        //         csrfToken,
-        //         {
-        //             httpOnly: false,
-        //             secure: true,
-        //             sameSite: 'none',
-        //             maxAge:
-        //                 7 *
-        //                 24 *
-        //                 60 *
-        //                 60 *
-        //                 1000
-        //         }
-        //     );
-
-        return res.status(200).json({
+        return {
             success: true,
             message:
                 'Access token refreshed successfully',
             newAccessToken,
             newRefreshToken,
             newCsrfToken
-        });
+        };
 
     } catch (error) {
         console.error(

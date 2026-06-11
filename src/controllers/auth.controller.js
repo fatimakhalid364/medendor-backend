@@ -81,9 +81,8 @@ const handleLogin = async (req, res) => {
 
 const handlelogout = async(req, res) => {
     try {
-        console.log('Handling logout request:', req.cookies['access-token'], req.cookies['refresh-token'])
-        const accessToken = req.cookies['access-token'];
-        const refreshToken = req.cookies['refresh-token'];
+        console.log('Handling logout request:', req.auth)
+        const {accessToken, refreshToken} = req.auth;
 
         const {success, message} = await logout(accessToken, refreshToken);
 
@@ -116,4 +115,60 @@ const handlelogout = async(req, res) => {
     }
 }
 
-module.exports = {handleSignup, handleVerifyCode, handleLogin}
+const handleRereshAccessToken = async(req, res) => {
+    try {
+        console.log('Handling refresh access token request:', req.auth);
+        const {refreshToken, accessToken} = req.auth;
+
+        const {success, message, newAccessToken, newRefreshToken, newCsrfToken} = await refreshAccessToken(refreshToken, csrfToken);
+        res.status(200)
+            .cookie(
+                'access_token',
+                newAccessToken,
+                {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'none',
+                    maxAge:
+                        15 * 60 * 1000
+                }
+            )
+            .cookie(
+                'refresh_token',
+                newRefreshToken,
+                {
+                    httpOnly: true,
+                    secure: true,
+                    sameSite: 'none',
+                    path: '/auth/refresh',
+                    maxAge:
+                        7 * 24 * 60 * 60 * 1000
+                }
+            )
+            .cookie(
+                'csrf_token',
+                newCsrfToken,
+                {
+                    httpOnly: false,
+                    secure: true,
+                    sameSite: 'none',
+                    maxAge:
+                        7 * 24 * 60 * 60 * 1000
+                }
+            )
+            .json({
+                success, 
+                message
+            });
+
+    }catch(error){
+         res.status(400).json({
+            success: false,
+            message: error.message || 'An error occurred wile refreshing access token',
+        });
+    }
+
+   
+}
+
+module.exports = {handleSignup, handleVerifyCode, handleLogin, handleLogout}
