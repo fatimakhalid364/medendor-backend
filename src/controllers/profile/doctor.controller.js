@@ -19,7 +19,7 @@ const handleAddBasicDoctorInfo = async(req, res) => {
         console.log('Handling addBasicDoctorInfo request:', req.body, req.user);
         const userId = req.user.id;
         const textFields = req.body;
-        const profilePictureUrl = req.file.path;
+        const profilePictureUrl = req.file?.path;
         const basicDoctorInfo = { ...textFields, profilePicture: profilePictureUrl };
 
         const result = await addBasicDoctorInfo(userId, basicDoctorInfo);
@@ -37,7 +37,7 @@ const handleUpdateBasicDoctorInfo = async(req, res) => {
         console.log('Handling updateBasicDoctorInfo request:', req.body, req.user);
         const userId = req.user.id;
         const textFields = req.body;
-        const profilePictureUrl = req.file.path;
+        const profilePictureUrl = req.file?.path;
         let basicDoctorInfo;
         if (!profilePictureUrl) {
             basicDoctorInfo = textFields;

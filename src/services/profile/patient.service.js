@@ -93,21 +93,20 @@ const addHealthInterests = async(userId, healthInterestsData)=> {
     }
 }
 
-const updateHealthInterests = async(userId, healthInterestsData)=> {
+const updateHealthInterests = async(userId, healthInterestsData, updateData)=> {
     try {
         console.log("Inside updateHealthInterests service");
-        let setObj = {};
-        Object.keys(healthInterestsData).forEach(key=>
-            {
-                if(!(key in healthInterestsSchema.paths)){
-                    throw new Error(`Invalid key ${key}`)
-                }
-                setObj[`healthInterests.${key}`] = healthInterestsData[key]
-            }
-        )
+        // Object.keys(healthInterestsData).forEach(key=>
+        //     {
+        //         if(!(key in healthInterestsSchema.paths)){
+        //             throw new Error(`Invalid key ${key}`)
+        //         }
+        //         setObj[`healthInterests.${key}`] = healthInterestsData[key]
+        //     }
+        // )
         const patientDetails = await Patient.findOneAndUpdate(
             {user: userId}, 
-            {$set: setObj},
+            {$set: updateData},
             {
                 runValidators: true,
                 strict: true,
@@ -129,7 +128,7 @@ const updateHealthInterests = async(userId, healthInterestsData)=> {
 
 const addPrivacyPreferences = async(userId, privacyPreferencesData)=> {
     try{
-        console.log("inside  addPrivacyPreferences service");
+        console.log("inside addPrivacyPreferences service");
         const existingPatientDetails = Patient.findOne({user: userId, privacyPreferences: {$exists: true}})
         if (!existingPatientDetails){
             throw new Error("Please add basic profile before adding privacy preferences.")
@@ -152,20 +151,20 @@ const addPrivacyPreferences = async(userId, privacyPreferencesData)=> {
     }
 }
 
-const updatePrivacyPreferences = async(userId, privacyPreferencesData)=> {
+const updatePrivacyPreferences = async(userId, privacyPreferencesData, updateData)=> {
     try {
         console.log("Inside updateprivacyPreferences service");
-        let setObj = {};
-        Object.keys(privacyPreferencesData).forEach(key=>{
-                if(!(key in privacyPreferencesSchema.paths)){
-                throw new Error(`Invalid key ${key}`)
-                }
-                setObj[`privacyPreferences.${key}`] = privacyPreferencesData[key]
-            }
-        )
+        
+        // Object.keys(privacyPreferencesData).forEach(key=>{
+        //         if(!(key in privacyPreferencesSchema.paths)){
+        //         throw new Error(`Invalid key ${key}`)
+        //         }
+        //         setObj[`privacyPreferences.${key}`] = privacyPreferencesData[key]
+        //     }
+        // )
         const patientDetails = await Patient.findOneAndUpdate(
             {user: userId}, 
-            {$set: setObj},
+            {$set: updateData},
             {
                 runValidators: true,
                 strict: true,
@@ -209,26 +208,26 @@ const addPatientFinalTouches = async (userId, finalTouchesData) => {
     }
 };
 
-const updatePatientFinalTouches = async (userId, finalTouchesData) => {
+const updatePatientFinalTouches = async (userId, finalTouchesData, updateData) => {
     try{
         console.log("Inside updatePatientFinalTouches service.");
 
-        const updatedFields = {};
-        for(const [key, value] of Object.entries(finalTouchesData)){
-            if (!(key in finalTouchesSchema.paths)){
-                throw new Error(`Invalid key:${key}`)
-            }
-            for (const [subKey, subValue] of Object.keys(value)){
-                if(!(subKey in finalTouchesSchema.paths[key].schema.paths)){
-                    throw new Error(`Invalid subKey: ${subKey}`)
-                }
-                updatedFields[`finalTouches.${key}.${subKey}`] = subValue
-            }
-        }
+        // const updatedFields = {};
+        // for(const [key, value] of Object.entries(finalTouchesData)){
+        //     if (!(key in finalTouchesSchema.paths)){
+        //         throw new Error(`Invalid key:${key}`)
+        //     }
+        //     for (const [subKey, subValue] of Object.keys(value)){
+        //         if(!(subKey in finalTouchesSchema.paths[key].schema.paths)){
+        //             throw new Error(`Invalid subKey: ${subKey}`)
+        //         }
+        //         updatedFields[`finalTouches.${key}.${subKey}`] = subValue
+        //     }
+        // }
 
         const patientDetails = Patient.findOneAndUpdate(
             {user: userId},
-            {$set: updatedFields},
+            {$set: updateData},
             {
                 runValidators: true,
                 new: true,

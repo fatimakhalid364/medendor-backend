@@ -1,27 +1,42 @@
-const validateIsDoctor = (req, res, next) => {
-    const user = req.user; 
+const mongoose = require("mongoose");
+const {validateKeys, makeSetObj} = require('utils/validation.utils')
 
-    if (!user || user.role !== 'doctor') {
-        return res.status(403).json({ message: 'Access denied. Only doctors can create, update or get doctor details.' });
-    }
+/**
+ * Creates a whitelist + sanitizer middleware for nested updates
+ */
 
-    next();
-}
+const validateRequestFields = (schema, path) => {
 
-const validateDoctorData = (req, res, next) => {
-    const {
-        specialty,
-        licenseNumber,
-        experience,
-        education,
-        workplaces
-    } = req.body;
+    return (req, res, next) => {
 
-    if (!specialty || !licenseNumber || !experience?.length || !education?.length || !workplaces?.length) {
-        return res.status(400).json({ message: 'Missing required doctor details.' });
-    }
+        try {
+            const input = req.body;
 
-    next();
+            validateKeys(
+                input,
+                schema.obj
+            );
+
+            // Object.keys(input).forEach(key=>{
+            //     setObj[`${path}.${key}`] = input[key]
+            // })
+
+           const setObj = makeSetObj(input);
+
+            req.updateData = setObj;
+
+            next();
+
+        } catch (error) {
+
+            return res.status(400).json({
+                message: error.message
+            });
+
+        }
+
+    };
+
 };
 
-module.exports = {validateIsDoctor, validateDoctorData}
+module.exports = {validateRequestFields}
