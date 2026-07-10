@@ -9,7 +9,10 @@ const availabilitySchema = new mongoose.Schema({
       }
     ],
     default: [],
-    validate: [arr => arr.length <= 5, 'Maximum 5 workplaces entries allowed.']
+    validate:[
+        arr=>arr.length <= 5,
+        "Maximum 5 workplaces entries allowed."
+    ]
   },
   availableForOnlineConsultation: {
     type: Boolean,
@@ -22,12 +25,14 @@ const availabilitySchema = new mongoose.Schema({
   consultationFee: {
     type: Number,
     default: null,
-    min: 0
+    min: 0,
+    required: true
   },
   appointmentTimeSlots: {
     type: [String],
     default: [],
-    validate: [arr => arr.length <= 5, 'Maximum 5 appointment-slot entries allowed.']
+    validate: [arr => arr.length <= 5, 'Maximum 5 appointment-slot entries allowed.'],
+    required: true
   }
 }, { _id: false });
 

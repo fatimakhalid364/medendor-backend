@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const professionalDetailsSchema = new mongoose.Schema({
-    specialty: { type: String, trim: true },
+    specialty: { type: String, trim: true, required: true },
     subSpecialty: { type: String, trim: true },
     experience: {
     type: [
@@ -14,7 +14,8 @@ const professionalDetailsSchema = new mongoose.Schema({
         }
     ],
     default: [],
-    validate: [arr => arr.length <= 5, 'Maximum 5 experience entries allowed.']
+    validate: [arr => arr.length <= 5, 'Maximum 5 experience entries allowed.'],
+    required: true
     },
     about: { type: String, trim: true }
 }, { _id: false, strict: true });

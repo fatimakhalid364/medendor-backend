@@ -76,9 +76,9 @@ const handleUpdateProfessionalDetails = async(req, res) => {
     try {
         console.log('Handling updateProfessionalDetails request:', req.body, req.user);
         const userId = req.user.id;
-        const professionalDetailsData = req.body;
+        const updateData = req.updateData;
 
-        const result = await updateProfessionalDetails(userId, professionalDetailsData);
+        const result = await updateProfessionalDetails(userId, updateData);
         res.status(201).json(result);
     } catch (error) {
         res.status(400).json({
@@ -108,9 +108,9 @@ const handleUpdateCredentials = async(req, res) => {
     try {
         console.log('Handling updateCredentials request:', req.body, req.user);
         const userId = req.user.id;
-        const credentialsData = req.body;
+        const updateData = req.updateData;
 
-        const result = await updateCredentials(userId, credentialsData);
+        const result = await updateCredentials(userId, updateData);
         res.status(201).json(result);
     } catch (error) {
         res.status(400).json({
@@ -140,9 +140,9 @@ const handleUpdateAvailabilityDetails = async(req, res) => {
     try {
         console.log('Handling updateAvailabilityDetails request:', req.body, req.user);
         const userId = req.user.id;
-        const availabilityDetails = req.body;
+        const updateData = req.updateData;
 
-        const result = await updateAvailabilityDetails(userId, availabilityDetails);
+        const result = await updateAvailabilityDetails(userId, updateData);
         res.status(201).json(result);
     } catch (error) {
         res.status(400).json({
@@ -206,9 +206,9 @@ const handleUpdateFinalTouches = async(req, res) => {
     try {
         console.log('Handling updateFinalTouches request:', req.body, req.user);
         const userId = req.user.id;
-        const finalTouchesData = req.body;
+        const updateData = req.updateData;
 
-        const result = await updateFinalTouches(userId, finalTouchesData);
+        const result = await updateFinalTouches(userId, updateData);
         res.status(201).json(result);
     } catch (error) {
         res.status(400).json({

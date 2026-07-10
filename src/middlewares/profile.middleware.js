@@ -7,9 +7,12 @@ const {validateKeys, makeSetObj} = require('utils/validation.utils')
 
 const validateRequestFields = (schema, path) => {
 
+    console.log('inside valideRequestFields middelware')
+
     return (req, res, next) => {
 
         try {
+            console.log('inside valideRequestFields middelware', req.body)
             const input = req.body;
 
             validateKeys(
@@ -21,7 +24,7 @@ const validateRequestFields = (schema, path) => {
             //     setObj[`${path}.${key}`] = input[key]
             // })
 
-           const setObj = makeSetObj(input);
+           const setObj = makeSetObj(input, path);
 
             req.updateData = setObj;
 

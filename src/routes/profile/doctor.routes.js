@@ -31,6 +31,8 @@ const {
         handleUpdateFinalTouches
     }} = require('controllers');
 
+const {validateRequestFields} = require('middlewares/profile.middleware');
+
 const upload = multer({ storage });
 
 router.use(authenticateSession);
@@ -69,6 +71,7 @@ router.post(
 
 router.put(
     '/professional-details',
+    validateRequestFields,
     handleUpdateProfessionalDetails
 );
 
@@ -86,6 +89,7 @@ router.post(
 
 router.put(
     '/credentials',
+    validateRequestFields,
     handleUpdateCredentials
 );
 
@@ -103,6 +107,7 @@ router.post(
 
 router.put(
     '/availability',
+    validateRequestFields,
     handleUpdateAvailabilityDetails
 );
 
@@ -137,6 +142,7 @@ router.post(
 
 router.put(
     '/final-touches',
+    validateRequestFields,
     handleUpdateFinalTouches
 );
 

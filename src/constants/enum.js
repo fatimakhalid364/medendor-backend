@@ -24,20 +24,20 @@ const openToArray = createFrozenEnumArray([
     'mentoring'
 ]);
 
-const notifKeysArray = createFrozenEnumArray([
-    'emailNotifications',
-    'inAppNotifications',
-    'newsletterUpdates',
-    'allNotifications'
-]);
+// const notifKeysArray = createFrozenEnumArray([
+//     'emailNotifications',
+//     'inAppNotifications',
+//     'newsletterUpdates',
+//     'allNotifications'
+// ]);
 
-const visibilityKeysArray = createFrozenEnumArray([
-    'showContactInfo',
-    'showEducation',
-    'showWorkExperience',
-    'showLanguagesSpoken',
-    'showAvailabilityStatus'
-]);
+// const visibilityKeysArray = createFrozenEnumArray([
+//     'showContactInfo',
+//     'showEducation',
+//     'showWorkExperience',
+//     'showLanguagesSpoken',
+//     'showAvailabilityStatus'
+// ]);
 
 const communitiesArray = createFrozenEnumArray([
     'generalCare',
@@ -93,8 +93,6 @@ module.exports = {
     genderArray,
     mimeTypesArray,
     openToArray,
-    notifKeysArray,
-    visibilityKeysArray,
     communitiesArray,
     verificationStatusArray,
     specialtiesArray,

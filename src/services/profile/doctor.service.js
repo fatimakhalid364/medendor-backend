@@ -94,21 +94,21 @@ const addProfessionalDetails = async (userId, professionalDetailsData) => {
     }
 };
 
-const updateProfessionalDetails = async (userId, professionalDetailsData) => {
+const updateProfessionalDetails = async (userId, updateData) => {
     try {
-        const doctorDetails = await Doctor.findOne({ user: userId, professionalDetails: { $exists: true, $ne: {} } });
-
-        if (!doctorDetails) {
-        throw new Error("Doctor profile or professional details not found. Please add them before updating");
+        const doctorDetails = await Doctor.findOneAndUpdate(
+            {user: userId}, 
+            {$set: updateData},
+                {
+                    runValidators: true,
+                    strict: true,
+                    new: true
+                }
+            );
+        
+        if (!doctorDetails){
+            throw new Error("Basic profile not added for this user.")
         }
-
-        const {professionalDetails} = doctorDetails; 
-        for (const [k, v] of Object.entries(professionalDetailsData)) { professionalDetails[k] = v; }
-
-        // doctorDetails.markModified('professionalDetails');
-        // doctorDetails.markModified('professionalDetails.experience');
-
-        await doctorDetails.save();
 
         return { success: true, message: "Professional details updated successfully." };
     } catch (error) {
@@ -145,22 +145,21 @@ const addCredentials = async (userId, credentialsData) => {
 };
 
 
-const updateCredentials = async (userId, credentialsData) => {
+const updateCredentials = async (userId, updateData) => {
     try {
-        const doctorDetails = await Doctor.findOne({ user: userId, credentials: { $exists: true, $ne: {} } });
-
-        if (!doctorDetails) {
-        throw new Error("Doctor profile or credentials not found. Please add them before updating");
-        }
-
-        const {credentials} = doctorDetails; 
-        for (const [k, v] of Object.entries(credentialsData)) { credentials[k] = v; }
+        const doctorDetails = await Doctor.findOneAndUpdate(
+            {user: userId}, 
+            {$set: updateData},
+            {
+                runValidators: true,
+                strict: true,
+                new: true
+            }
+        );
         
-        // doctorDetails.markModified('credentials');
-        // doctorDetails.markModified('credentials.education');
-        // doctorDetails.markModified('credentials.certifications');
-
-        await doctorDetails.save();
+        if (!doctorDetails){
+            throw new Error("Basic profile not added for this user.")
+        }
 
         return { success: true, message: "Credentials updated successfully." };
     } catch (error) {
@@ -197,22 +196,21 @@ const addAvailabilityDetails = async (userId, availabilityDetails) => {
 };
 
 
-const updateAvailabilityDetails = async (userId, availabilityDetails) => {
+const updateAvailabilityDetails = async (userId, updateData) => {
     try {
-        const doctorDetails = await Doctor.findOne({ user: userId, availability: { $exists: true, $ne: {} } });
-
-        if (!doctorDetails) {
-        throw new Error("Doctor profile or availability not found. Please add them before updating");
-        }
-
-        const {availability} = doctorDetails; 
-        for (const [k, v] of Object.entries(availabilityDetails)) { availability[k] = v; }
+        const doctorDetails = await Doctor.findOneAndUpdate(
+            {user: userId}, 
+            {$set: updateData},
+            {
+                runValidators: true,
+                strict: true,
+                new: true
+            }
+        );
         
-        // doctorDetails.markModified('availability');
-        // doctorDetails.markModified('availability.appiontmentTimeSlots');
-        // doctorDetails.markModified('availability.workplaces');
-
-        await doctorDetails.save();
+        if (!doctorDetails){
+            throw new Error("Basic profile not added for this user.")
+        }
 
         return { success: true, message: "Availability details updated successfully." };
     } catch (error) {
@@ -301,30 +299,21 @@ const addFinalTouches = async (userId, finalTouchesData) => {
 };
 
 
-const updateFinalTouches = async (userId, finalTouchesData) => {
+const updateFinalTouches = async (userId, updateData) => {
     try {
-        const doctorDetails = await Doctor.findOne({ user: userId, finalTouches: { $exists: true, $ne: {} } });
-
-        if (!doctorDetails) {
-            throw new Error("Doctor profile or final touches not found. Please add them before updating");
-        }
-
-        const {finalTouches} = doctorDetails; 
-
-        for (const [section, values] of Object.entries(finalTouchesData)) {
-            if (finalTouches[section] !== undefined) {
-                if (typeof values === 'object' && values !== null) {
-                for (const [key, val] of Object.entries(values)) {
-                    finalTouches[section][key] = val;
-                }
-                // doctorDetails.markModified(`finalTouches.${section}`);
-                }
-            } else {
-                throw new Error(`Final touches section '${section}' does not exist.`);
+       const doctorDetails = await Doctor.findOneAndUpdate(
+            {user: userId}, 
+            {$set: updateData},
+            {
+                runValidators: true,
+                strict: true,
+                new: true
             }
+        );
+        
+        if (!doctorDetails){
+            throw new Error("Basic profile not added for this user.")
         }
-
-        await doctorDetails.save();
 
         return { success: true, message: "Final touches updated successfully." };
     } catch (error) {
@@ -332,6 +321,7 @@ const updateFinalTouches = async (userId, finalTouchesData) => {
         throw new Error(error.message || "Unable to update final touches");
     }
 };
+
 
 module.exports = {
     addBasicDoctorInfo,

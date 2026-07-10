@@ -23,11 +23,11 @@ const validateBasicPatientInfo = (req, res, next) => {
 
     const profilePicture = req.file;
 
-    if (!gender || !country || !city || !age || !languagesSpoken?.length || !profilePicture) {
+    if (!gender || !country || !city || !languagesSpoken?.length || !profilePicture) {
         return res.status(400).json({ message: 'Missing required basic info for patient.' });
     }
 
-    if (!mimeTypesArray.includes(profilePicture.mimetype)) {
+    if (profilePicture && !mimeTypesArray.includes(profilePicture.mimetype)) {
         return res.status(400).json({ 
             message: 'Invalid file type. Only JPEG, PNG, JPG, AVIF, and WEBP images are allowed.' 
         });

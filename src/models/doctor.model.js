@@ -4,7 +4,7 @@ const {
     credentialsModel: {credentialsSchema}, 
     professionalDetailsModel: {professionalDetailsSchema},
     finalTouchesModel: {finalTouchesSchema}} = require('doctorProfile');
-const {enum: {verificationStatusArray}} = require('constants');
+const {enum: {verificationStatusArray, communitiesArray}} = require('constants');
 
 
 const doctorSchema = new mongoose.Schema({
@@ -16,6 +16,7 @@ const doctorSchema = new mongoose.Schema({
     joinedCommunities: {
         type: [String],
         default: [],
+        enum: communitiesArray
     },
     finalTouches: {type: finalTouchesSchema, default: () => ({})},
     verificationStatus: {

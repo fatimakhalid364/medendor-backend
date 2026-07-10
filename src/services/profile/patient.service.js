@@ -24,7 +24,7 @@ const addBasicPatientInfo = async(userId, basicPatientInfo)=> {
     
             const basicProfile = new BasicProfile({
                 user: userId,
-                ...basicDoctorInfo,
+                ...basicPatientInfo,
             });
             await basicProfile.save({ session });
     
@@ -93,7 +93,7 @@ const addHealthInterests = async(userId, healthInterestsData)=> {
     }
 }
 
-const updateHealthInterests = async(userId, healthInterestsData, updateData)=> {
+const updateHealthInterests = async(userId, updateData)=> {
     try {
         console.log("Inside updateHealthInterests service");
         // Object.keys(healthInterestsData).forEach(key=>
@@ -151,7 +151,7 @@ const addPrivacyPreferences = async(userId, privacyPreferencesData)=> {
     }
 }
 
-const updatePrivacyPreferences = async(userId, privacyPreferencesData, updateData)=> {
+const updatePrivacyPreferences = async(userId, updateData)=> {
     try {
         console.log("Inside updateprivacyPreferences service");
         
@@ -208,7 +208,7 @@ const addPatientFinalTouches = async (userId, finalTouchesData) => {
     }
 };
 
-const updatePatientFinalTouches = async (userId, finalTouchesData, updateData) => {
+const updatePatientFinalTouches = async (userId, updateData) => {
     try{
         console.log("Inside updatePatientFinalTouches service.");
 

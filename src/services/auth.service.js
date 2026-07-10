@@ -200,12 +200,6 @@ const logout = async (accessToken, refreshToken) => {
 
 const refreshAccessToken = async (refreshToken, csrfToken) => {
     try {
-
-        if (!refreshToken) throw new Error ('Refresh token msising');
-
-        if (!csrfToken) 
-            throw new Error('CSRF token missing');
-
         const session = await redisClient.get(
              `session:${accessJti}`
         );

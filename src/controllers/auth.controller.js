@@ -1,4 +1,4 @@
-const {authServices: {signup, verifyCode, login, logout}} = require('services');
+const {authServices: {signup, verifyCode, login, logout, refreshAccessToken}} = require('services');
 
 const handleSignup = async(req, res) => {
     try {
@@ -171,4 +171,4 @@ const handleRereshAccessToken = async(req, res) => {
    
 }
 
-module.exports = {handleSignup, handleVerifyCode, handleLogin, handleLogout}
+module.exports = {handleSignup, handleVerifyCode, handleLogin, handleLogout, handleRefreshAccessToken}

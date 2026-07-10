@@ -75,9 +75,9 @@ const handleUpdateHealthInterests = async(req, res) => {
     try {
         console.log('Handling updateHealthInterests request:', req.body, req.user);
         const userId = req.user.id;
-        const healthInterestsData = req.body;
+        const updateData = req.updateData;
 
-        const result = await updateHealthInterests(userId, healthInterestsData);
+        const result = await updateHealthInterests(userId, updateData);
         res.status(200).json(result);
     } catch (error) {
         res.status(400).json({
@@ -109,9 +109,9 @@ const handleUpdatePrivacyPreferences = async (req, res) => {
         console.log('Handling updatePrivacyPreferences request:', req.body, req.user);
 
         const userId = req.user.id;
-        const privacyPreferencesData = req.body;
+        const updateData = req.updateData;
 
-        const result = await updatePrivacyPreferences(userId, privacyPreferencesData);
+        const result = await updatePrivacyPreferences(userId, updateData);
 
         res.status(200).json(result);
     } catch (error) {
@@ -147,9 +147,9 @@ const handleUpdatePatientFinalTouches = async (req, res) => {
         console.log('Handling updatePatientFinalTouches request:', req.body, req.user);
 
         const userId = req.user.id;
-        const finalTouchesData = req.body;
+        const updateData = req.updateData;
 
-        const result = await updatePatientFinalTouches(userId, finalTouchesData);
+        const result = await updatePatientFinalTouches(userId, updateData);
 
         res.status(200).json(result);
     } catch (error) {

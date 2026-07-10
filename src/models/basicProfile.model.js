@@ -3,11 +3,11 @@ const { enum: { genderArray } } = require('constants');
 
 const basicProfileSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    gender: { type: String, trim: true, enum: genderArray },
-    age: { type: Number, min: 25 },
+    gender: { type: String, trim: true, enum: genderArray, required: true },
+    dateOfBirth: {type: Date, required: true},
     profilePicture: { type: String, trim: true },
-    country: { type: String, trim: true },
-    city: { type: String, trim: true },
+    country: { type: String, trim: true, required: true },
+    city: { type: String, trim: true, required: true },
     languagesSpoken: { type: [String], default: [] },
     followerCount: {
         type: Number,
