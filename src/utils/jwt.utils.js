@@ -1,28 +1,28 @@
 const {env: {ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, CSRF_TOKEN_SECRET}} = require('config');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
-const crypto = require('crypto');
 
-const generateTokens = (userId, role) => {
+
+const generateTokens = (userId, role, sessionId) => {
     const accessJti = uuidv4();
     const refreshJti = uuidv4();
 
     const accessToken = jwt.sign(
-        { sub: userId, accessJti, type: 'access', role },
+        { sub: userId, sessionId, accessJti, type: 'access', role },
         ACCESS_TOKEN_SECRET,
         { expiresIn: '15m' }
     );
 
     const refreshToken = jwt.sign(
-        { sub: userId, refreshJti, type: 'refresh' },
+        { sub: userId, sessionId, refreshJti, type: 'refresh' },
         REFRESH_TOKEN_SECRET,
         { expiresIn: '7d' }
     );
 
-    const csrfToken = crypto.randomBytes(32).toString("hex");
+    
 
 
-    return { accessToken, refreshToken, csrfToken, accessJti, refreshJti };
+    return { accessToken, refreshToken, accessJti, refreshJti };
 };
 
 const verifyAccessToken = (token) => jwt.verify(token, ACCESS_TOKEN_SECRET);

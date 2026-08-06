@@ -2,6 +2,8 @@ const {user: User, token: Token} = require('models');
 const {bcryptUtils: {hashPassword, comparePassword}, mailerUtils: {sendMail}, jwtUtils: {generateTokens}} = require('utils');
 const {redis: {redisClient}} = require('config');
 const {mails: {codeMailSub, codeMailHtml}} = require('constants');
+const { v4: uuidv4 } = require('uuid');
+const {generateRandomToken} = require('utils/crypto.utils');
 
 const signup = async (data, role) => {
     try {
@@ -99,7 +101,11 @@ const login = async (email, password, ip, userAgent) => {
         const isMatch = await comparePassword(password, user.password);
         if (!isMatch) throw new Error('Email or password is incorrect');
 
-        const { accessToken, refreshToken, csrfToken, accessJti, refreshJti } = generateTokens(user._id.toString(), user.role);
+        const sessionId = uuidv4();
+
+        const { accessToken, refreshToken, accessJti, refreshJti } = generateTokens(user._id.toString(), user.role, sessionId);
+
+        const csrfToken = generateRandomToken();
 
          await redisClient.setEx(
             `session:${accessJti}`,
