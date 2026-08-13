@@ -63,12 +63,7 @@ const handleLogin = async (req, res) => {
         .json({
             success: success,
             message: message,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
+            user: user
         });
 
     } catch (error) {

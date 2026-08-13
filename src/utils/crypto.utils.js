@@ -11,6 +11,10 @@ const generateRandomToken = () => {
     return crypto.randomBytes(32).toString('hex');
 };
 
+const generateRandomIdOrJti = () => {
+    return crypto.randomUUID();
+}
+
 const safeCompare = (a, b) => {
     if (
         typeof a !== 'string' ||
@@ -35,5 +39,6 @@ const safeCompare = (a, b) => {
 module.exports = {
     hashToken,
     generateRandomToken,
+    generateRandomIdOrJti,
     safeCompare,
 };

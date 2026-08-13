@@ -1,6 +1,7 @@
 const {env: {ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, CSRF_TOKEN_SECRET, JWT_ISSUER, JWT_AUDIENCE}} = require('config');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const {ACCESS_TOKEN_TTL_MS, SLIDING_TTL_MS, ABSOLUTE_TTL_MS} = require('config/auth.config');
 
 
 
@@ -37,9 +38,8 @@ const crypto = require('crypto');
 
 
 
-const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
-const REFRESH_TOKEN_SLIDING_TTL_SECONDS =
-    7 * 24 * 60 * 60;
+const ACCESS_TOKEN_TTL_SECONDS = ACCESS_TOKEN_TTL_MS/1000;
+const REFRESH_TOKEN_SLIDING_TTL_SECONDS = SLIDING_TTL_MS/1000;
 
 const {
     ACCESS_TOKEN_SECRET,
@@ -67,6 +67,7 @@ const generateAccessToken = ({
     userId,
     sessionId,
     expiresAt,
+    accessJti
 }) => {
 
     const ttl = genTokenTtl(expiresAt, ACCESS_TOKEN_TTL_SECONDS);
@@ -76,7 +77,7 @@ const generateAccessToken = ({
             sub: userId.toString(),
             sid: sessionId,
             type: 'access',
-            jti: crypto.randomUUID(),
+            jti: accessJti,
         },
         ACCESS_TOKEN_SECRET,
         {
@@ -91,8 +92,8 @@ const generateAccessToken = ({
 const generateRefreshToken = ({
     userId,
     sessionId,
-    refreshJti,
     expiresAt,
+    refreshJti
 }) => {
     
     const ttl = genTokenTtl(expiresAt, REFRESH_TOKEN_SLIDING_TTL_SECONDS);

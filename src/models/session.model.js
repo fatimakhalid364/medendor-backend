@@ -59,9 +59,16 @@ const sessionSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        version: {
+            type: Number,
+            required: true,
+            default: 0,
+            min: 0,
+        },
     },
     {
         timestamps: true,
+        optimisticConcurrency: true
     }
 );
 

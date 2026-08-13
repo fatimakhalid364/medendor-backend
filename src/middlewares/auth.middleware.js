@@ -1,18 +1,18 @@
 const {enum: {rolesArray}} = require('constants');
 const rateLimit = require('express-rate-limit');
-const {jwtUtils: {verifyAccessToken, verifyCsrfToken}} = require('utils');
+const {jwtUtils: {verifyAccessToken, verifyRefreshToken}} = require('utils');
 
 const validateSignup = (req, res, next) => {
     const { role, ...data } = req.body;
     console.log('Validating signup request:', role, data);
     if (!role || !rolesArray.includes(role)) {
-        return res.status(400).json({ message: 'Invalid or missing role' });
+        return res.status(400).json({ success: false, message: 'Invalid or missing role' });
     }
 
     const { firstName, lastName, email, password } = data;
 
     if (!firstName || !lastName || !email || !password) {
-        return res.status(400).json({ message: 'First name, last name, email, and password are required' });
+        return res.status(400).json({ success: false, message: 'First name, last name, email, and password are required' });
     }
 
     next(); 
@@ -23,16 +23,16 @@ const validateCode = (req, res, next) => {
     const { email, code } = req.body;
 
     if (!email || !code) {
-        return res.status(400).json({ message: 'Email and verification code are required.' });
+        return res.status(400).json({ success: false, message: 'Email and verification code are required.' });
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        return res.status(400).json({ message: 'Invalid email format.' });
+        return res.status(400).json({ success: false, message: 'Invalid email format.' });
     }
 
     if (typeof code !== 'string' || code.length !== 6) {
-        return res.status(400).json({ message: 'Verification code must be a 6-digit string.' });
+        return res.status(400).json({ success: false, message: 'Verification code must be a 6-digit string.' });
     }
 
     next();
@@ -42,7 +42,7 @@ const validateLogin = (req, res, next) => {
     console.log('Validating login:', req.body);
     const { email, password } = req.body;
     if (!email || !password) 
-        return res.status(400).json({ error: 'Email and password are required' });
+        return res.status(400).json({ success: false, message: 'Email and password are required' });
     next();
 };
 
@@ -76,12 +76,44 @@ const validateLogoutRequest = (req, res, next) => {
 
 const validateRefreshAccessToken = (req, res, next) => {
         const refreshToken = req.cookies['refreshToken'];
-        const csrfToken = req.cookies['csrfToken'];
-        if (!refreshToken) 
-            throw new Error ('Refresh token msising');
+        
+        if (!refreshToken) {
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+            });
+        }
 
-        if (!csrfToken) 
-            throw new Error('CSRF token missing');
+        const decoded =
+            verifyRefreshToken(refreshToken);
+
+        if (!decoded){
+            return res.status(401).json({
+            success: false,
+            message: 'Invalid or expired refresh token'
+            });
+        }
+
+        if (
+                decoded.type !== 'refresh' ||
+                !decoded.sid ||
+                !decoded.sub ||
+                !decoded.jti
+            ) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid refresh token'
+                });
+            }
+
+        const csrfToken = req.cookies['csrfToken'];
+
+        if (!csrfToken) {
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication required'
+        });
+    }
 
         req.auth = {
             refreshToken,
@@ -160,4 +192,5 @@ module.exports = {
     validateLogin,
     loginLimiter,
     authenticateSession,
+    validateRefreshAccessToken
 };

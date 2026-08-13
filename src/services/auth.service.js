@@ -1,9 +1,16 @@
 const {user: User, token: Token} = require('models');
-const {bcryptUtils: {hashPassword, comparePassword}, mailerUtils: {sendMail}, jwtUtils: {generateTokens}} = require('utils');
+const {session: Session} = require('models/session.model');
+const {bcryptUtils: {hashPassword, comparePassword}, mailerUtils: {sendMail}} = require('utils');
+const {generateAccessToken, generateRefreshToken} = require('utils/jwt.utils');
 const {redis: {redisClient}} = require('config');
 const {mails: {codeMailSub, codeMailHtml}} = require('constants');
 const { v4: uuidv4 } = require('uuid');
-const {generateRandomToken} = require('utils/crypto.utils');
+const {generateRandomToken, safeCompare, hashToken, geenrateRandomIdOrJti} = require('utils/crypto.utils');
+const {ACCESS_TOKEN_TTL_MS, ABSOLUTE_TTL_MS, SLIDING_TTL_MS} = require('config/auth.config');
+const {calculateSessionExpiry} = require('utils/session.utils');
+const {syncRevokedSessionToRedis, revokeSession} = require('./session.service');
+const { generateRandomIdOrJti } = require('../utils/crypto.utils');
+const {convertToPublicUser} = require('utils/serializers.utils');
 
 const signup = async (data, role) => {
     try {
@@ -101,37 +108,105 @@ const login = async (email, password, ip, userAgent) => {
         const isMatch = await comparePassword(password, user.password);
         if (!isMatch) throw new Error('Email or password is incorrect');
 
-        const sessionId = uuidv4();
+        if (!user.isEmailVerified) {
+            throw new Error(
+                'Please verify your email first'
+            );
+        }
 
-        const { accessToken, refreshToken, accessJti, refreshJti } = generateTokens(user._id.toString(), user.role, sessionId);
+        const sessionId = generateRandomIdOrJti();
+
+        const {expiresAt, absoluteExpiresAt} = calculateSessionExpiry();
+
+        const refreshJti = generateRandomIdOrJti();
+
+        const accessJti = generateRandomIdOrJti();
 
         const csrfToken = generateRandomToken();
 
-         await redisClient.setEx(
-            `session:${accessJti}`,
-            15 * 60,
-            JSON.stringify({
-                userId: user._id.toString(),
-                role: user.role,
-                csrfToken,
-                ip,
-                userAgent
-            })
-        );
-
-        await Token.create({
-            user: user._id,
-            jti: refreshJti,
-            type: 'refresh',
-            ip,
-            userAgent,
-            expiresAt: new Date(
-                Date.now() + 7 * 24 * 60 * 60 * 1000
-            ), // 7 days
-            absoluteExpiresAt: new Date(
-                now + 30 * 24 * 60 * 60 * 1000
-            )
+        const accessToken = 
+        generateAccessToken({
+            userId: user._id,
+            sessionId,
+            expiresAt,
+            accessJti
         });
+
+        const refreshToken =
+        generateRefreshToken({
+            userId: user._id,
+            sessionId,
+            expiresAt,
+            refreshJti
+        });
+
+        const refreshTokenHash = hashToken(refreshToken);
+
+        const csrfTokenHash = hashToken(csrfToken);
+
+        const session = new Session({
+            sessionId,
+            user: user._id,
+            refreshTokenHash: refreshTokenHash,
+            refreshJti,
+            csrfTokenHash: csrfTokenHash,
+            expiresAt,
+            absoluteExpiresAt,
+            lastActivityAt: new Date(),
+            version: 0
+        });
+
+        await session.save();
+
+        try {
+            const cached =
+                await cacheSession(session);
+
+            if (!cached) {
+                throw new Error(
+                    'Redis rejected the new session state'
+                );
+            }
+
+        } catch (cacheError) {
+            console.error(
+                'Redis session cache failed during login:',
+                cacheError
+            );
+
+            let revokedSession;
+
+            try {
+                revokedSession =
+                await revokeSession(
+                    session.sessionId,
+                    'Redis cache failure during login'
+                );
+            }catch(revokedError){
+                console.error(
+                    'Redis session revoke failed:',
+                    revokedError
+                );
+                throw new Error(
+                    'Authentication service temporarily unavailable'
+                );
+            }
+
+            try {
+                await syncRevokedSessionToRedis(
+                    revokedSession
+                );
+            } catch (redisError) {
+                console.error(
+                    'Failed to synchronize login rollback to Redis:',
+                    redisError
+                );
+            }
+
+            throw new Error(
+                'Authentication service temporarily unavailable'
+            );
+        }
 
         return {
             success: true,
@@ -139,9 +214,9 @@ const login = async (email, password, ip, userAgent) => {
             accessToken,
             refreshToken,
             csrfToken,
-            user,
-            accessJti,
-            refreshJti
+            user: convertToPublicUser(user),
+            // accessJti,
+            // refreshJti
         };
     } catch (error) {
         console.error("Login error:", error);
