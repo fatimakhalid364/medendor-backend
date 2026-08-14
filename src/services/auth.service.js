@@ -494,11 +494,11 @@ const refreshAccessToken = async (refreshToken, csrfToken, decoded) => {
 
             if (!updatedSession) {
 
-        const revokedSession =
-            await revokeSession(
-                session.sessionId,
-                'Concurrent refresh detected'
-            );
+            const revokedSession =
+                await revokeSession(
+                    session.sessionId,
+                    'Concurrent refresh detected'
+                );
 
             try {
                 await syncRevokedSessionToRedis(
@@ -557,6 +557,11 @@ const refreshAccessToken = async (refreshToken, csrfToken, decoded) => {
         }
 
         return {
+
+            success: true,
+
+            message: 'Access token refreshed successfully',
+            
             accessToken:
                 newAccessToken,
 

@@ -115,7 +115,7 @@ const handleRereshAccessToken = async(req, res) => {
         console.log('Handling refresh access token request:', req.auth);
         const {refreshToken, accessToken} = req.auth;
 
-        const {success, message, newAccessToken, newRefreshToken, newCsrfToken} = await refreshAccessToken(refreshToken, csrfToken);
+        const {success, message, accessToken, refreshToken, csrfToken} = await refreshAccessToken(refreshToken, csrfToken);
         res.status(200)
             .cookie(
                 'access_token',
