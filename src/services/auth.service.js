@@ -279,126 +279,297 @@ const logout = async (accessToken, refreshToken) => {
     }
 };
 
-const refreshAccessToken = async (refreshToken, csrfToken) => {
+const refreshAccessToken = async (refreshToken, csrfToken, decoded) => {
     try {
-        const session = await redisClient.get(
-             `session:${accessJti}`
-        );
-
-        if (session.csrfToken !== csrfToken) {
-            throw new Error('Invalid CSRF token');
-        }
-
-        let decoded;
-
-
-        decoded = verifyRefreshToken(refreshToken);
-
-        if (!decoded)  throw new Error ('Invalid or expired refresh token');
-
-        const {
-            sub: userId,
-            refreshJti
-        } = decoded;
-
-        const tokenRecord =
-            await Token.findOne({
-                user: userId,
-                jti: refreshJti,
-                type: 'refresh',
-                revoked: false
-            });
-
-        if (!tokenRecord) 
-            throw new Error ('Refresh token revoked or not found.')
-
-        const now = new Date();
-
-        // 7-day inactivity timeout
-        if (now > tokenRecord.expiresAt) 
-            throw new Error ('Session expired due to inactivity');
-
-        // 30-day hard session limit
-        if (
-            now >
-            tokenRecord.absoluteExpiresAt
-        ) throw new Error ('Maximum session lifetime exceeded');
-
-        const user =
-            await User.findById(userId);
-
-        if (!user) throw new Error ('User not found');
-
-        const {
-            accessToken: newAccessToken,
-            refreshToken: newRefreshToken,
-            csrfToken: newCsrfToken,
-            accessJti: newAccessJti,
-            refreshJti: newRefreshJti
-        } = generateTokens(
-            user._id.toString(),
-            user.role
-        );
-
-        // revoke old refresh token
-        await Token.updateOne(
-            {
-                jti: refreshJti,
-                type: 'refresh'
-            },
-            {
-                $set: {
-                    revoked: true
-                }
-            }
-        );
-
-        // sliding window extension
-        const newSlidingExpiry =
-            new Date(
-                Date.now() +
-                7 * 24 * 60 * 60 * 1000
-            );
-
-        await Token.create({
-            user: user._id,
-            jti: newRefreshJti,
-            type: 'refresh',
-            ip: req.ip,
-            userAgent:
-                req.get('User-Agent'),
-
-            expiresAt: newSlidingExpiry,
-
-            // KEEP ORIGINAL HARD LIMIT
-            absoluteExpiresAt:
-                tokenRecord.absoluteExpiresAt
+        const session =
+        await Session.findOne({
+            sessionId:
+                decoded.sid,
         });
 
-        await redisClient.setEx(
-            `session:${newAccessJti}`,
-            7 * 24 * 60 * 60,
-            JSON.stringify({
-                userId:
-                    user._id.toString(),
-                role: user.role,
-                csrfToken: newCsrfToken,
-                ip: req.ip,
-                userAgent:
-                    req.get('User-Agent')
-            })
+        if (!session) {
+            throw new Error(
+                'Invalid session'
+            );
+        }
+
+        if (
+            session.user.toString() !==
+            decoded.sub
+        ) {
+            throw new Error(
+                'Invalid session'
+            );
+        }
+        if (session.revokedAt) {
+            throw new Error(
+                'Session revoked'
+            );
+        }
+
+        const now =
+            new Date();
+        
+        if (
+            session.expiresAt <= now ||
+            session.absoluteExpiresAt <= now
+        ) {
+
+            const expiredSession =
+                await revokeSession(
+                    session.sessionId,
+                    'Session expired'
+                );
+
+            try {
+                await syncRevokedSessionToRedis(
+                    expiredSession
+                );
+            } catch (error) {
+                console.error(
+                    'Failed to mark expired session in Redis:',
+                    error
+                );
+            }
+
+            throw new Error(
+                'Session expired'
+            );
+        }
+
+        const incomingCsrfHash =
+            hashToken(csrfToken);
+
+        if (
+            !safeCompare(
+                incomingCsrfHash,
+                session.csrfTokenHash
+            )
+        ) {
+            throw new Error(
+                'CSRF validation failed'
+            );
+        }
+
+        const incomingRefreshHash = hashToken(refreshToken);
+
+        const hashMatches =
+            safeCompare(
+                incomingRefreshHash,
+                session.refreshTokenHash
+            );
+
+        const jtiMatches =
+            safeCompare(
+                decoded.jti,
+                session.refreshJti
+            );
+
+        if (
+            !hashMatches ||
+            !jtiMatches
+        ) {
+            const revokedSession =
+                await revokeSession(
+                    session.sessionId,
+                    'Refresh token reuse detected'
+                );
+            try {
+                await syncRevokedSessionToRedis(
+                    revokedSession
+                );
+            } catch (error) {
+                console.error(
+                    'Redis revoke failed after refresh-token reuse:',
+                    error
+                );
+            }
+
+            throw new Error(
+                'Refresh token reuse detected'
+            );
+        }
+
+        const newRefreshJti = generateRandomIdOrJti();
+
+        const newAccessJti = generateRandomIdOrJti();
+
+        const newCsrfToken = generateRandomToken();
+
+        const proposedSlidingExpiry =
+        new Date(
+            Date.now() +
+            SLIDING_TTL_MS
         );
 
-        return {
-            success: true,
-            message:
-                'Access token refreshed successfully',
-            newAccessToken,
-            newRefreshToken,
-            newCsrfToken
-        };
+        const newExpiresAt =
+            proposedSlidingExpiry <
+            session.absoluteExpiresAt
+                ? proposedSlidingExpiry
+                : session.absoluteExpiresAt;
 
-    } catch (error) {
+        const newAccessToken =
+            generateAccessToken({
+                userId:
+                    session.user,
+
+                sessionId:
+                    session.sessionId,
+
+                expiresAt:
+                    newExpiresAt,
+                
+                accessJti: newAccessJti
+            });
+
+        const newRefreshToken =
+            generateRefreshToken({
+                userId:
+                    session.user,
+
+                sessionId:
+                    session.sessionId,
+                
+                expiresAt:
+                    newExpiresAt,
+
+                refreshJti:
+                    newRefreshJti,
+
+            });
+
+        const updatedSession =
+            await Session.findOneAndUpdate(
+                {
+                    sessionId:
+                        session.sessionId,
+
+                    refreshTokenHash:
+                        incomingRefreshHash,
+
+                    refreshJti:
+                        session.refreshJti,
+
+                    revokedAt: null,
+
+                    expiresAt: {
+                        $gt: now,
+                    },
+
+                    absoluteExpiresAt: {
+                        $gt: now,
+                    },
+                },
+                {
+                    $set: {
+                        refreshTokenHash:
+                            hashToken(
+                                newRefreshToken
+                            ),
+
+                        refreshJti:
+                            newRefreshJti,
+
+                        csrfTokenHash:
+                            hashToken(
+                                newCsrfToken
+                            ),
+
+                        expiresAt:
+                            newExpiresAt,
+
+                        lastActivityAt:
+                            new Date(),
+                    },
+                    $inc: {
+                    version: 1,
+                },
+                },
+
+                {
+                    new: true,
+                    runValidators: true,
+                }
+            );
+
+            if (!updatedSession) {
+
+        const revokedSession =
+            await revokeSession(
+                session.sessionId,
+                'Concurrent refresh detected'
+            );
+
+            try {
+                await syncRevokedSessionToRedis(
+                    revokedSession
+                );
+            } catch (error) {
+                console.error(
+                    'Redis revoke failed after concurrent refresh:',
+                    error
+                );
+            }
+
+            throw new Error(
+                'Refresh token reuse detected'
+            );
+        }
+
+        try {
+
+            await cacheSession(
+                updatedSession
+            );
+
+        } catch (error) {
+
+            console.error(
+                'Redis update failed after refresh:',
+                error
+            );
+
+        /*
+         * MongoDB rotation already succeeded.
+         *
+         * If Redis cannot be synchronized, fail closed by
+         * revoking the MongoDB session.
+         */
+            const revokedSession =
+                await revokeSession(
+                    session.sessionId,
+                    'Redis cache failure after refresh'
+                );
+            try {
+                await syncRevokedSessionToRedis(
+                    revokedSession
+                );
+            } catch (redisError) {
+                console.error(
+                    'Redis revoke failed:',
+                    redisError
+                );
+            }
+
+            throw new Error(
+                'Authentication service temporarily unavailable'
+            );
+        }
+
+        return {
+            accessToken:
+                newAccessToken,
+
+            refreshToken:
+                newRefreshToken,
+
+            csrfToken:
+                newCsrfToken,
+
+            refreshExpiresAt:
+                newExpiresAt,
+        };
+        } catch (error) {
         console.error(
             'Refresh access token error:',
             error

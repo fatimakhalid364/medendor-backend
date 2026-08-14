@@ -21,6 +21,8 @@ const serializeSessionForRedis = (session) => ({
         ? session.revokedAt.getTime()
         : null,
 
+    csrfTokenHash: session.csrfTokenHash,
+
     /*
      * Used by Redis to reject stale writes.
      */

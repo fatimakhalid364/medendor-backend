@@ -117,7 +117,8 @@ const validateRefreshAccessToken = (req, res, next) => {
 
         req.auth = {
             refreshToken,
-            csrfToken
+            csrfToken,
+            decoded
         };
         
         next();
