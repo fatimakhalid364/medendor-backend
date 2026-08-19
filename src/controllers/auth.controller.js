@@ -1,17 +1,10 @@
 const {authServices: {signup, verifyCode, login, logout, refreshAccessToken}} = require('services');
 
 const handleSignup = async(req, res) => {
-    try {
-        console.log('Handling signup request:', req.body);
-        const { role, ...data } = req.body;
-        const result = await signup(data, role);
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred during signup',
-        });
-    }
+    console.log('Handling signup request:', req.body);
+    const { role, ...data } = req.body;
+    const result = await signup(data, role);
+    res.status(201).json(result);
 }
 
 const handleVerifyCode = async(req, res) => {
@@ -74,7 +67,7 @@ const handleLogin = async (req, res) => {
     }
 };
 
-const handlelogout = async(req, res) => {
+const handleLogout = async(req, res) => {
     try {
         console.log('Handling logout request:', req.auth)
         const {accessToken, refreshToken} = req.auth;
@@ -110,7 +103,7 @@ const handlelogout = async(req, res) => {
     }
 }
 
-const handleRereshAccessToken = async(req, res) => {
+const handleRefreshAccessToken = async(req, res) => {
     try {
         console.log('Handling refresh access token request:', req.auth);
         const {refreshToken, accessToken} = req.auth;

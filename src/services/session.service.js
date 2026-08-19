@@ -56,7 +56,45 @@ const syncRevokedSessionToRedis = async (
         );
 };
 
+const revokeAndSyncSessionToRedis = async(session, reason) => {
+    let revokedSession;
+
+    try {
+        revokedSession = 
+            await revokeSession(
+                    session.sessionId,
+                    reason
+                );
+    }catch(revokedError){
+        console.error(
+            'Mongodb session revoke failed:',
+            revokedError
+        );
+        throw new Error(
+            'Authentication service temporarily unavailable'
+        );
+    }
+
+    try {
+        await syncRevokedSessionToRedis(
+            revokedSession
+        );
+    } catch (redisError) {
+        console.error(
+            'Failed to synchronize a revoked session to Redis:',
+            redisError
+        );
+    }
+
+    throw new Error(
+        'Authentication service temporarily unavailable'
+    );
+}
+
+
+
 module.exports = {
     revokeSession,
-    syncRevokedSessionToRedis
+    syncRevokedSessionToRedis,
+    revokeAndSyncSessionToRedis
 }
