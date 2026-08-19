@@ -105,49 +105,76 @@ const signup = async (data, role) => {
 
 const verifyCode = async (email, code) => {
     console.log("inside verifyCode service: ", email, code)
-    try {
-        const user = await User.findOne({ email });
+    const user = await User.findOne({ email });
 
-        if (!user) {
-        throw new Error('User not found');
-        }
-
-        if (user.isEmailVerified) {
-        throw new Error('Email is already verified');
-        }
-
-        const storedCode = await redisClient.get(`verifyCode:${email}`);
-        if (!storedCode) {
-            throw new Error('Verification code not found or expired');
-        }
-
-        // if (!user.verificationCode || !user.verificationCodeExpires) {
-        // throw new Error('No verification code found');
-        // }
-
-        // if (Date.now() > user.verificationCodeExpires.getTime()) {
-        //     user.verificationCode = undefined;
-        //     user.verificationCodeExpires = undefined;
-        //     await user.save();
-        // throw new Error('Verification code has expired');
-        // }
-
-        if (storedCode !== code) {
-        throw new Error('Incorrect verification code');
-        }
-
-        user.isEmailVerified = true;
-        // user.verificationCode = undefined;
-        // user.verificationCodeExpires = undefined;
-
-        await user.save();
-
-        return { success: true, message: 'Email verified successfully.' };
-
-    } catch (error) {
-        console.error('Error verifying code:', error);
-        throw new Error(error.message || 'Code verification failed');
+    if (!user) {
+        throw new AppError(
+            'Unable to verify code because the user was not found.',
+            404,
+            'VERIFICATION_USER_NOT_FOUND'
+        );
     }
+
+    if (user.isEmailVerified) {
+        throw new AppError(
+            'Email is already verified.',
+            409,
+            'EMAIL_ALREADY_VERIFIED'
+        );
+    }
+
+    let storedCode;
+
+    try {
+        storedCode = await redisClient.get(`verifyCode:${email}`);
+    } catch (error) {
+        console.error('Redis error while retrieving verification code:', error);
+
+        throw new AppError(
+            'Authentication service is temporarily unavailable.',
+            503,
+            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+        );
+    }
+
+    if (!storedCode) {
+        throw new AppError(
+            'Verification code not found or expired.',
+            400,
+            'VERIFICATION_CODE_NOT_FOUND_OR_EXPIRED'
+        );
+    }
+
+    // if (!user.verificationCode || !user.verificationCodeExpires) {
+    // throw new Error('No verification code found');
+    // }
+
+    // if (Date.now() > user.verificationCodeExpires.getTime()) {
+    //     user.verificationCode = undefined;
+    //     user.verificationCodeExpires = undefined;
+    //     await user.save();
+    // throw new Error('Verification code has expired');
+    // }
+
+    if (storedCode !== code) {
+            throw new AppError(
+            'Invalid verification code.',
+            400,
+            'INVALID_VERIFICATION_CODE'
+        );
+    }
+
+    user.isEmailVerified = true;
+    // user.verificationCode = undefined;
+    // user.verificationCodeExpires = undefined;
+
+    await user.save();
+
+    return { 
+        success: true,
+        code: 'EMAIL_VERIFICATION_SUCCESSFUL',
+        message: 'Email verified successfully.' 
+    };
 };
 
 
@@ -155,14 +182,24 @@ const login = async (email, password, ip, userAgent) => {
     try {
         console.log("inside login service:", email, password, ip, userAgent)
         const user = await User.findOne({ email });
-        if (!user) throw new Error('User does not exist');
+        if (!user)  throw new AppError(
+            'User not found. Please signup before login',
+            404,
+            'USER_NOT_FOUND'
+        );
 
         const isMatch = await comparePassword(password, user.password);
-        if (!isMatch) throw new Error('Email or password is incorrect');
+        if (!isMatch) throw new AppError(
+            'Invalid email or password.',
+            401,
+            'INVALID_CREDENTIALS'
+        );
 
         if (!user.isEmailVerified) {
-            throw new Error(
-                'Please verify your email first'
+            throw new AppError(
+                'Please verify your email before logging in.',
+                403,
+                'EMAIL_NOT_VERIFIED'
             );
         }
 
@@ -210,15 +247,11 @@ const login = async (email, password, ip, userAgent) => {
 
         await session.save();
 
-        try {
-            const cached =
-                await cacheSession(session);
+        let cached;
 
-            // if (!cached) {
-            //     throw new Error(
-            //         'Redis rejected the new session state or session expired'
-            //     );
-            // }
+        try {
+            cached =
+                await cacheSession(session);
 
         } catch (cacheError) {
             console.error(

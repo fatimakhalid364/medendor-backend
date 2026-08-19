@@ -1,5 +1,6 @@
 const {session: Session} = require('models/session.model');
 const {markSessionRevoked} = require('utils/session.utils');
+const AppError = require('utils/AppError');
 
 const revokeSession = async (
     sessionId,
@@ -70,8 +71,10 @@ const revokeAndSyncSessionToRedis = async(session, reason) => {
             'Mongodb session revoke failed:',
             revokedError
         );
-        throw new Error(
-            'Authentication service temporarily unavailable'
+        throw new AppError(
+            'Authentication service is temporarily unavailable.',
+            503,
+            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE',
         );
     }
 
