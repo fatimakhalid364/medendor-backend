@@ -1,14 +1,14 @@
 const {user: User, token: Token} = require('models');
 const {session: Session} = require('models/session.model');
 const {bcryptUtils: {hashPassword, comparePassword}, mailerUtils: {sendMail}} = require('utils');
-const {generateAccessToken, generateRefreshToken, validateCsrfToken, validateRefreshToken} = require('utils/jwt.utils');
+const {generateAccessToken, generateRefreshToken} = require('utils/jwt.utils');
 const {redis: {redisClient}} = require('config');
 const {mails: {codeMailSub, codeMailHtml}} = require('constants');
 const { v4: uuidv4 } = require('uuid');
 const {generateRandomToken, safeCompare, hashToken, generateRandomIdOrJti} = require('utils/crypto.utils');
 const {ACCESS_TOKEN_TTL_MS, ABSOLUTE_TTL_MS, SLIDING_TTL_MS} = require('config/auth.config');
 const {calculateSessionExpiry, cacheSession} = require('utils/session.utils');
-const {syncRevokedSessionToRedis, revokeSession, revokeAndSyncSessionToRedis, getValidRefreshSession, rotateSession} = require('./session.service');
+const {syncRevokedSessionToRedis, revokeSession, revokeAndSyncSessionToRedis, rotateSession} = require('./session.service');
 const {convertToPublicUser} = require('utils/serializers.utils');
 const AppError = require('utils/AppError');
 
@@ -321,26 +321,9 @@ const logout = async (
 };
 
 const refreshAccessToken = async (
-    refreshToken,
-    csrfToken,
-    decoded
+    session,
+    incomingRefreshHash
 ) => {
-
-    const session =
-        await getValidRefreshSession(
-            decoded
-        );
-
-    validateCsrfToken(
-        csrfToken,
-        session.csrfTokenHash
-    );
-
-    const incomingRefreshHash = await validateRefreshToken(
-        refreshToken,
-        decoded,
-        session
-    );
 
     const {
         updatedSession,

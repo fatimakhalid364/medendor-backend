@@ -1,4 +1,4 @@
-const {env: {ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, CSRF_TOKEN_SECRET, JWT_ISSUER, JWT_AUDIENCE}} = require('config');
+const {env: {ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, JWT_ISSUER, JWT_AUDIENCE}} = require('config');
 const jwt = require('jsonwebtoken');
 const {ACCESS_TOKEN_TTL_MS, SLIDING_TTL_MS, ABSOLUTE_TTL_MS} = require('config/auth.config');
 const {safeCompare, hashToken} = require('utils/crypto.utils');
@@ -9,12 +9,6 @@ const { revokeAndSyncSessionToRedis } = require('services/session.service');
 const ACCESS_TOKEN_TTL_SECONDS = ACCESS_TOKEN_TTL_MS/1000;
 const REFRESH_TOKEN_SLIDING_TTL_SECONDS = SLIDING_TTL_MS/1000;
 
-const {
-    ACCESS_TOKEN_SECRET,
-    REFRESH_TOKEN_SECRET,
-    JWT_ISSUER,
-    JWT_AUDIENCE,
-} = process.env;
 
 const getTokenTtl = (expiresAt, maxTtlSeconds) => {
     const remainingSeconds = Math.floor(
@@ -38,7 +32,7 @@ const generateAccessToken = ({
     accessJti
 }) => {
 
-    const ttl = genTokenTtl(expiresAt, ACCESS_TOKEN_TTL_SECONDS);
+    const ttl = getTokenTtl(expiresAt, ACCESS_TOKEN_TTL_SECONDS);
 
     return jwt.sign(
         {
@@ -64,7 +58,7 @@ const generateRefreshToken = ({
     refreshJti
 }) => {
     
-    const ttl = genTokenTtl(expiresAt, REFRESH_TOKEN_SLIDING_TTL_SECONDS);
+    const ttl = getTokenTtl(expiresAt, REFRESH_TOKEN_SLIDING_TTL_SECONDS);
 
     return jwt.sign(
         {
@@ -107,89 +101,10 @@ const verifyRefreshToken = (token) => {
     );
 };
 
-const validateCsrfToken = (
-    csrfToken,
-    storedCsrfHash
-) => {
-
-    if (!csrfToken) {
-        throw new AppError(
-            'CSRF validation failed.',
-            403,
-            'CSRF_TOKEN_MISSING'
-        );
-    }
-
-    const incomingCsrfHash =
-        hashToken(csrfToken);
-
-    if (
-        !safeCompare(
-            incomingCsrfHash,
-            storedCsrfHash
-        )
-    ) {
-        throw new AppError(
-            'CSRF validation failed.',
-            403,
-            'CSRF_VALIDATION_FAILED'
-        );
-    }
-};
-
-const validateRefreshToken = async (
-    refreshToken,
-    decoded,
-    session
-) => {
-
-    if (!refreshToken){
-        console.error('Refresh token missing.');
-
-        throw new AppError(
-            'Your session has expired. Please login again.',
-            401,
-            'REFRESH_TOKEN_MISSING'
-        )
-    }
-
-    const incomingRefreshHash =
-        hashToken(refreshToken);
-
-    const hashMatches =
-        safeCompare(
-            incomingRefreshHash,
-            session.refreshTokenHash
-        );
-
-    const jtiMatches =
-        safeCompare(
-            decoded.jti,
-            session.refreshJti
-        );
-
-    if (
-        !hashMatches ||
-        !jtiMatches
-    ) {
-        await revokeAndSyncSessionToRedis(session, 'Refresh token reuse detected.');
-        console.error('Refresh token reuse detected.')
-        throw new AppError(
-            'Refresh token reuse detected.',
-            401,
-            'REFRESH_TOKEN_REUSE_DETECTED'
-        );
-    }
-
-    return incomingRefreshHash;
-
-};
 
 module.exports = {
     generateAccessToken,
     generateRefreshToken,
     verifyAccessToken,
     verifyRefreshToken,
-    validateCsrfToken,
-    validateRefreshToken
 };

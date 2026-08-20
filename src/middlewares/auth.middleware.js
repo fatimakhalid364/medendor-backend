@@ -133,6 +133,7 @@ const validateCsrfToken = (
 ) => {
 
     if (!csrfToken) {
+        console.error('csrf token missing');
         throw new AppError(
             'CSRF validation failed.',
             403,
@@ -149,6 +150,7 @@ const validateCsrfToken = (
             storedCsrfHash
         )
     ) {
+        console.error('Csrf is invalid.')
         throw new AppError(
             'CSRF validation failed.',
             403,
@@ -214,10 +216,11 @@ const validateRefreshAccessToken = async(req, res, next) => {
         const refreshToken = req.cookies['refreshToken'];
         const csrfToken = req.cookies['csrfToken'];
 
-        const decoded =
+        let decoded
+        try {
+            decoded =
             verifyRefreshToken(refreshToken);
-
-        if (!decoded){
+        }catch(error){
             throw new AppError(
                'Your session has expired. Please login again',
                 401,
@@ -235,19 +238,18 @@ const validateRefreshAccessToken = async(req, res, next) => {
             refreshJti: storedRefreshJti 
             } = session;
 
-        await validateRefreshToken(
+        const incomingRefreshHash = await validateRefreshToken(
             refreshToken,
             incomingRefreshJti,
             storedRefreshJti,
             storedRefreshHash
         )
 
-        await validateCsrfToken(csrfToken, storedCsrfHash );
+        validateCsrfToken(csrfToken, storedCsrfHash );
 
         req.auth = {
-            refreshToken,
-            csrfToken,
-            decoded
+            session,
+            incomingRefreshHash
         };
         
         next();
@@ -256,48 +258,38 @@ const validateRefreshAccessToken = async(req, res, next) => {
 const authenticateSession = async (req, res, next) => {
     try {
         console.log('Authenticating session with headers and cookies:', req.headers, req.cookies);
-        const csrfToken = req.headers['csrf-token'];
-        if (!csrfToken) {
-        return res.status(400).json({ message: 'CSRF token is missing' });
-        }
-
+        
         const accessToken = req.cookies['access-token'];
+        const csrfToken = req.headers['csrf-token'];
+
         if (!accessToken) {
                 throw new AppError(
-                'Authentication required.',
+                'Your session has expired. Please try again.',
                 401,
                 'ACCESS_TOKEN_MISSING'
             );
         }
 
-        let decodedAccess;
+        let decoded;
         try {
-        decodedAccess = verifyAccessToken(accessToken);
+             decoded = verifyAccessToken(accessToken);
         } catch (err) {
-        return res.status(401).json({
-            message: 'Access token has expired or is invalid',
-        });
+            throw new AppError(
+                'Your session has expired. Please try again.',
+                401,
+                'ACCESS_TOKEN_INVALID'
+            )
         }
 
-        const {accessJti, role, sub} = decodedAccess;
+        const {sub: user, sid, jti: incomingAccessJti, type} = decoded;
 
-         const sessionData = await redisClient.get(
-            `session:${accessJti}`
-        );
+        const session = await getValidSession(sid, user);
 
-        if (!sessionData) {
-            return res.status(401).json({
-                message: 'Session has expired or been revoked'
-            });
-        }
+        const {
+            csrfTokenHash: storedCsrfHash,
+        } = session;
 
-        const session = JSON.parse(sessionData);
-
-        if (session.csrfToken !== csrfToken) {
-            return res.status(403).json({
-                message: 'Invalid CSRF token'
-            });
-        }
+        validateCsrfToken(csrfToken, storedCsrfHash );
 
 
         const isValidRole = rolesArray.includes(role);
