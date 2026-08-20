@@ -91,8 +91,6 @@ const handleRefreshAccessToken = async(req, res) => {
                     httpOnly: true,
                     secure: true,
                     sameSite: 'none',
-                    maxAge:
-                        15 * 60 * 1000
                 }
             )
             .cookie(
@@ -102,9 +100,7 @@ const handleRefreshAccessToken = async(req, res) => {
                     httpOnly: true,
                     secure: true,
                     sameSite: 'none',
-                    path: '/auth/refresh',
-                    maxAge:
-                        7 * 24 * 60 * 60 * 1000
+                    path: '/',
                 }
             )
             .cookie(
@@ -114,8 +110,6 @@ const handleRefreshAccessToken = async(req, res) => {
                     httpOnly: false,
                     secure: true,
                     sameSite: 'none',
-                    maxAge:
-                        7 * 24 * 60 * 60 * 1000
                 }
             )
             .json({

@@ -44,8 +44,8 @@ const generateAccessToken = ({
         {
             sub: userId.toString(),
             sid: sessionId,
-            type: 'access',
             jti: accessJti,
+            type: 'access',
         },
         ACCESS_TOKEN_SECRET,
         {
@@ -143,6 +143,16 @@ const validateRefreshToken = async (
     session
 ) => {
 
+    if (!refreshToken){
+        console.error('Refresh token missing.');
+
+        throw new AppError(
+            'Your session has expired. Please login again.',
+            401,
+            'REFRESH_TOKEN_MISSING'
+        )
+    }
+
     const incomingRefreshHash =
         hashToken(refreshToken);
 
@@ -163,6 +173,7 @@ const validateRefreshToken = async (
         !jtiMatches
     ) {
         await revokeAndSyncSessionToRedis(session, 'Refresh token reuse detected.');
+        console.error('Refresh token reuse detected.')
         throw new AppError(
             'Refresh token reuse detected.',
             401,

@@ -1,6 +1,10 @@
 const {enum: {rolesArray}} = require('constants');
 const rateLimit = require('express-rate-limit');
 const {jwtUtils: {verifyAccessToken, verifyRefreshToken}} = require('utils');
+const AppError = require('utils/AppError');
+const {safeCompare, hashToken} = require('utils/crypto.utils');
+const { revokeAndSyncSessionToRedis } = require('services/session.service');
+const {session: Session} = require('models/session.model');
 
 const validateSignup = (req, res, next) => {
     const { role, ...data } = req.body;
@@ -74,46 +78,171 @@ const validateLogoutRequest = (req, res, next) => {
     next();
 };
 
-const validateRefreshAccessToken = (req, res, next) => {
+const validateRefreshToken = async (
+    refreshToken,
+    incomingRefreshJti,
+    storedRefreshJti,
+    storedRefreshHash
+) => {
+
+    if (!refreshToken){
+        console.error('Refresh token missing.');
+
+        throw new AppError(
+            'Your session has expired. Please login again.',
+            401,
+            'REFRESH_TOKEN_MISSING'
+        )
+    }
+
+    const incomingRefreshHash =
+        hashToken(refreshToken);
+
+    const hashMatches =
+        safeCompare(
+            incomingRefreshHash,
+            storedRefreshHash
+        );
+
+    const jtiMatches =
+        safeCompare(
+            incomingRefreshJti,
+            storedRefreshJti
+        );
+
+    if (
+        !hashMatches ||
+        !jtiMatches
+    ) {
+        await revokeAndSyncSessionToRedis(session, 'Refresh token reuse detected.');
+        console.error('Refresh token reuse detected.')
+        throw new AppError(
+            'Refresh token reuse detected.',
+            401,
+            'REFRESH_TOKEN_REUSE_DETECTED'
+        );
+    }
+
+    return incomingRefreshHash;
+
+};
+
+const validateCsrfToken = (
+    csrfToken,
+    storedCsrfHash
+) => {
+
+    if (!csrfToken) {
+        throw new AppError(
+            'CSRF validation failed.',
+            403,
+            'CSRF_TOKEN_MISSING'
+        );
+    }
+
+    const incomingCsrfHash =
+        hashToken(csrfToken);
+
+    if (
+        !safeCompare(
+            incomingCsrfHash,
+            storedCsrfHash
+        )
+    ) {
+        throw new AppError(
+            'CSRF validation failed.',
+            403,
+            'CSRF_VALIDATION_FAILED'
+        );
+    }
+};
+
+const getValidSession = async (sid, user) => {
+
+    const session =
+        await Session.findOne({
+            sessionId: sid
+        });
+
+    if (!session) {
+        throw new AppError(
+            'Invalid session.',
+            401,
+            'INVALID_SESSION'
+        );
+    }
+
+    if (
+        session.user.toString() !== user
+    ) {
+        throw new AppError(
+            'Invalid session.',
+            401,
+            'INVALID_SESSION'
+        );
+    }
+
+    if (session.revokedAt) {
+        throw new AppError(
+            'Session has been revoked.',
+            401,
+            'SESSION_REVOKED'
+        );
+    }
+
+    const now = new Date();
+
+    if (
+        session.expiresAt <= now ||
+        session.absoluteExpiresAt <= now
+    ) {
+
+        await revokeAndSyncSessionToRedis(session, 'Session expired');
+
+        throw new AppError(
+            'Session has expired.',
+            401,
+            'SESSION_EXPIRED'
+        );
+    }
+
+    return session;
+};
+
+
+const validateRefreshAccessToken = async(req, res, next) => {
         const refreshToken = req.cookies['refreshToken'];
-        
-        if (!refreshToken) {
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-            });
-        }
+        const csrfToken = req.cookies['csrfToken'];
 
         const decoded =
             verifyRefreshToken(refreshToken);
 
         if (!decoded){
-            return res.status(401).json({
-            success: false,
-            message: 'Invalid or expired refresh token'
-            });
+            throw new AppError(
+               'Your session has expired. Please login again',
+                401,
+                'INVALID_REFRESH_TOKEN' 
+            )
         }
 
-        if (
-                decoded.type !== 'refresh' ||
-                !decoded.sid ||
-                !decoded.sub ||
-                !decoded.jti
-            ) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Invalid refresh token'
-                });
-            }
+        const {sub: user, sid, jti: incomingRefreshJti, type} = decoded;
 
-        const csrfToken = req.cookies['csrfToken'];
+        const session = await getValidSession(sid, user);
 
-        if (!csrfToken) {
-            return res.status(401).json({
-                success: false,
-                message: 'Authentication required'
-        });
-    }
+        const {
+            csrfTokenHash: storedCsrfHash,
+            refreshTokenHash: storedRefreshHash,
+            refreshJti: storedRefreshJti 
+            } = session;
+
+        await validateRefreshToken(
+            refreshToken,
+            incomingRefreshJti,
+            storedRefreshJti,
+            storedRefreshHash
+        )
+
+        await validateCsrfToken(csrfToken, storedCsrfHash );
 
         req.auth = {
             refreshToken,
@@ -134,7 +263,11 @@ const authenticateSession = async (req, res, next) => {
 
         const accessToken = req.cookies['access-token'];
         if (!accessToken) {
-        return res.status(401).json({ message: 'Access token is missing' });
+                throw new AppError(
+                'Authentication required.',
+                401,
+                'ACCESS_TOKEN_MISSING'
+            );
         }
 
         let decodedAccess;
@@ -193,5 +326,6 @@ module.exports = {
     validateLogin,
     loginLimiter,
     authenticateSession,
-    validateRefreshAccessToken
+    validateRefreshAccessToken,
+    
 };
