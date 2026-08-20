@@ -102,50 +102,42 @@ const getSessionTTL = (session) => {
 // };
 
 const cacheSession = async (session) => {
-    try {
-        const key =
-            getSessionKey(session.sessionId);
+    const key =
+        getSessionKey(session.sessionId);
 
-        const ttl =
-            getSessionTTL(session);
+    const ttl =
+        getSessionTTL(session);
 
-        /*
-         * If the session has already expired, do not create
-         * a Redis key with an invalid/zero TTL.
-         */
-        if (ttl === null) {
-            return false;
-        }
-
-        const data =
-            serializeSessionForRedis(session);
-
-        const result =
-            await redisClient.eval(
-                CACHE_SESSION_SCRIPT,
-                {
-                    keys: [key],
-
-                    arguments: [
-                        JSON.stringify(data),
-                        String(ttl),
-                    ],
-                }
-            );
-
-        /*
-         * 1 = Redis accepted the state.
-         * 0 = Redis rejected it because it was stale or would
-         *      resurrect a revoked session.
-         */
-        return Number(result) === 1;
-
-    } catch (error) {
-        throw new Error(
-            error.message ||
-            'Failed to cache session in Redis.'
-        );
+    /*
+        * If the session has already expired, do not create
+        * a Redis key with an invalid/zero TTL.
+        */
+    if (ttl === null) {
+        return false;
     }
+
+    const data =
+        serializeSessionForRedis(session);
+
+    const result =
+        await redisClient.eval(
+            CACHE_SESSION_SCRIPT,
+            {
+                keys: [key],
+
+                arguments: [
+                    JSON.stringify(data),
+                    String(ttl),
+                ],
+            }
+        );
+
+    /*
+        * 1 = Redis accepted the state.
+        * 0 = Redis rejected it because it was stale or would
+        *      resurrect a revoked session.
+        */
+    return Number(result) === 1;
 };
 
 const getCachedSession = async (sessionId) => {

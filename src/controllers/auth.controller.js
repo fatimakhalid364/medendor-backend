@@ -8,107 +8,81 @@ const handleSignup = async(req, res) => {
 }
 
 const handleVerifyCode = async(req, res) => {
-    try {
-        console.log('Handling verification code request:', req.body);
-        const { email, code } = req.body;
-        const result = await verifyCode(email, code);
-        res.status(200).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred during verification',
-        });
-    }
+    console.log('Handling verification code request:', req.body);
+    const { email, code } = req.body;
+    const result = await verifyCode(email, code);
+    res.status(200).json(result);
 }
 
 const handleLogin = async (req, res) => {
-    try {
-        console.log('Handling login request:', req.body, req.ip);
-        const { email, password } = req.body;
-        const ip = req.ip;
-        const userAgent = req.get('User-Agent');
+    console.log('Handling login request:', req.body, req.ip);
+    const { email, password } = req.body;
+    const ip = req.ip;
+    const userAgent = req.get('User-Agent');
 
-        const { accessToken, refreshToken, csrfToken, user, message, success } = await login(email, password, ip, userAgent);
+    const { accessToken, refreshToken, csrfToken, user, message, success, code } = await login(email, password, ip, userAgent);
 
-        res
-        .status(200)
-        .cookie('access_token', accessToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            maxAge: 15 * 60 * 1000,
-            path: '/'
-        })
-        .cookie('refresh_token', refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            path: '/'
-        })
-        .cookie('csrf_token', csrfToken, {
-            httpOnly: false,
-            secure: true,
-            sameSite: 'none',
-            maxAge: 15 * 60 * 1000,
-            path: '/'
-        })
-        .json({
-            success: success,
-            message: message,
-            user: user
-        });
-
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred during login',
-        });
-    }
+    res
+    .status(200)
+    .cookie('access_token', accessToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        path: '/'
+    })
+    .cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        path: '/'
+    })
+    .cookie('csrf_token', csrfToken, {
+        httpOnly: false,
+        secure: true,
+        sameSite: 'none',
+        path: '/'
+    })
+    .json({
+        success: success,
+        code: code,
+        message: message,
+        user: user
+    });
 };
 
 const handleLogout = async(req, res) => {
-    try {
-        console.log('Handling logout request:', req.auth)
-        const {accessToken, refreshToken} = req.auth;
+    console.log('Handling logout request:', req.auth)
+    const {accessToken, refreshToken} = req.auth;
 
-        const {success, message} = await logout(accessToken, refreshToken);
+    const {success, message} = await logout(accessToken, refreshToken);
 
-        res.clearCookie('access-token', {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            path: '/'
-        });
+    res.clearCookie('access-token', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        path: '/'
+    });
 
-        res.clearCookie('refresh-token', {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none',
-            path: '/'
-        });
+    res.clearCookie('refresh-token', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        path: '/'
+    });
 
-        res.clearCookie('csrf-token', {
-            httpOnly: false,
-            secure: true,
-            sameSite: 'none',
-            path: '/'
-        });
-
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred during logout',
-        });
-    }
+    res.clearCookie('csrf-token', {
+        httpOnly: false,
+        secure: true,
+        sameSite: 'none',
+        path: '/'
+    });
 }
 
 const handleRefreshAccessToken = async(req, res) => {
-    try {
         console.log('Handling refresh access token request:', req.auth);
-        const {refreshToken, accessToken} = req.auth;
+        const {refreshToken, csrfToken, decoded} = req.auth;
 
-        const {success, message, accessToken, refreshToken, csrfToken} = await refreshAccessToken(refreshToken, csrfToken);
+        const {success, message, code, newAccessToken, newRefreshToken, newCsrfToken} = await refreshAccessToken(refreshToken, csrfToken, decoded);
         res.status(200)
             .cookie(
                 'access_token',
@@ -148,15 +122,6 @@ const handleRefreshAccessToken = async(req, res) => {
                 success, 
                 message
             });
-
-    }catch(error){
-         res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred wile refreshing access token',
-        });
-    }
-
-   
 }
 
 module.exports = {handleSignup, handleVerifyCode, handleLogin, handleLogout, handleRefreshAccessToken}

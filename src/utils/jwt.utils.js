@@ -1,41 +1,9 @@
 const {env: {ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, CSRF_TOKEN_SECRET, JWT_ISSUER, JWT_AUDIENCE}} = require('config');
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const {ACCESS_TOKEN_TTL_MS, SLIDING_TTL_MS, ABSOLUTE_TTL_MS} = require('config/auth.config');
-
-
-
-// const generateTokens = (userId, role, sessionId) => {
-//     const accessJti = uuidv4();
-//     const refreshJti = uuidv4();
-
-//     const accessToken = jwt.sign(
-//         { sub: userId, sessionId, accessJti, type: 'access', role },
-//         ACCESS_TOKEN_SECRET,
-//         { expiresIn: '15m' }
-//     );
-
-//     const refreshToken = jwt.sign(
-//         { sub: userId, sessionId, refreshJti, type: 'refresh' },
-//         REFRESH_TOKEN_SECRET,
-//         { expiresIn: '7d' }
-//     );
-
-    
-
-
-//     return { accessToken, refreshToken, accessJti, refreshJti };
-// };
-
-// const verifyAccessToken = (token) => jwt.verify(token, ACCESS_TOKEN_SECRET);
-// const verifyRefreshToken = (token) => jwt.verify(token, REFRESH_TOKEN_SECRET);
-
-// module.exports = {
-//     generateTokens,
-//     verifyAccessToken,
-//     verifyRefreshToken
-// };
-
+const {safeCompare, hashToken} = require('utils/crypto.utils');
+const AppError = require('utils/AppError');
+const { revokeAndSyncSessionToRedis } = require('services/session.service');
 
 
 const ACCESS_TOKEN_TTL_SECONDS = ACCESS_TOKEN_TTL_MS/1000;
@@ -139,9 +107,78 @@ const verifyRefreshToken = (token) => {
     );
 };
 
+const validateCsrfToken = (
+    csrfToken,
+    storedCsrfHash
+) => {
+
+    if (!csrfToken) {
+        throw new AppError(
+            'CSRF validation failed.',
+            403,
+            'CSRF_TOKEN_MISSING'
+        );
+    }
+
+    const incomingCsrfHash =
+        hashToken(csrfToken);
+
+    if (
+        !safeCompare(
+            incomingCsrfHash,
+            storedCsrfHash
+        )
+    ) {
+        throw new AppError(
+            'CSRF validation failed.',
+            403,
+            'CSRF_VALIDATION_FAILED'
+        );
+    }
+};
+
+const validateRefreshToken = async (
+    refreshToken,
+    decoded,
+    session
+) => {
+
+    const incomingRefreshHash =
+        hashToken(refreshToken);
+
+    const hashMatches =
+        safeCompare(
+            incomingRefreshHash,
+            session.refreshTokenHash
+        );
+
+    const jtiMatches =
+        safeCompare(
+            decoded.jti,
+            session.refreshJti
+        );
+
+    if (
+        !hashMatches ||
+        !jtiMatches
+    ) {
+        await revokeAndSyncSessionToRedis(session, 'Refresh token reuse detected.');
+        throw new AppError(
+            'Refresh token reuse detected.',
+            401,
+            'REFRESH_TOKEN_REUSE_DETECTED'
+        );
+    }
+
+    return incomingRefreshHash;
+
+};
+
 module.exports = {
     generateAccessToken,
     generateRefreshToken,
     verifyAccessToken,
     verifyRefreshToken,
+    validateCsrfToken,
+    validateRefreshToken
 };
