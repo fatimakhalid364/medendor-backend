@@ -118,7 +118,7 @@ const validateLogout = (req, res, next) => {
         throw new AppError(
             'Your session has expired. Please login again',
             401,
-            'ACCESS_TOKEN_MISSING'
+            'AUTH_TOKEN_MISSING'
         );
     }
 
@@ -134,7 +134,8 @@ const validateRefreshToken = async (
     refreshToken,
     incomingRefreshJti,
     storedRefreshJti,
-    storedRefreshHash
+    storedRefreshHash,
+    session
 ) => {
 
     if (!refreshToken){
@@ -147,8 +148,7 @@ const validateRefreshToken = async (
         )
     }
 
-    const incomingRefreshHash =
-        hashToken(refreshToken);
+    const incomingRefreshHash = hashToken(refreshToken);
 
     const hashMatches =
         safeCompare(
@@ -213,7 +213,7 @@ const validateSession = async (session, userId) => {
     if (!session) {
         console.error('Session not found')
         throw new AppError(
-            'Session not ound for this user. Please login.',
+            'Session not found for this user. Please login.',
             401,
             'INVALID_SESSION'
         );
@@ -298,20 +298,19 @@ const validateRefreshAccessToken = async(req, res, next) => {
         refreshJti: storedRefreshJti 
         } = redisSession;
 
-    const incomingRefreshHash = hashToken(refreshToken);
-
     await validateRefreshToken(
         refreshToken,
         incomingRefreshJti,
         storedRefreshJti,
-        storedRefreshHash
+        storedRefreshHash,
+        redisSession
     )
 
     validateCsrfToken(csrfToken, storedCsrfHash );
 
     req.auth = {
         redisSession,
-        incomingRefreshHash,
+        refreshToken,
         userId
     };
     
@@ -395,4 +394,5 @@ module.exports = {
     loginLimiter,
     authenticateSession,
     validateRefreshAccessToken,
+    validateLogout
 };

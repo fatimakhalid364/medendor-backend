@@ -267,6 +267,8 @@ const login = async (email, password, ip, userAgent) => {
 const logout = async (
     sessionId
 ) => {
+
+    console.log('Inside logout service with sessionId: ', sessionId);
     let revokedSession;
 
     try {
@@ -322,11 +324,14 @@ const logout = async (
 
 const refreshAccessToken = async (
     session,
-    incomingRefreshHash,
+    refreshToken,
     userId
 ) => {
 
+    console.log('Inside refreshAccessToken service with session: ', session, 'incomingRefreshHash: ', incomingRefreshHash, 'and userId: ', userId)
+
     const user = await User.findOne({ userId });
+    const incomingRefreshHash = hashToken(refreshToken);
 
     const {
         updatedSession,

@@ -100,59 +100,6 @@ const revokeAndSyncSessionToRedis = async(session, reason) => {
 
 }
 
-const getValidRefreshSession = async (decoded) => {
-
-    const session =
-        await Session.findOne({
-            sessionId: decoded.sid
-        });
-
-    if (!session) {
-        throw new AppError(
-            'Invalid session.',
-            401,
-            'INVALID_SESSION'
-        );
-    }
-
-    if (
-        session.user.toString() !==
-        decoded.sub
-    ) {
-        throw new AppError(
-            'Invalid session.',
-            401,
-            'INVALID_SESSION'
-        );
-    }
-
-    if (session.revokedAt) {
-        throw new AppError(
-            'Session has been revoked.',
-            401,
-            'SESSION_REVOKED'
-        );
-    }
-
-    const now = new Date();
-
-    if (
-        session.expiresAt <= now ||
-        session.absoluteExpiresAt <= now
-    ) {
-
-        await revokeAndSyncSessionToRedis(session, 'Session expired');
-
-        throw new AppError(
-            'Session has expired.',
-            401,
-            'SESSION_EXPIRED'
-        );
-    }
-
-    return session;
-};
-
 const rotateSession = async (
     incomingRefreshHash,
     session
@@ -284,6 +231,5 @@ module.exports = {
     revokeSession,
     syncRevokedSessionToRedis,
     revokeAndSyncSessionToRedis,
-    getValidRefreshSession,
     rotateSession
 }
