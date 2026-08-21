@@ -17,5 +17,6 @@ module.exports = {
     CLOUD_API_KEY: process.env.CLOUD_API_KEY,
     CLOUD_API_SECRET: process.env.CLOUD_API_SECRET,
     JWT_ISSUER: process.env.JWT_ISSUER,
-    JWT_AUDIENCE: process.env.JWT_AUDIENCE
+    JWT_AUDIENCE: process.env.JWT_AUDIENCE,
+    FRONTEND_URL: process.env.FRONTEND_URL
 }

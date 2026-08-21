@@ -13,8 +13,8 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const sendMail = async (email, code, subject, html) => {
-    console.log(`Sending code ${code} to email ${email}`);
+const sendMail = async (email, subject, html) => {
+    console.log(`Sending to email ${email}`);
     await transporter.sendMail({
         from: GMAIL_USER,
         to: email,

@@ -3,7 +3,7 @@ const {session: Session} = require('models/session.model');
 const {bcryptUtils: {hashPassword, comparePassword}, mailerUtils: {sendMail}} = require('utils');
 const {generateAccessToken, generateRefreshToken} = require('utils/jwt.utils');
 const {redis: {redisClient}} = require('config');
-const {mails: {codeMailSub, codeMailHtml}} = require('constants');
+const {codeMailSub, codeMailHtml, resetPasswordMailSub, resetPasswordMailHtml} = require('constants/mails');
 const { v4: uuidv4 } = require('uuid');
 const {generateRandomToken, safeCompare, hashToken, generateRandomIdOrJti} = require('utils/crypto.utils');
 const {ACCESS_TOKEN_TTL_MS, ABSOLUTE_TTL_MS, SLIDING_TTL_MS} = require('config/auth.config');
@@ -11,6 +11,7 @@ const {calculateSessionExpiry, cacheSession} = require('utils/session.utils');
 const {syncRevokedSessionToRedis, revokeSession, revokeAndSyncSessionToRedis, rotateSession} = require('./session.service');
 const {convertToPublicUser} = require('utils/serializers.utils');
 const AppError = require('utils/AppError');
+const {FRONTEND_URL} = require('config/env');
 
 const signup = async (data, role) => {
     console.log('Inside signup service:', data, 'and role:', role);
@@ -77,7 +78,6 @@ const signup = async (data, role) => {
     try {
         await sendMail(
             email,
-            verificationCode,
             codeMailSub,
             codeMailHtml(verificationCode)
         );
@@ -263,6 +263,65 @@ const login = async (email, password, ip, userAgent) => {
         user: convertToPublicUser(user)
     };
 };
+
+const forgotPassword = async(email) => {
+    const user = User.findOne({email});
+
+    if (!user){
+        throw new AppError(
+            'You do not have an account. Please sign up.',
+            401,
+            'USER_NOT_FOUND'
+        )
+    }
+
+    const resetToken = generateRandomToken();
+
+    const resetTokenHash =
+        hashToken(resetToken);
+
+    try {
+        await redisClient.setEx(
+            `password-reset:${resetTokenHash}`,
+            900,
+            user._id.toString()
+        );
+    } catch (error) {
+        console.error(
+            'Failed to store password reset token:',
+            error
+        );
+
+        throw new AppError(
+            'Authentication service is temporarily unavailable.',
+            503,
+            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+        );
+    }
+
+    const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    try {
+        await sendMail(
+            email,
+            resetPasswordMailSub,
+            resetPasswordMailHtml(resetUrl)
+        );
+
+        } catch (error) {
+
+            console.error(
+                'Sending reset-password email failed:',
+                error
+            );
+
+            throw new AppError(
+                'Unable to send the reset-password email right now. Please try again.',
+                503,
+                'RESET_PASSWORD_EMAIL_SEND_FAILED',
+            );
+        }
+}
 
 const logout = async (
     sessionId
