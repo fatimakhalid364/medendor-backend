@@ -183,7 +183,7 @@ const rotateSession = async (
 
     const newAccessToken =
         generateAccessToken({
-            userId: session.user,
+            userId: session.userId,
             sessionId: session.sessionId,
             expiresAt: newExpiresAt,
             accessJti: newAccessJti
@@ -191,7 +191,7 @@ const rotateSession = async (
 
     const newRefreshToken =
         generateRefreshToken({
-            userId: session.user,
+            userId: session.userId,
             sessionId: session.sessionId,
             expiresAt: newExpiresAt,
             refreshJti: newRefreshJti

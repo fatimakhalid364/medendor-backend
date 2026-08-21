@@ -5,18 +5,53 @@ const AppError = require('utils/AppError');
 const {safeCompare, hashToken} = require('utils/crypto.utils');
 const { revokeAndSyncSessionToRedis } = require('services/session.service');
 const {session: Session} = require('models/session.model');
+const { getCachedSession } = require('../utils/session.utils');
+
 
 const validateSignup = (req, res, next) => {
     const { role, ...data } = req.body;
     console.log('Validating signup request:', role, data);
     if (!role || !rolesArray.includes(role)) {
-        return res.status(400).json({ success: false, message: 'Invalid or missing role' });
+        throw new AppError(
+            'Role field is missing or is invalid.',
+            400,
+            'REQUIRED_FIELD_MISSING'
+        );
     }
 
     const { firstName, lastName, email, password } = data;
 
     if (!firstName || !lastName || !email || !password) {
-        return res.status(400).json({ success: false, message: 'First name, last name, email, and password are required' });
+        throw new AppError(
+            'One or more of the following fields is missing: first name, last name, email, password',
+            400,
+            'REQUIRED_FIELD_MISSING'
+        );
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        throw new AppError(
+            'Please provide a valid email address.',
+            400,
+            'INVALID_EMAIL'
+        );
+    }
+
+    if (password.length < 8) {
+        throw new AppError(
+            'Password must be at least 8 characters long.',
+            400,
+            'INVALID_PASSWORD'
+        );
+    }
+
+    if (password.length > 128) {
+        throw new AppError(
+            'Password must not exceed 128 characters.',
+            400,
+            'INVALID_PASSWORD'
+        );
     }
 
     next(); 
@@ -27,16 +62,28 @@ const validateCode = (req, res, next) => {
     const { email, code } = req.body;
 
     if (!email || !code) {
-        return res.status(400).json({ success: false, message: 'Email and verification code are required.' });
+        throw new AppError(
+            'Email or code is missing.',
+            400,
+            'REQUIRED_FIELD_MISSING'
+        );
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        return res.status(400).json({ success: false, message: 'Invalid email format.' });
+        throw new AppError(
+            'Please provide a valid email address.',
+            400,
+            'INVALID_EMAIL'
+        );
     }
 
     if (typeof code !== 'string' || code.length !== 6) {
-        return res.status(400).json({ success: false, message: 'Verification code must be a 6-digit string.' });
+        throw new AppError(
+            'Invalid code.',
+            400,
+            'INVALID_CODE'
+        );
     }
 
     next();
@@ -46,7 +93,11 @@ const validateLogin = (req, res, next) => {
     console.log('Validating login:', req.body);
     const { email, password } = req.body;
     if (!email || !password) 
-        return res.status(400).json({ success: false, message: 'Email and password are required' });
+        throw new AppError(
+            'Email or password is missing.',
+            400,
+            'INVALID_CREDENTIALS'
+        );
     next();
 };
 
@@ -59,15 +110,16 @@ const loginLimiter = rateLimit({
     legacyHeaders: false   
 });
 
-const validateLogoutRequest = (req, res, next) => {
+const validateLogout = (req, res, next) => {
     const accessToken = req.cookies?.access_token;
     const refreshToken = req.cookies?.refresh_token
 
-    if (!accessToken) {
-        return res.status(401).json({
-            success: false,
-            message: 'Access token missing'
-        });
+    if (!accessToken || !refreshToken) {
+        throw new AppError(
+            'Your session has expired. Please login again',
+            401,
+            'ACCESS_TOKEN_MISSING'
+        );
     }
 
     req.auth = {
@@ -122,9 +174,6 @@ const validateRefreshToken = async (
             'REFRESH_TOKEN_REUSE_DETECTED'
         );
     }
-
-    return incomingRefreshHash;
-
 };
 
 const validateCsrfToken = (
@@ -159,24 +208,21 @@ const validateCsrfToken = (
     }
 };
 
-const getValidSession = async (sid, user) => {
-
-    const session =
-        await Session.findOne({
-            sessionId: sid
-        });
+const validateSession = async (session, userId) => {
 
     if (!session) {
+        console.error('Session not found')
         throw new AppError(
-            'Invalid session.',
+            'Session not ound for this user. Please login.',
             401,
             'INVALID_SESSION'
         );
     }
 
     if (
-        session.user.toString() !== user
+        session.userId !== userId
     ) {
+        console.error('Invalid userId');
         throw new AppError(
             'Invalid session.',
             401,
@@ -184,7 +230,8 @@ const getValidSession = async (sid, user) => {
         );
     }
 
-    if (session.revokedAt) {
+    if (session.revoked) {
+        console.error('Session has been revoked.')
         throw new AppError(
             'Session has been revoked.',
             401,
@@ -201,111 +248,140 @@ const getValidSession = async (sid, user) => {
 
         await revokeAndSyncSessionToRedis(session, 'Session expired');
 
+        console.error('Session has expired.')
+
         throw new AppError(
             'Session has expired.',
             401,
             'SESSION_EXPIRED'
         );
     }
-
-    return session;
 };
 
 
 const validateRefreshAccessToken = async(req, res, next) => {
-        const refreshToken = req.cookies['refreshToken'];
-        const csrfToken = req.cookies['csrfToken'];
+    const refreshToken = req.cookies['refreshToken'];
+    const csrfToken = req.cookies['csrfToken'];
 
-        let decoded
-        try {
-            decoded =
-            verifyRefreshToken(refreshToken);
-        }catch(error){
-            throw new AppError(
-               'Your session has expired. Please login again',
-                401,
-                'INVALID_REFRESH_TOKEN' 
-            )
-        }
-
-        const {sub: user, sid, jti: incomingRefreshJti, type} = decoded;
-
-        const session = await getValidSession(sid, user);
-
-        const {
-            csrfTokenHash: storedCsrfHash,
-            refreshTokenHash: storedRefreshHash,
-            refreshJti: storedRefreshJti 
-            } = session;
-
-        const incomingRefreshHash = await validateRefreshToken(
-            refreshToken,
-            incomingRefreshJti,
-            storedRefreshJti,
-            storedRefreshHash
+    let decoded
+    try {
+        decoded =
+        verifyRefreshToken(refreshToken);
+    }catch(error){
+        throw new AppError(
+            'Your session has expired. Please login again',
+            401,
+            'INVALID_REFRESH_TOKEN' 
         )
+    }
 
-        validateCsrfToken(csrfToken, storedCsrfHash );
+    const {sub: userId, sid, jti: incomingRefreshJti, type} = decoded;
 
-        req.auth = {
-            session,
-            incomingRefreshHash
-        };
-        
-        next();
+    let redisSession;
+
+    try{
+        redisSession = await getCachedSession(sid);
+    }catch(error){
+        console.error('Failed to retrieve cached session from redis.');
+        throw new AppError(
+            'Service is temporarily unavailable. Please try again later.',
+            503,
+            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+        )
+    }
+
+    await validateSession(redisSession, userId);
+
+    const {
+        csrfTokenHash: storedCsrfHash,
+        refreshTokenHash: storedRefreshHash,
+        refreshJti: storedRefreshJti 
+        } = redisSession;
+
+    const incomingRefreshHash = hashToken(refreshToken);
+
+    await validateRefreshToken(
+        refreshToken,
+        incomingRefreshJti,
+        storedRefreshJti,
+        storedRefreshHash
+    )
+
+    validateCsrfToken(csrfToken, storedCsrfHash );
+
+    req.auth = {
+        redisSession,
+        incomingRefreshHash,
+        userId
+    };
+    
+    next();
 }
 
 const authenticateSession = async (req, res, next) => {
-    try {
-        console.log('Authenticating session with headers and cookies:', req.headers, req.cookies);
-        
-        const accessToken = req.cookies['access-token'];
-        const csrfToken = req.headers['csrf-token'];
+    console.log('Authenticating session with headers and cookies:', req.headers, req.cookies);
+    
+    const accessToken = req.cookies['access-token'];
+    const csrfToken = req.headers['csrf-token'];
 
-        if (!accessToken) {
-                throw new AppError(
-                'Your session has expired. Please try again.',
-                401,
-                'ACCESS_TOKEN_MISSING'
-            );
-        }
-
-        let decoded;
-        try {
-             decoded = verifyAccessToken(accessToken);
-        } catch (err) {
+    if (!accessToken) {
             throw new AppError(
-                'Your session has expired. Please try again.',
-                401,
-                'ACCESS_TOKEN_INVALID'
-            )
-        }
+            'Your session has expired. Please try again.',
+            401,
+            'ACCESS_TOKEN_MISSING'
+        );
+    }
 
-        const {sub: user, sid, jti: incomingAccessJti, type} = decoded;
+    let decoded;
+    try {
+            decoded = verifyAccessToken(accessToken);
+    } catch (err) {
+        throw new AppError(
+            'Your session has expired. Please try again.',
+            401,
+            'ACCESS_TOKEN_INVALID'
+        )
+    }
 
-        const session = await getValidSession(sid, user);
+    const {sub: userId, sid, jti: incomingAccessJti, type} = decoded;
 
-        const {
-            csrfTokenHash: storedCsrfHash,
-        } = session;
+    let redisSession;
 
-        validateCsrfToken(csrfToken, storedCsrfHash );
+    try{
+        redisSession = await getCachedSession(sid);
+    }catch(error){
+        console.error('Failed to retrieve cached session from redis.');
+        throw new AppError(
+            'Service is temporarily unavailable. Please try again later.',
+            503,
+            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+        )
+    }
 
+    await validateSession(redisSession, userId);
 
-        const isValidRole = rolesArray.includes(role);
-        if (!isValidRole) {
-        return res.status(403).json({ message: 'Invalid user role' });
-        }
-        req.user = {
+    const {
+        csrfTokenHash: storedCsrfHash,
+        role
+    } = redisSession;
+
+    validateCsrfToken(csrfToken, storedCsrfHash );
+    
+    const isValidRole = rolesArray.includes(role);
+    if (!isValidRole) {
+        console.error('Invalid role');
+        throw new AppError(
+            'Invalid session.',
+            401,
+            'INVALID_SESSION'
+        );
+    }
+    req.user = {
         id: sub,
         role: role,
-        };
+    };
 
-        next();
-    } catch (error) {
-        console.error('An error occured while authenticating the session:', error);
-        return res.status(500).json({ message: error.message || 'Internal server error' });
-    }
+    next();
 };
 
 
@@ -319,5 +395,4 @@ module.exports = {
     loginLimiter,
     authenticateSession,
     validateRefreshAccessToken,
-    
 };

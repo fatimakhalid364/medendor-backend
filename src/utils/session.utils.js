@@ -101,7 +101,7 @@ const getSessionTTL = (session) => {
 //     }
 // };
 
-const cacheSession = async (session) => {
+const cacheSession = async (session, role) => {
     const key =
         getSessionKey(session.sessionId);
 
@@ -117,7 +117,7 @@ const cacheSession = async (session) => {
     }
 
     const data =
-        serializeSessionForRedis(session);
+        serializeSessionForRedis(session, role);
 
     const result =
         await redisClient.eval(

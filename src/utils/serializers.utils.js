@@ -5,10 +5,18 @@ const convertToPublicUser = (user) => ({
     role: user.role
 });
 
-const serializeSessionForRedis = (session) => ({
+const serializeSessionForRedis = (session, role) => ({
     userId: session.user.toString(),
 
     sessionId: session.sessionId,
+
+    role: role,
+
+    refreshTokenHash: session.refreshTokenHash,
+
+    refreshJti: session.refreshJti,
+
+    csrfTokenHash: session.csrfTokenHash,
 
     revoked: Boolean(session.revokedAt),
 
@@ -21,7 +29,7 @@ const serializeSessionForRedis = (session) => ({
         ? session.revokedAt.getTime()
         : null,
 
-    csrfTokenHash: session.csrfTokenHash,
+    
 
     /*
      * Used by Redis to reject stale writes.

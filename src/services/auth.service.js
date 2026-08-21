@@ -237,7 +237,7 @@ const login = async (email, password, ip, userAgent) => {
 
     try {
         cached =
-            await cacheSession(session);
+            await cacheSession(session, user.role);
 
     } catch (cacheError) {
         console.error(
@@ -322,8 +322,11 @@ const logout = async (
 
 const refreshAccessToken = async (
     session,
-    incomingRefreshHash
+    incomingRefreshHash,
+    userId
 ) => {
+
+    const user = await User.findOne({ userId });
 
     const {
         updatedSession,
@@ -339,7 +342,7 @@ const refreshAccessToken = async (
 
     try {
         cached =
-            await cacheSession(updatedSession);
+            await cacheSession(updatedSession, user.role);
 
     } catch (cacheError) {
         console.error(
