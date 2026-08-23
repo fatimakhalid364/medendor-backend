@@ -265,14 +265,17 @@ const login = async (email, password, ip, userAgent) => {
 };
 
 const forgotPassword = async(email) => {
-    const user = User.findOne({email});
+
+    console.log('inside forgotPassword service with email: ', email);
+    const user = await User.findOne({email});
 
     if (!user){
-        throw new AppError(
-            'You do not have an account. Please sign up.',
-            401,
-            'USER_NOT_FOUND'
-        )
+        console.error('User not found for this email.')
+        return {
+            success: true,
+            code: RESET_PASSWORD_TOKEN_SENT,
+            message: 'If an account exists for this email, you will receive a password reset email.'
+        };
     }
 
     const resetToken = generateRandomToken();
@@ -288,7 +291,7 @@ const forgotPassword = async(email) => {
         );
     } catch (error) {
         console.error(
-            'Failed to store password reset token:',
+            'Failed to store password reset token in redis:',
             error
         );
 
@@ -315,12 +318,41 @@ const forgotPassword = async(email) => {
                 error
             );
 
+            try {
+                await redisClient.del(
+                    `password-reset:${resetTokenHash}`
+                );
+            } catch (redisError) {
+                console.error(
+                    'Failed to remove password reset token from redis:',
+                    redisError
+                );
+
+                throw new AppError(
+                    'Authentication service is temporarily unavailable.',
+                    503,
+                    'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+                )
+            }
+
             throw new AppError(
                 'Unable to send the reset-password email right now. Please try again.',
                 503,
                 'RESET_PASSWORD_EMAIL_SEND_FAILED',
             );
         }
+    return ({
+        success: true,
+        code: RESET_PASSWORD_TOKEN_SENT,
+        message: 'If an account exists for this email, you will receive a password reset email.'
+    })
+}
+
+const resetPassword = async(newPassword, resetToken) => {
+    console.log('resetting password with: ', newPassword, resetToken);
+
+    
+
 }
 
 const logout = async (
@@ -434,4 +466,11 @@ const refreshAccessToken = async (
 
 
 
-module.exports = { signup, verifyCode, login, logout, refreshAccessToken };
+module.exports = { 
+    signup, 
+    verifyCode, 
+    login, 
+    logout, 
+    refreshAccessToken,
+    forgotPassword 
+};

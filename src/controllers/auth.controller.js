@@ -52,9 +52,9 @@ const handleLogin = async (req, res) => {
 
 const handleLogout = async(req, res) => {
     console.log('Handling logout request:', req.auth)
-    const {accessToken, refreshToken} = req.auth;
+    const {sessionId} = req.user;
 
-    const {success, code, message} = await logout(accessToken, refreshToken);
+    const {success, code, message} = await logout(sessionId);
 
     res.clearCookie('access-token', {
         httpOnly: true,

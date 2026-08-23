@@ -6,53 +6,47 @@ const {safeCompare, hashToken} = require('utils/crypto.utils');
 const { revokeAndSyncSessionToRedis } = require('services/session.service');
 const {session: Session} = require('models/session.model');
 const { getCachedSession } = require('../utils/session.utils');
+const { redisClient } = require('config/redis');
 
 
 const validateSignup = (req, res, next) => {
     const { role, ...data } = req.body;
     console.log('Validating signup request:', role, data);
     if (!role || !rolesArray.includes(role)) {
-        throw new AppError(
-            'Role field is missing or is invalid.',
-            400,
-            'REQUIRED_FIELD_MISSING'
+        return next(
+            new AppError(
+                'Role field is missing or is invalid.',
+                400,
+                'REQUIRED_FIELD_MISSING'
+            )
         );
+
     }
 
     const { firstName, lastName, email, password } = data;
 
     if (!firstName || !lastName || !email || !password) {
-        throw new AppError(
-            'One or more of the following fields is missing: first name, last name, email, password',
-            400,
-            'REQUIRED_FIELD_MISSING'
-        );
+        return next(
+            new AppError(
+                'One or more of the following fields is missing: first name, last name, email, password',
+                400,
+                'REQUIRED_FIELD_MISSING'
+            )
+        )
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        throw new AppError(
-            'Please provide a valid email address.',
-            400,
-            'INVALID_EMAIL'
-        );
+    try{
+        validateEmail(email);
+    }catch(error){
+        next(error)
     }
 
-    if (password.length < 8) {
-        throw new AppError(
-            'Password must be at least 8 characters long.',
-            400,
-            'INVALID_PASSWORD'
-        );
+    try{
+        validatePassword(password);
+    }catch(error){
+        next(error)
     }
 
-    if (password.length > 128) {
-        throw new AppError(
-            'Password must not exceed 128 characters.',
-            400,
-            'INVALID_PASSWORD'
-        );
-    }
 
     next(); 
 }
@@ -62,28 +56,29 @@ const validateCode = (req, res, next) => {
     const { email, code } = req.body;
 
     if (!email || !code) {
-        throw new AppError(
-            'Email or code is missing.',
-            400,
-            'REQUIRED_FIELD_MISSING'
-        );
+        return next(
+            new AppError(
+                'Email or code is missing.',
+                400,
+                'REQUIRED_FIELD_MISSING'
+            )
+        )
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        throw new AppError(
-            'Please provide a valid email address.',
-            400,
-            'INVALID_EMAIL'
-        );
+    try{
+        validateEmail(email);
+    }catch(error){
+        next(error)
     }
 
     if (typeof code !== 'string' || code.length !== 6) {
-        throw new AppError(
-            'Invalid code.',
-            400,
-            'INVALID_CODE'
-        );
+        return next(
+            new AppError(
+                'Invalid code.',
+                400,
+                'INVALID_CODE'
+            )
+        )
     }
 
     next();
@@ -92,12 +87,15 @@ const validateCode = (req, res, next) => {
 const validateLogin = (req, res, next) => {
     console.log('Validating login:', req.body);
     const { email, password } = req.body;
-    if (!email || !password) 
-        throw new AppError(
-            'Email or password is missing.',
-            400,
-            'INVALID_CREDENTIALS'
-        );
+    if (!email || !password){
+        return next(
+            new AppError(
+                'Email or password is missing.',
+                400,
+                'INVALID_CREDENTIALS'
+            )
+        )
+    } 
     next();
 };
 
@@ -110,24 +108,260 @@ const loginLimiter = rateLimit({
     legacyHeaders: false   
 });
 
-const validateLogout = (req, res, next) => {
-    const accessToken = req.cookies?.access_token;
-    const refreshToken = req.cookies?.refresh_token
+const vlidateResetPassword = async(req, res, next) => {
+    console.log('inside validateResetPasword');
 
-    if (!accessToken || !refreshToken) {
-        throw new AppError(
-            'Your session has expired. Please login again',
-            401,
-            'AUTH_TOKEN_MISSING'
-        );
+    const {resetToken, newPassword} = req.body;
+
+    const resetTokenHash = hashToken(resetToken);
+
+    const key = `password-reset:${resetTokenHash}`;
+
+    let userId;
+
+    try {
+        userId = await redisClient.get(key)
+    }catch(error){
+        console.error('Failed to extract password reset key from redis', error);
+        return next(
+            new AppError(
+                'Authentication service is temporarily unavailable.',
+                503,
+                'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+            )
+        )
+    }
+}
+
+const validateRefreshAccessToken = async(req, res, next) => {
+    const refreshToken = req.cookies['refreshToken'];
+    const csrfToken = req.cookies['csrfToken'];
+
+    let decoded
+    try {
+        decoded = verifyRefreshToken(refreshToken);
+    }catch(error){
+        console.error('Invalid or expired refresh token: ', error)
+        return next(
+            new AppError(
+                'Your session has expired. Please login again',
+                401,
+                'INVALID_OR_EXPIRED_REFRESH_TOKEN'
+            )
+        )
+    }
+
+    const {sub: userId, sid, jti: incomingRefreshJti, type} = decoded;
+
+    let redisSession;
+
+    try{
+        redisSession = await getCachedSession(sid);
+    }catch(error){
+        console.error('Failed to retrieve cached session from redis: ', error);
+        return next(
+            new AppError(
+                'Service is temporarily unavailable. Please try again later.',
+                503,
+                'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+            )
+        )
+    }
+
+    const {
+        csrfTokenHash: storedCsrfHash,
+        refreshTokenHash: storedRefreshHash,
+        refreshJti: storedRefreshJti 
+    } = redisSession;
+
+    try{
+        await validateSession(redisSession, userId);
+        await validateRefreshToken(
+            refreshToken,
+            incomingRefreshJti,
+            storedRefreshJti,
+            storedRefreshHash,
+            redisSession
+        )
+        validateCsrfToken(csrfToken, storedCsrfHash );
+    }catch(error){
+        next(error)
     }
 
     req.auth = {
-        accessToken,
-        refreshToken
+        redisSession,
+        refreshToken,
+        userId
+    };
+    
+    next();
+}
+
+const authenticateSession = async (req, res, next) => {
+    console.log('Authenticating session with headers and cookies:', req.headers, req.cookies);
+    
+    const accessToken = req.cookies['access-token'];
+    const csrfToken = req.headers['csrf-token'];
+
+    if (!accessToken) {
+            console.error('Access token missing in authenticate session middleware')
+            return next(
+                new AppError(
+                    'Your session has expired. Please try again.',
+                    401,
+                    'ACCESS_TOKEN_MISSING'
+                )
+            )
+    }
+
+    let decoded;
+    try {
+            decoded = verifyAccessToken(accessToken);
+    } catch (error) {
+        console.error('Access token verification failed: ', error)
+        return next (
+            new AppError(
+                'Your session has expired. Please try again.',
+                401,
+                'ACCESS_TOKEN_INVALID'
+            )
+        )
+    }
+
+    const {sub: userId, sid, jti: incomingAccessJti, type} = decoded;
+
+    let redisSession;
+
+    try{
+        redisSession = await getCachedSession(sid);
+    }catch(error){
+        console.error('Failed to retrieve cached session from redis: ', error);
+        return next(
+            new AppError(
+                'Service is temporarily unavailable. Please try again later.',
+                503,
+                'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+            )
+        ) 
+    }
+
+    const {
+        csrfTokenHash: storedCsrfHash,
+        role
+    } = redisSession;
+
+    try {
+        await validateSession(redisSession, userId);
+        validateCsrfToken(csrfToken, storedCsrfHash );
+    }catch(error){
+        next(error);
+    }
+    
+    const isValidRole = rolesArray.includes(role);
+    if (!isValidRole) {
+        console.error('Invalid role');
+        return next (
+            new AppError(
+                'Invalid session.',
+                401,
+                'INVALID_SESSION'
+            )
+        )
+    }
+    req.user = {
+        userId: sub,
+        role: role,
+        sessionId: sid
     };
 
     next();
+};
+
+const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        throw new AppError(
+            'Please provide a valid email address.',
+            400,
+            'INVALID_EMAIL'
+        );
+    }
+}
+
+
+const validatePassword = (password) => {
+
+    if (typeof password !== 'string') {
+        throw new AppError(
+            'Password must be a string.',
+            400,
+            'INVALID_PASSWORD'
+        );
+    }
+
+    if (password.length === 0) {
+        throw new AppError(
+            'Password is required.',
+            400,
+            'PASSWORD_REQUIRED'
+        );
+    }
+
+    if (password.trim().length === 0) {
+        throw new AppError(
+            'Password cannot contain only whitespace.',
+            400,
+            'INVALID_PASSWORD'
+        );
+    }
+
+    if (password.length < 12) {
+        throw new AppError(
+            'Password must be at least 12 characters long.',
+            400,
+            'PASSWORD_TOO_SHORT'
+        );
+    }
+
+    if (password.length > 128) {
+        throw new AppError(
+            'Password must not exceed 128 characters.',
+            400,
+            'PASSWORD_TOO_LONG'
+        );
+    }
+
+    if (!/[A-Z]/.test(password)) {
+        throw new AppError(
+            'Password must contain at least one uppercase letter.',
+            400,
+            'PASSWORD_MISSING_UPPERCASE'
+        );
+    }
+
+    if (!/[a-z]/.test(password)) {
+        throw new AppError(
+            'Password must contain at least one lowercase letter.',
+            400,
+            'PASSWORD_MISSING_LOWERCASE'
+        );
+    }
+
+    if (!/[0-9]/.test(password)) {
+        throw new AppError(
+            'Password must contain at least one number.',
+            400,
+            'PASSWORD_MISSING_NUMBER'
+        );
+    }
+
+    if (!/[^A-Za-z0-9]/.test(password)) {
+        throw new AppError(
+            'Password must contain at least one special character.',
+            400,
+            'PASSWORD_MISSING_SPECIAL'
+        );
+    }
 };
 
 const validateRefreshToken = async (
@@ -259,130 +493,6 @@ const validateSession = async (session, userId) => {
 };
 
 
-const validateRefreshAccessToken = async(req, res, next) => {
-    const refreshToken = req.cookies['refreshToken'];
-    const csrfToken = req.cookies['csrfToken'];
-
-    let decoded
-    try {
-        decoded =
-        verifyRefreshToken(refreshToken);
-    }catch(error){
-        throw new AppError(
-            'Your session has expired. Please login again',
-            401,
-            'INVALID_REFRESH_TOKEN' 
-        )
-    }
-
-    const {sub: userId, sid, jti: incomingRefreshJti, type} = decoded;
-
-    let redisSession;
-
-    try{
-        redisSession = await getCachedSession(sid);
-    }catch(error){
-        console.error('Failed to retrieve cached session from redis.');
-        throw new AppError(
-            'Service is temporarily unavailable. Please try again later.',
-            503,
-            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
-        )
-    }
-
-    await validateSession(redisSession, userId);
-
-    const {
-        csrfTokenHash: storedCsrfHash,
-        refreshTokenHash: storedRefreshHash,
-        refreshJti: storedRefreshJti 
-        } = redisSession;
-
-    await validateRefreshToken(
-        refreshToken,
-        incomingRefreshJti,
-        storedRefreshJti,
-        storedRefreshHash,
-        redisSession
-    )
-
-    validateCsrfToken(csrfToken, storedCsrfHash );
-
-    req.auth = {
-        redisSession,
-        refreshToken,
-        userId
-    };
-    
-    next();
-}
-
-const authenticateSession = async (req, res, next) => {
-    console.log('Authenticating session with headers and cookies:', req.headers, req.cookies);
-    
-    const accessToken = req.cookies['access-token'];
-    const csrfToken = req.headers['csrf-token'];
-
-    if (!accessToken) {
-            throw new AppError(
-            'Your session has expired. Please try again.',
-            401,
-            'ACCESS_TOKEN_MISSING'
-        );
-    }
-
-    let decoded;
-    try {
-            decoded = verifyAccessToken(accessToken);
-    } catch (err) {
-        throw new AppError(
-            'Your session has expired. Please try again.',
-            401,
-            'ACCESS_TOKEN_INVALID'
-        )
-    }
-
-    const {sub: userId, sid, jti: incomingAccessJti, type} = decoded;
-
-    let redisSession;
-
-    try{
-        redisSession = await getCachedSession(sid);
-    }catch(error){
-        console.error('Failed to retrieve cached session from redis.');
-        throw new AppError(
-            'Service is temporarily unavailable. Please try again later.',
-            503,
-            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
-        )
-    }
-
-    await validateSession(redisSession, userId);
-
-    const {
-        csrfTokenHash: storedCsrfHash,
-        role
-    } = redisSession;
-
-    validateCsrfToken(csrfToken, storedCsrfHash );
-    
-    const isValidRole = rolesArray.includes(role);
-    if (!isValidRole) {
-        console.error('Invalid role');
-        throw new AppError(
-            'Invalid session.',
-            401,
-            'INVALID_SESSION'
-        );
-    }
-    req.user = {
-        id: sub,
-        role: role,
-    };
-
-    next();
-};
-
 
 
 
@@ -394,5 +504,4 @@ module.exports = {
     loginLimiter,
     authenticateSession,
     validateRefreshAccessToken,
-    validateLogout
 };
