@@ -348,8 +348,33 @@ const forgotPassword = async(email) => {
     })
 }
 
-const resetPassword = async(newPassword, resetToken) => {
-    console.log('resetting password with: ', newPassword, resetToken);
+const resetPassword = async(newPassword, resetTokenHash, userId) => {
+    console.log('resetting password with: ', newPassword, resetTokenHash);
+
+    const user = await User.findOneAndUpdate(
+        {userId},
+        {password: newPassword},
+        {
+            new: true,
+            runValidators: true,
+            strict: true
+        }
+
+    );
+
+    try {
+        await redisClient.del(`password-reset:${resetTokenHash}`)
+    }catch(error){
+        console.error('Erro occured while deleting reset password token hash fro redis: ', error);
+        throw new AppError(
+            'Authentication service is temporarily unavailable. Please try again later',
+            503,
+            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+        )
+    }
+
+
+
 
     
 

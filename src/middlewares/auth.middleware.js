@@ -38,13 +38,13 @@ const validateSignup = (req, res, next) => {
     try{
         validateEmail(email);
     }catch(error){
-        next(error)
+        return next(error)
     }
 
     try{
         validatePassword(password);
     }catch(error){
-        next(error)
+        return next(error)
     }
 
 
@@ -68,7 +68,7 @@ const validateCode = (req, res, next) => {
     try{
         validateEmail(email);
     }catch(error){
-        next(error)
+        return next(error)
     }
 
     if (typeof code !== 'string' || code.length !== 6) {
@@ -108,7 +108,17 @@ const loginLimiter = rateLimit({
     legacyHeaders: false   
 });
 
-const vlidateResetPassword = async(req, res, next) => {
+const validateForgotPassword = (req, res, next) => {
+    try{
+        validateEmail(email);
+    }catch(error){
+        return next(error)
+    }
+
+    next();
+}
+
+const validateResetPassword = async(req, res, next) => {
     console.log('inside validateResetPasword');
 
     const {resetToken, newPassword} = req.body;
@@ -131,6 +141,27 @@ const vlidateResetPassword = async(req, res, next) => {
             )
         )
     }
+
+    if (!userId) {
+        return next(
+            new AppError(
+                'This password reset link is invalid or has expired.',
+                400,
+                'INVALID_OR_EXPIRED_PASSWORD_RESET_TOKEN'
+            )
+        );
+    }
+
+    try{
+        validatePassword(newPassword);
+    }catch(error){
+        return next(error)
+    }
+
+    req.refreshTokenHash = resetTokenHash;
+    req.userId = userId;
+
+    next();
 }
 
 const validateRefreshAccessToken = async(req, res, next) => {
@@ -185,7 +216,7 @@ const validateRefreshAccessToken = async(req, res, next) => {
         )
         validateCsrfToken(csrfToken, storedCsrfHash );
     }catch(error){
-        next(error)
+        return next(error)
     }
 
     req.auth = {
@@ -254,7 +285,7 @@ const authenticateSession = async (req, res, next) => {
         await validateSession(redisSession, userId);
         validateCsrfToken(csrfToken, storedCsrfHash );
     }catch(error){
-        next(error);
+        return next(error);
     }
     
     const isValidRole = rolesArray.includes(role);
@@ -502,6 +533,8 @@ module.exports = {
     validateCode,
     validateLogin,
     loginLimiter,
+    validateForgotPassword,
+    validateResetPassword,
     authenticateSession,
     validateRefreshAccessToken,
 };
