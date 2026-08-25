@@ -123,34 +123,34 @@ const validateResetPassword = async(req, res, next) => {
 
     const {resetToken, newPassword} = req.body;
 
-    const resetTokenHash = hashToken(resetToken);
+    // const resetTokenHash = hashToken(resetToken);
 
-    const key = `password-reset:${resetTokenHash}`;
+    // const key = `password-reset:${resetTokenHash}`;
 
-    let userId;
+    // let userId;
 
-    try {
-        userId = await redisClient.get(key)
-    }catch(error){
-        console.error('Failed to extract password reset key from redis', error);
-        return next(
-            new AppError(
-                'Authentication service is temporarily unavailable.',
-                503,
-                'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
-            )
-        )
-    }
+    // try {
+    //     userId = await redisClient.get(key)
+    // }catch(error){
+    //     console.error('Failed to extract password reset key from redis', error);
+    //     return next(
+    //         new AppError(
+    //             'Authentication service is temporarily unavailable.',
+    //             503,
+    //             'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+    //         )
+    //     )
+    // }
 
-    if (!userId) {
-        return next(
-            new AppError(
-                'This password reset link is invalid or has expired.',
-                400,
-                'INVALID_OR_EXPIRED_PASSWORD_RESET_TOKEN'
-            )
-        );
-    }
+    // if (!userId) {
+    //     return next(
+    //         new AppError(
+    //             'This password reset link is invalid or has expired.',
+    //             400,
+    //             'INVALID_OR_EXPIRED_PASSWORD_RESET_TOKEN'
+    //         )
+    //     );
+    // }
 
     try{
         validatePassword(newPassword);
@@ -158,8 +158,7 @@ const validateResetPassword = async(req, res, next) => {
         return next(error)
     }
 
-    req.refreshTokenHash = resetTokenHash;
-    req.userId = userId;
+    req.resetToken = resetToken;
 
     next();
 }

@@ -34,6 +34,15 @@ const UserSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    passwordResetTokenHash: {
+        type: String,
+        default: null,
+    },
+
+    passwordResetExpiresAt: {
+        type: Date,
+        default: null,
+    },
 }, { timestamps: true, strict: true, optimisticConcurrency: true });
 
 module.exports = mongoose.model('User', UserSchema);

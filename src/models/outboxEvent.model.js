@@ -10,7 +10,7 @@ const OutboxEventSchema = new mongoose.Schema(
 
         payload: {
             type: mongoose.Schema.Types.Mixed,
-            required: true,
+            default: null,
         },
 
         status: {

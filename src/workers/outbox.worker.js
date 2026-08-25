@@ -57,17 +57,9 @@ const processOutboxEvent = async (event) => {
 
             const {
                 email,
-                resetToken,
                 resetUrl
             } = event.payload;
 
-            const resetTokenHash = await hashToken(resetToken);
-
-            await redisClient.setEx(
-                `password-reset:${resetTokenHash}`,
-                900,
-                user._id.toString()
-            );
 
             await sendMail(
                 email,

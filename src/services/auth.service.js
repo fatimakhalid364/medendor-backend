@@ -307,7 +307,22 @@ const forgotPassword = async(email) => {
 
     console.log('inside forgotPassword service with email: ', email);
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await User.findOne({email: normalizedEmail});
+    const resetToken = generateRandomToken();
+
+    const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    const resetTokenHash = hashToken(resetToken);
+    const user = await User.findOneAndUpdate(
+        {email: normalizedEmail},
+        {
+            $set: {
+                passwordResetTokenHash: resetTokenHash,
+                passwordResetExpiresAt: new Date(
+                    Date.now() + 15 * 60 * 1000
+                )
+            }
+        }
+    );
 
     if (!user){
         console.error('User not found for this email.')
@@ -318,12 +333,6 @@ const forgotPassword = async(email) => {
         };
     }
 
-    const resetToken = generateRandomToken();
-
-    const resetTokenHash =
-        hashToken(resetToken);
-
-    const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
 
     const outboxEvent = new OutboxEvent({
         type: 'SEND_PASSWORD_RESET_EMAIL',
@@ -331,15 +340,14 @@ const forgotPassword = async(email) => {
         payload: {
             userId: user._id.toString(),
             email: normalizedEmail,
-            resetToken,
-            resetUrl
+            resetUrl,
         },
 
         status: 'pending',
     });
 
     await outboxEvent.save();
-    
+
     return ({
         success: true,
         code: RESET_PASSWORD_TOKEN_SENT,
@@ -347,12 +355,24 @@ const forgotPassword = async(email) => {
     })
 }
 
-const resetPassword = async(newPassword, resetTokenHash, userId) => {
-    console.log('resetting password with: ', newPassword, resetTokenHash);
+const resetPassword = async(newPassword, resetToken) => {
+    console.log('resetting password with: ', newPassword, resetToken);
 
+    const resetTokenHash = hashToken(resetToken);
     const user = await User.findOneAndUpdate(
-        {userId},
-        {password: newPassword},
+        {
+            passwordResetTokenHash: resetTokenHash,
+            passwordResetExpiresAt: {$gt: new Date()}
+
+        },
+        { 
+            $set: {
+                password: newPassword,
+                passwordResetTokenHash: null,
+                passwordResetExpiresAt: null
+            },
+            
+        },
         {
             new: true,
             runValidators: true,
@@ -361,21 +381,13 @@ const resetPassword = async(newPassword, resetTokenHash, userId) => {
 
     );
 
-    try {
-        await redisClient.del(`password-reset:${resetTokenHash}`)
-    }catch(error){
-        console.error('Erro occured while deleting reset password token hash fro redis: ', error);
+    if (!user){
         throw new AppError(
-            'Authentication service is temporarily unavailable. Please try again later',
-            503,
-            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+            'Invalid or expired reset token',
+            401,
+            'INVALID_OR_EXPIRED_TOKEN'
         )
     }
-
-
-
-
-    
 
 }
 
