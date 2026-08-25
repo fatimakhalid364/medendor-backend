@@ -1,4 +1,6 @@
 const {user: User, token: Token} = require('models');
+const OutboxEvent = require('models/outboxEvent.model');
+const mongoose = require('mongoose');
 const {session: Session} = require('models/session.model');
 const {bcryptUtils: {hashPassword, comparePassword}, mailerUtils: {sendMail}} = require('utils');
 const {generateAccessToken, generateRefreshToken} = require('utils/jwt.utils');
@@ -14,92 +16,128 @@ const AppError = require('utils/AppError');
 const {FRONTEND_URL} = require('config/env');
 
 const signup = async (data, role) => {
-    console.log('Inside signup service:', data, 'and role:', role);
-    const existingUser = await User.findOne({ email: data.email });
-    if (existingUser) {
-        throw new AppError(
-            'Email already registered.',
-            409,
-            'EMAIL_ALREADY_REGISTERED'
-        );
-    }
-
-    const { firstName, lastName, email, password } = data;
-    const hashedPassword = await hashPassword(password);
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString(); 
-    // const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000); 
+    const session = await mongoose.startSession();
 
     try {
-            await redisClient.setEx(
-            `verifyCode:${email}`,
-            300,
-            verificationCode
+        session.startTransaction();
+
+        console.log(
+            'Inside signup service:',
+            data,
+            'and role:',
+            role
         );
-    }catch(error){
-        console.error(
-            'Setting verififcation code in redis failed: ', 
-            error
-        )
 
-        throw new AppError(
-            'Authentication service is temporarily unavailable.',
-            503,
-            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE',
-        );
-    }
+        const {
+            firstName,
+            lastName,
+            email,
+            password,
+        } = data;
 
-    const newUserData = {
-        firstName,
-        lastName,
-        email,
-        password: hashedPassword,
-        role,
-    };
+        /*
+         * Check whether the email already exists.
+         */
+        const normalizedEmail = email.trim().toLowerCase();
+        const existingUser = await User.findOne({
+            email: normalizedEmail,
+        }).session(session);
 
-    const newUser = new User(newUserData);
-    try {
+        if (existingUser) {
+            throw new AppError(
+                'Email already registered.',
+                409,
+                'EMAIL_ALREADY_REGISTERED'
+            );
+        }
 
-        await newUser.save();
+        /*
+         * Hash password.
+         */
+        const hashedPassword = await hashPassword(password);
+
+        /*
+         * Generate verification code.
+         */
+        const verificationCode = Math.floor(
+            100000 + Math.random() * 900000
+        ).toString();
+
+        /*
+         * Create user.
+         */
+        const newUser = new User({
+            firstName,
+            lastName,
+            email: normalizedEmail,
+            password: hashedPassword,
+            role,
+        });
+
+        await newUser.save({ session });
+
+        /*
+         * Create outbox event.
+         *
+         * IMPORTANT:
+         * This is part of the SAME MongoDB transaction.
+         */
+        const outboxEvent = new OutboxEvent({
+            type: 'SEND_VERIFICATION_EMAIL',
+
+            payload: {
+                userId: newUser._id.toString(),
+                email: normalizedEmail,
+                verificationCode,
+            },
+
+            status: 'pending',
+        });
+
+        await outboxEvent.save({ session });
+
+        /*
+         * Commit BOTH:
+         *
+         * 1. User
+         * 2. Outbox event
+         *
+         * They succeed or fail together.
+         */
+        await session.commitTransaction();
+
+        return {
+            success: true,
+            code: 'SIGNUP_SUCCESSFUL',
+            message:
+                `User created successfully. ` +
+                `A verification code will be sent to ${email}.`,
+        };
 
     } catch (error) {
 
+        if (session.inTransaction()) {
+            await session.abortTransaction();
+        }
+
         console.error(
-            'Creating user in MongoDB failed:',
+            'Signup transaction failed:',
             error
         );
+
+        if (error instanceof AppError) {
+            throw error;
+        }
 
         throw new AppError(
             'Unable to create your account right now.',
             500,
-            'USER_CREATION_FAILED',
+            'SIGNUP_FAILED'
         );
+
+    } finally {
+        await session.endSession();
     }
-
-    try {
-        await sendMail(
-            email,
-            codeMailSub,
-            codeMailHtml(verificationCode)
-        );
-
-        } catch (error) {
-
-            console.error(
-                'Sending verification email failed:',
-                error
-            );
-
-            throw new AppError(
-                'Unable to send the verification email right now. Please try again.',
-                503,
-                'VERIFICATION_EMAIL_SEND_FAILED',
-            );
-        }
-    return { 
-        success: true,
-        code: 'LOGIN_SUCCESSFUL',
-        message: `User created successfully and verification code sent to ${email} .` 
-    };
 };
 
 

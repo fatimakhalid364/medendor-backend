@@ -86,6 +86,8 @@ const verificationStatusArray = createFrozenEnumArray(['pending', 'verified', 'r
 
 const adminStatusArray = createFrozenEnumArray(['invited','active','suspended','disabled']);
 
+const eventOutboxStatusArray = createFrozenEnumArray(['pending', 'processing', 'completed', 'failed']) 
+
 module.exports = {
     rolesArray,  
     issuingAuthArray, 
@@ -96,5 +98,6 @@ module.exports = {
     communitiesArray,
     verificationStatusArray,
     specialtiesArray,
-    adminStatusArray
+    adminStatusArray,
+    eventOutboxStatusArray
 }
