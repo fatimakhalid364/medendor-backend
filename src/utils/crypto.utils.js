@@ -15,6 +15,12 @@ const generateRandomIdOrJti = () => {
     return crypto.randomUUID();
 }
 
+const generateRandomIntString = () => {
+    return crypto
+            .randomInt(100000, 1000000)
+            .toString();
+}
+
 const safeCompare = (a, b) => {
     if (
         typeof a !== 'string' ||
@@ -41,4 +47,5 @@ module.exports = {
     generateRandomToken,
     generateRandomIdOrJti,
     safeCompare,
+    generateRandomIntString
 };

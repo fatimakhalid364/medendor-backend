@@ -9,7 +9,12 @@ const {
 const {
     codeMailSub,
     codeMailHtml,
+    resetPasswordMailSub,
+    resetPasswordMailHtml
 } = require('constants/mails');
+
+const {hashString} = require('utils/bcrypt.utils');
+const {hashToken} = require('utils/crypto.utils');
 
 const MAX_ATTEMPTS = 5;
 
@@ -30,25 +35,44 @@ const processOutboxEvent = async (event) => {
                 verificationCode,
             } = event.payload;
 
-            /*
-             * Store the verification code in Redis.
-             *
-             * We do this here rather than inside signup()
-             * because the MongoDB transaction cannot include Redis.
-             */
+            const verificationCodeHash = await hashString(verificationCode);
+
             await redisClient.setEx(
                 `verifyCode:${email}`,
                 300,
-                verificationCode
+                verificationCodeHash
             );
 
-            /*
-             * Now send the email.
-             */
             await sendMail(
                 email,
                 codeMailSub,
                 codeMailHtml(verificationCode)
+            );
+
+            break;
+        }
+
+        
+        case 'SEND_PASSWORD_RESET_EMAIL': {
+
+            const {
+                email,
+                resetToken,
+                resetUrl
+            } = event.payload;
+
+            const resetTokenHash = await hashToken(resetToken);
+
+            await redisClient.setEx(
+                `password-reset:${resetTokenHash}`,
+                900,
+                user._id.toString()
+            );
+
+            await sendMail(
+                email,
+                resetPasswordMailSub,
+                resetPasswordMailHtml(resetUrl)
             );
 
             break;
@@ -180,6 +204,7 @@ const processOutbox = async () => {
                         status: 'completed',
                         processedAt: new Date(),
                         lastError: null,
+                        payload: null
                     },
                 }
             );

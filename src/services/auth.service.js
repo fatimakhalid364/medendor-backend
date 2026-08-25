@@ -2,12 +2,13 @@ const {user: User, token: Token} = require('models');
 const OutboxEvent = require('models/outboxEvent.model');
 const mongoose = require('mongoose');
 const {session: Session} = require('models/session.model');
-const {bcryptUtils: {hashPassword, comparePassword}, mailerUtils: {sendMail}} = require('utils');
+const {sendMail} = require('utils/mailer.utils');
+const {hashString, compareString} = require('utils/bcrypt.utils');
 const {generateAccessToken, generateRefreshToken} = require('utils/jwt.utils');
 const {redis: {redisClient}} = require('config');
 const {codeMailSub, codeMailHtml, resetPasswordMailSub, resetPasswordMailHtml} = require('constants/mails');
 const { v4: uuidv4 } = require('uuid');
-const {generateRandomToken, safeCompare, hashToken, generateRandomIdOrJti} = require('utils/crypto.utils');
+const {generateRandomToken, generateRandomIntString, safeCompare, hashToken, generateRandomIdOrJti} = require('utils/crypto.utils');
 const {ACCESS_TOKEN_TTL_MS, ABSOLUTE_TTL_MS, SLIDING_TTL_MS} = require('config/auth.config');
 const {calculateSessionExpiry, cacheSession} = require('utils/session.utils');
 const {syncRevokedSessionToRedis, revokeSession, revokeAndSyncSessionToRedis, rotateSession} = require('./session.service');
@@ -54,14 +55,12 @@ const signup = async (data, role) => {
         /*
          * Hash password.
          */
-        const hashedPassword = await hashPassword(password);
+        const hashedPassword = await hashString(password);
 
         /*
          * Generate verification code.
          */
-        const verificationCode = Math.floor(
-            100000 + Math.random() * 900000
-        ).toString();
+        const verificationCode = generateRandomIntString();
 
         /*
          * Create user.
@@ -183,7 +182,9 @@ const verifyCode = async (email, code) => {
         );
     }
 
-    if (storedCode !== code) {
+    const isMatch = await compareString(code, storedCode);
+
+    if (!isMatch) {
             throw new AppError(
             'Invalid verification code.',
             400,
@@ -212,7 +213,7 @@ const login = async (email, password, ip, userAgent) => {
         'USER_NOT_FOUND'
     );
 
-    const isMatch = await comparePassword(password, user.password);
+    const isMatch = await compareString(password, user.password);
     if (!isMatch) throw new AppError(
         'Invalid email or password.',
         401,
@@ -305,7 +306,8 @@ const login = async (email, password, ip, userAgent) => {
 const forgotPassword = async(email) => {
 
     console.log('inside forgotPassword service with email: ', email);
-    const user = await User.findOne({email});
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({email: normalizedEmail});
 
     if (!user){
         console.error('User not found for this email.')
@@ -321,64 +323,23 @@ const forgotPassword = async(email) => {
     const resetTokenHash =
         hashToken(resetToken);
 
-    try {
-        await redisClient.setEx(
-            `password-reset:${resetTokenHash}`,
-            900,
-            user._id.toString()
-        );
-    } catch (error) {
-        console.error(
-            'Failed to store password reset token in redis:',
-            error
-        );
-
-        throw new AppError(
-            'Authentication service is temporarily unavailable.',
-            503,
-            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
-        );
-    }
-
     const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
 
-    try {
-        await sendMail(
-            email,
-            resetPasswordMailSub,
-            resetPasswordMailHtml(resetUrl)
-        );
+    const outboxEvent = new OutboxEvent({
+        type: 'SEND_PASSWORD_RESET_EMAIL',
 
-        } catch (error) {
+        payload: {
+            userId: user._id.toString(),
+            email: normalizedEmail,
+            resetToken,
+            resetUrl
+        },
 
-            console.error(
-                'Sending reset-password email failed:',
-                error
-            );
+        status: 'pending',
+    });
 
-            try {
-                await redisClient.del(
-                    `password-reset:${resetTokenHash}`
-                );
-            } catch (redisError) {
-                console.error(
-                    'Failed to remove password reset token from redis:',
-                    redisError
-                );
-
-                throw new AppError(
-                    'Authentication service is temporarily unavailable.',
-                    503,
-                    'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
-                )
-            }
-
-            throw new AppError(
-                'Unable to send the reset-password email right now. Please try again.',
-                503,
-                'RESET_PASSWORD_EMAIL_SEND_FAILED',
-            );
-        }
+    await outboxEvent.save();
+    
     return ({
         success: true,
         code: RESET_PASSWORD_TOKEN_SENT,
