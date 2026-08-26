@@ -35,13 +35,13 @@ const processOutboxEvent = async (event) => {
                 verificationCode,
             } = event.payload;
 
-            const verificationCodeHash = await hashString(verificationCode);
+            // const verificationCodeHash = await hashString(verificationCode);
 
-            await redisClient.setEx(
-                `verifyCode:${email}`,
-                300,
-                verificationCodeHash
-            );
+            // await redisClient.setEx(
+            //     `verifyCode:${email}`,
+            //     300,
+            //     verificationCodeHash
+            // );
 
             await sendMail(
                 email,

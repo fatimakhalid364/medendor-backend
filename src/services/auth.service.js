@@ -15,6 +15,7 @@ const {syncRevokedSessionToRedis, revokeSession, revokeAndSyncSessionToRedis, ro
 const {convertToPublicUser} = require('utils/serializers.utils');
 const AppError = require('utils/AppError');
 const {FRONTEND_URL} = require('config/env');
+const {checkEmailRateLimit} = require('scripts/rateLimit.scripts')
 
 const signup = async (data, role) => {
     const session = await mongoose.startSession();
@@ -137,6 +138,97 @@ const signup = async (data, role) => {
     } finally {
         await session.endSession();
     }
+};
+
+
+const resendVerificationCode = async (email) => {
+
+    const normalizedEmail =
+        email.trim().toLowerCase();
+
+    /*
+     * 1. Check rate limit.
+     */
+    const rateLimitResult =
+        await checkEmailRateLimit(
+            normalizedEmail,
+            'verification'
+        );
+
+    if (
+        rateLimitResult.reason ===
+        'RATE_LIMITER_UNAVAILABLE'
+    ) {
+        throw new AppError(
+            'Verification service temporarily unavailable.',
+            503,
+            'VERIFICATION_SERVICE_UNAVAILABLE'
+        );
+    }
+
+    /*
+     * Rate limited.
+     */
+    if (!rateLimitResult.allowed) {
+
+        return {
+            success: true,
+            code: 'RESEND_VERIFICATION_CODE',
+            message:
+                'If an unverified account exists for this email, a verification code will be sent.',
+        };
+    }
+
+    /*
+     * 2. Find the user.
+     */
+    const user = await User.findOne({
+        email: normalizedEmail,
+    });
+
+    /*
+     * Don't reveal whether account exists.
+     */
+    if (!user || user.isEmailVerified) {
+
+        return {
+            success: true,
+            code: 'RESEND_VERIFICATION_CODE',
+            message:
+                'If an unverified account exists for this email, a verification code will be sent.',
+        };
+    }
+
+    /*
+     * 3. Generate new verification code.
+     */
+    const verificationCode =
+        generateRandomIntString();
+
+    /*
+     * 4. Create outbox event.
+     */
+    const outboxEvent = new OutboxEvent({
+
+        type: 'SEND_VERIFICATION_EMAIL',
+
+        payload: {
+            userId: user._id.toString(),
+            email: normalizedEmail,
+            verificationCode,
+        },
+
+        status: 'pending',
+    });
+
+    await outboxEvent.save();
+
+    return {
+        success: true,
+        code: 'VERIFICATION_CODE_RESENT',
+        message:
+            'If an unverified account exists for this email, a verification code will be sent.',
+    };
 };
 
 
@@ -307,6 +399,38 @@ const forgotPassword = async(email) => {
 
     console.log('inside forgotPassword service with email: ', email);
     const normalizedEmail = email.trim().toLowerCase();
+
+    
+    const rateLimitResult = await checkEmailRateLimit(normalizedEmail, 'password-reset');
+
+    if (
+        rateLimitResult.reason ===
+        'RATE_LIMITER_UNAVAILABLE'
+    ) {
+        console.error('Rate limiter unavailble because of redis failure.')
+        throw new AppError(
+            'Verification service temporarily unavailable.',
+            503,
+            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+        );
+    }
+    
+    if (!rateLimitResult.allowed) {
+
+        console.log(
+            `Password reset rate limited for ${normalizedEmail}`,
+            rateLimitResult.reason
+        );
+
+        return {
+            success: true,
+            code: RESET_PASSWORD_TOKEN_SENT,
+            message:
+                'If an account exists for this email, you will receive a password reset email.',
+        };
+    }
+    
+
     const resetToken = generateRandomToken();
 
     const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
@@ -388,6 +512,182 @@ const resetPassword = async(newPassword, resetToken) => {
             'INVALID_OR_EXPIRED_TOKEN'
         )
     }
+
+    return {
+        success: true,
+        code: 'PASSWORD_RESET_SUCCESSFUL',
+        message: 'Your password has been reset successfully. Please login with the new password.'
+    }
+
+}
+
+
+const changePassword = async(currentPassword, newPassword, userId, currentSessionId) => {
+    console.log('insde changePassword service with data: ', newPassword, userId);
+
+    const session = await mongoose.startSession();
+
+    try {
+
+        session.startTransaction();
+
+        const user = await User.findOne(
+            {
+                _id: userId,
+            }
+        ).session(session);
+
+        if (!user) {
+
+            throw new AppError(
+                'Unable to change your password.',
+                404,
+                'USER_NOT_FOUND'
+            );
+        }
+
+        const isCurrentPasswordValid =
+            await compareString(
+                currentPassword,
+                user.password
+            );
+
+        if (!isCurrentPasswordValid) {
+
+            throw new AppError(
+                'Current password is incorrect.',
+                401,
+                'CURRENT_PASSWORD_INVALID'
+            );
+        }
+
+        const isSamePassword =
+            await compareString(
+                newPassword,
+                user.password
+            );
+
+        if (isSamePassword) {
+
+            throw new AppError(
+                'Your new password must be different from your current password.',
+                400,
+                'PASSWORD_SAME_AS_CURRENT'
+            );
+        }
+
+        const hashedPassword =
+            await hashString(newPassword);
+
+        user.password = hashedPassword;
+
+        await user.save({
+            session,
+        });
+
+        const otherSessions = await Session.find({
+            user: userId,
+
+            sessionId: {
+                $ne: currentSessionId,
+            },
+
+            revokedAt: null,
+        }).session(session);
+
+        if (otherSessions.length > 0) {
+
+            await Session.updateMany(
+                {
+                    user: userId,
+
+                    sessionId: {
+                        $ne: currentSessionId,
+                    },
+
+                    revokedAt: null,
+                },
+                {
+                    $set: {
+                        revokedAt: new Date(),
+                    },
+
+                    $inc: {
+                        version: 1,
+                    },
+                },
+                {
+                    session,
+                }
+            );
+        }
+
+        await session.commitTransaction();
+
+        for (const revokedSession of otherSessions) {
+
+            try {
+
+                await markSessionRevoked(
+                    revokedSession.sessionId,
+                    revokedSession.absoluteExpiresAt
+                );
+
+            } catch (redisError) {
+                 console.error(
+                    `Failed to synchronize revoked session ` +
+                    `${revokedSession.sessionId} to Redis:`,
+                    redisError
+                );
+
+                throw new AppError(
+                    'Your password was changed, but some existing sessions may take a short time to be logged out.',
+                    503,
+                    'SESSION_REVOCATION_SYNC_FAILED'
+                );
+            }
+        }
+
+        return {
+            success: true,
+
+            code: 'PASSWORD_CHANGE_SUCCESSFUL',
+
+            message:
+                'Your password has been changed successfully. ' +
+                'Other active sessions have been signed out.',
+        };
+
+    }catch(error){
+        if (session.inTransaction()) {
+
+            await session.abortTransaction();
+        }
+
+        console.error(
+            'Change password failed:',
+            error
+        );
+
+        if (error instanceof AppError) {
+
+            throw error;
+        }
+
+        /*
+         * Convert unexpected errors into a safe
+         * application-level error.
+         */
+        throw new AppError(
+            'Unable to change your password right now.',
+            500,
+            'PASSWORD_CHANGE_FAILED'
+        );
+
+        } finally {
+
+            await session.endSession();
+        }
 
 }
 

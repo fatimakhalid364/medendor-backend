@@ -163,6 +163,21 @@ const validateResetPassword = async(req, res, next) => {
     next();
 }
 
+const validateCangePassword = (req, res, next)=>{
+    const {newPassword, currentPassword} = req.body;
+
+    try{
+        validatePassword(newPassword);
+        validatePassword(currentPassword)
+    }catch(error){
+        return next(error)
+    }
+
+    req.resetToken = resetToken;
+
+    next();
+}
+
 const validateRefreshAccessToken = async(req, res, next) => {
     const refreshToken = req.cookies['refreshToken'];
     const csrfToken = req.cookies['csrfToken'];
@@ -536,4 +551,5 @@ module.exports = {
     validateResetPassword,
     authenticateSession,
     validateRefreshAccessToken,
+    validateCangePassword
 };

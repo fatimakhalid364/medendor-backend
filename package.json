@@ -41,6 +41,7 @@
     "constants": "./src/constants",
     "doctorProfile": "./src/models/profileChunks/doctor",
     "patientProfile": "./src/models/profileChunks/patient",
-    "workers": "./src/workers"
+    "workers": "./src/workers",
+    "scripts": "./src/scripts"
   }
 }
