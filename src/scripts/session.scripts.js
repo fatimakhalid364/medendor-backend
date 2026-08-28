@@ -22,22 +22,17 @@ local currentVersion =
 local incomingVersion =
     tonumber(incomingData.version or '0')
 
+if incomingVersion < currentVersion then
+
+    return 3
+end
+
 if currentData.revoked == true
     and incomingData.revoked == false then
 
-    return 0
+    return 2
 end
 
-if incomingVersion < currentVersion then
-    return 0
-end
-
-if incomingVersion == currentVersion
-    and currentData.revoked == true
-    and incomingData.revoked == false then
-
-    return 0
-end
 
 redis.call(
     'SET',

@@ -1,10 +1,27 @@
 const {authServices: {signup, verifyCode, login, logout, refreshAccessToken}} = require('services');
+const { forgotPassword, resendVerificationCode, resetPassword, changePassword } = require('../services/auth.service');
 
 const handleSignup = async(req, res) => {
     console.log('Handling signup request:', req.body);
     const { role, ...data } = req.body;
     const result = await signup(data, role);
     res.status(201).json(result);
+}
+
+const handleResendVerificationCode = async(req, res) => {
+    console.log('Inside handleResendVerificationCode service: ', req.body);
+
+    const {email} = req.body;
+
+    const {success, code, message} = await resendVerificationCode(email);
+
+    res.status(200).json(
+        {
+            success,
+            code,
+            message
+        }
+    )
 }
 
 const handleVerifyCode = async(req, res) => {
@@ -48,6 +65,56 @@ const handleLogin = async (req, res) => {
         message: message,
         user: user
     });
+};
+
+const handleForgotPassword = async(req, res) => {
+    const {email} = req.body;
+
+    const {success, code, message} = await forgotPassword(email);
+
+    res.status(200).json(
+        {
+            success,
+            code,
+            message
+        }
+    );
+
+};
+
+const handleResetPassword = async(req, res)=> {
+    const {newPassword, resetToken} = req.body;
+
+    const {success, code, message} = await resetPassword(newPassword, resetToken);
+
+    res.status(200).json(
+        {
+            success,
+            code,
+            message
+        }
+    );
+};
+
+const handleChangePassword = async(req, res) => {
+    const {newPassword, currentPassword} = req.body;
+    const {userId, sessionId} = req.user;
+
+    const {success, code, message} = await changePassword(
+        currentPassword,
+        newPassword,
+        userId,
+        sessionId
+    );
+
+    res.status(200).json(
+        {
+            success,
+            code,
+            message
+        }
+    );
+
 };
 
 const handleLogout = async(req, res) => {
@@ -132,4 +199,13 @@ const handleRefreshAccessToken = async(req, res) => {
         });
 }
 
-module.exports = {handleSignup, handleVerifyCode, handleLogin, handleLogout, handleRefreshAccessToken}
+module.exports = {
+    handleSignup,
+    handleResendVerificationCode, 
+    handleVerifyCode, 
+    handleLogin,
+    handleForgotPassword,
+    handleResetPassword,
+    handleChangePassword, 
+    handleLogout, 
+    handleRefreshAccessToken}

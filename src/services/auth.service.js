@@ -10,7 +10,7 @@ const {codeMailSub, codeMailHtml, resetPasswordMailSub, resetPasswordMailHtml} =
 const { v4: uuidv4 } = require('uuid');
 const {generateRandomToken, generateRandomIntString, safeCompare, hashToken, generateRandomIdOrJti} = require('utils/crypto.utils');
 const {ACCESS_TOKEN_TTL_MS, ABSOLUTE_TTL_MS, SLIDING_TTL_MS} = require('config/auth.config');
-const {calculateSessionExpiry, cacheSession} = require('utils/session.utils');
+const {calculateSessionExpiry, cacheSession, markSessionRevoked} = require('utils/session.utils');
 const {syncRevokedSessionToRedis, revokeSession, revokeAndSyncSessionToRedis, rotateSession} = require('./session.service');
 const {convertToPublicUser} = require('utils/serializers.utils');
 const AppError = require('utils/AppError');
@@ -40,9 +40,8 @@ const signup = async (data, role) => {
         /*
          * Check whether the email already exists.
          */
-        const normalizedEmail = email.trim().toLowerCase();
         const existingUser = await User.findOne({
-            email: normalizedEmail,
+            email
         }).session(session);
 
         if (existingUser) {
@@ -69,7 +68,7 @@ const signup = async (data, role) => {
         const newUser = new User({
             firstName,
             lastName,
-            email: normalizedEmail,
+            email,
             password: hashedPassword,
             role,
         });
@@ -87,7 +86,7 @@ const signup = async (data, role) => {
 
             payload: {
                 userId: newUser._id.toString(),
-                email: normalizedEmail,
+                email,
                 verificationCode,
             },
 
@@ -143,15 +142,12 @@ const signup = async (data, role) => {
 
 const resendVerificationCode = async (email) => {
 
-    const normalizedEmail =
-        email.trim().toLowerCase();
-
     /*
      * 1. Check rate limit.
      */
     const rateLimitResult =
         await checkEmailRateLimit(
-            normalizedEmail,
+            email,
             'verification'
         );
 
@@ -183,7 +179,7 @@ const resendVerificationCode = async (email) => {
      * 2. Find the user.
      */
     const user = await User.findOne({
-        email: normalizedEmail,
+        email,
     });
 
     /*
@@ -214,7 +210,7 @@ const resendVerificationCode = async (email) => {
 
         payload: {
             userId: user._id.toString(),
-            email: normalizedEmail,
+            email,
             verificationCode,
         },
 
@@ -364,11 +360,9 @@ const login = async (email, password, ip, userAgent) => {
 
     await session.save();
 
-    let cached;
-
     try {
-        cached =
-            await cacheSession(session, user.role);
+        
+        await cacheSession(session, user.role);
 
     } catch (cacheError) {
         console.error(
@@ -376,7 +370,17 @@ const login = async (email, password, ip, userAgent) => {
             cacheError
         );
 
-        await revokeAndSyncSessionToRedis(session, 'Redis cache failure during login.');
+       try {
+            await revokeSession(
+                sessionId,
+                'Redis cache failure during login.'
+            );
+        } catch (revokeError) {
+            console.error(
+                'Failed to revoke session after Redis cache failure:',
+                revokeError
+            );
+        }
         throw new AppError(
             'Authentication service is temporarily unavailable. Please try again.',
             503,
@@ -398,10 +402,8 @@ const login = async (email, password, ip, userAgent) => {
 const forgotPassword = async(email) => {
 
     console.log('inside forgotPassword service with email: ', email);
-    const normalizedEmail = email.trim().toLowerCase();
-
     
-    const rateLimitResult = await checkEmailRateLimit(normalizedEmail, 'password-reset');
+    const rateLimitResult = await checkEmailRateLimit(email, 'password-reset');
 
     if (
         rateLimitResult.reason ===
@@ -418,7 +420,7 @@ const forgotPassword = async(email) => {
     if (!rateLimitResult.allowed) {
 
         console.log(
-            `Password reset rate limited for ${normalizedEmail}`,
+            `Password reset rate limited for ${email}`,
             rateLimitResult.reason
         );
 
@@ -437,7 +439,9 @@ const forgotPassword = async(email) => {
 
     const resetTokenHash = hashToken(resetToken);
     const user = await User.findOneAndUpdate(
-        {email: normalizedEmail},
+        {
+            email
+        },
         {
             $set: {
                 passwordResetTokenHash: resetTokenHash,
@@ -463,7 +467,7 @@ const forgotPassword = async(email) => {
 
         payload: {
             userId: user._id.toString(),
-            email: normalizedEmail,
+            email,
             resetUrl,
         },
 
@@ -522,8 +526,18 @@ const resetPassword = async(newPassword, resetToken) => {
 }
 
 
-const changePassword = async(currentPassword, newPassword, userId, currentSessionId) => {
-    console.log('insde changePassword service with data: ', newPassword, userId);
+const changePassword = async (
+    currentPassword,
+    newPassword,
+    userId,
+    currentSessionId
+) => {
+
+    console.log(
+        'Inside changePassword service with data:',
+        newPassword,
+        userId
+    );
 
     const session = await mongoose.startSession();
 
@@ -531,11 +545,12 @@ const changePassword = async(currentPassword, newPassword, userId, currentSessio
 
         session.startTransaction();
 
-        const user = await User.findOne(
-            {
-                _id: userId,
-            }
-        ).session(session);
+        /*
+         * Find the user inside the transaction.
+         */
+        const user = await User.findOne({
+            _id: userId,
+        }).session(session);
 
         if (!user) {
 
@@ -546,6 +561,10 @@ const changePassword = async(currentPassword, newPassword, userId, currentSessio
             );
         }
 
+
+        /*
+         * Verify current password.
+         */
         const isCurrentPasswordValid =
             await compareString(
                 currentPassword,
@@ -561,6 +580,11 @@ const changePassword = async(currentPassword, newPassword, userId, currentSessio
             );
         }
 
+
+        /*
+         * Prevent the new password from being
+         * the same as the current password.
+         */
         const isSamePassword =
             await compareString(
                 newPassword,
@@ -576,6 +600,10 @@ const changePassword = async(currentPassword, newPassword, userId, currentSessio
             );
         }
 
+
+        /*
+         * Hash and save the new password.
+         */
         const hashedPassword =
             await hashString(newPassword);
 
@@ -585,18 +613,24 @@ const changePassword = async(currentPassword, newPassword, userId, currentSessio
             session,
         });
 
-        const otherSessions = await Session.find({
-            user: userId,
 
-            sessionId: {
-                $ne: currentSessionId,
-            },
+        const otherSessions =
+            await Session.find({
+                user: userId,
 
-            revokedAt: null,
-        }).session(session);
+                sessionId: {
+                    $ne: currentSessionId,
+                },
+
+                revokedAt: null,
+            }).session(session);
+
 
         if (otherSessions.length > 0) {
 
+            /*
+             * Revoke all other sessions in MongoDB.
+             */
             await Session.updateMany(
                 {
                     user: userId,
@@ -620,33 +654,38 @@ const changePassword = async(currentPassword, newPassword, userId, currentSessio
                     session,
                 }
             );
+
+
+            const outboxEvents =
+                otherSessions.map(
+                    (revokedSession) => ({
+                        type: 'SESSION_REVOKED',
+
+                        payload: {
+                            sessionId:
+                                revokedSession.sessionId,
+
+                            absoluteExpiresAt:
+                                revokedSession.absoluteExpiresAt,
+
+                            version:
+                                revokedSession.version + 1,
+                        }
+                    })
+                );
+
+
+            await OutboxEvent.insertMany(
+                outboxEvents,
+                {
+                    session,
+                }
+            );
         }
+
 
         await session.commitTransaction();
 
-        for (const revokedSession of otherSessions) {
-
-            try {
-
-                await markSessionRevoked(
-                    revokedSession.sessionId,
-                    revokedSession.absoluteExpiresAt
-                );
-
-            } catch (redisError) {
-                 console.error(
-                    `Failed to synchronize revoked session ` +
-                    `${revokedSession.sessionId} to Redis:`,
-                    redisError
-                );
-
-                throw new AppError(
-                    'Your password was changed, but some existing sessions may take a short time to be logged out.',
-                    503,
-                    'SESSION_REVOCATION_SYNC_FAILED'
-                );
-            }
-        }
 
         return {
             success: true,
@@ -658,54 +697,55 @@ const changePassword = async(currentPassword, newPassword, userId, currentSessio
                 'Other active sessions have been signed out.',
         };
 
-    }catch(error){
+
+    } catch (error) {
+
         if (session.inTransaction()) {
 
             await session.abortTransaction();
         }
+
 
         console.error(
             'Change password failed:',
             error
         );
 
+
         if (error instanceof AppError) {
 
             throw error;
         }
 
-        /*
-         * Convert unexpected errors into a safe
-         * application-level error.
-         */
+
         throw new AppError(
             'Unable to change your password right now.',
             500,
             'PASSWORD_CHANGE_FAILED'
         );
 
-        } finally {
+    } finally {
 
-            await session.endSession();
-        }
+        await session.endSession();
+    }
+};
 
-}
 
-const logout = async (
-    sessionId
-) => {
+const logout = async (sessionId) => {
 
-    console.log('Inside logout service with sessionId: ', sessionId);
     let revokedSession;
 
     try {
+
         revokedSession = await revokeSession(
             sessionId,
             'User logout'
         );
+
     } catch (error) {
+
         console.error(
-            'MongoDB session revoke failed:',
+            'MongoDB logout failed:',
             error
         );
 
@@ -716,38 +756,23 @@ const logout = async (
         );
     }
 
+
     if (!revokedSession) {
+
         return {
             success: true,
             code: 'ALREADY_LOGGED_OUT',
-            message: 'You are already logged out.'
+            message: 'You are already logged out.',
         };
-    }
-
-    try {
-        await syncRevokedSessionToRedis(
-            revokedSession
-        );
-    } catch (error) {
-        console.error(
-            'Failed to synchronize revoked session to Redis:',
-            error
-        );
-
-        throw new AppError(
-            'Authentication service is temporarily unavailable. Please try again later.',
-            503,
-            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
-        );
     }
 
     return {
         success: true,
-        code:'LOGOUT_SUCCESSFUL',
-        message: 'User logged out successfully'
-    }
-
+        code: 'LOGOUT_SUCCESSFUL',
+        message: 'User logged out successfully',
+    };
 };
+
 
 const refreshAccessToken = async (
     session,
@@ -755,7 +780,7 @@ const refreshAccessToken = async (
     userId
 ) => {
 
-    console.log('Inside refreshAccessToken service with session: ', session, 'incomingRefreshHash: ', incomingRefreshHash, 'and userId: ', userId)
+    console.log('Inside refreshAccessToken service with session: ', session, 'refreshToken: ', refreshToken, 'and userId: ', userId)
 
     const user = await User.findOne({ userId });
     const incomingRefreshHash = hashToken(refreshToken);
@@ -782,11 +807,23 @@ const refreshAccessToken = async (
             cacheError
         );
 
-        await revokeAndSyncSessionToRedis(updatedSession, 'Redis cache failure during login.');
+        await revokeSession(updatedSession.sessionId, 'Redis cache failure during login.');
         throw new AppError(
             'Authentication service is temporarily unavailable. Please try again.',
             503,
             'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+        );
+    }
+
+    if (cached.status === 'STALE_VERSION' || 'WOULD_RESURRECT_REVOKED') {
+        console.warn(
+            `Session cache update rejected as stale or resurrecting revoked session: ${updatedSession.sessionId}`
+        );
+
+        throw new AppError(
+            'Authentication state changed. Please try again.',
+            409,
+            'SESSION_STATE_CONFLICT'
         );
     }
 
@@ -803,10 +840,14 @@ const refreshAccessToken = async (
 
 
 module.exports = { 
-    signup, 
+    signup,
+    resendVerificationCode, 
     verifyCode, 
-    login, 
+    login,
+    forgotPassword,
+    resetPassword,
+    changePassword, 
     logout, 
     refreshAccessToken,
-    forgotPassword 
+     
 };

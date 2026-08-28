@@ -9,7 +9,7 @@ const sessionSchema = new mongoose.Schema(
             index: true,
         },
 
-        user: {
+        userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true,
@@ -55,6 +55,10 @@ const sessionSchema = new mongoose.Schema(
 
         // null = active
         // Date = revoked
+        revoked: {
+            type: Boolean,
+            default: false
+        },
         revokedAt: {
             type: Date,
             default: null,

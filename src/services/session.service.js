@@ -6,99 +6,103 @@ const {generateRandomToken, safeCompare, hashToken, generateRandomIdOrJti} = req
 const {ACCESS_TOKEN_TTL_MS, ABSOLUTE_TTL_MS, SLIDING_TTL_MS} = require('config/auth.config');
 const {session: Session} = require('models/session.model');
 
+
+
 const revokeSession = async (
     sessionId,
-    reason = 'unknown'
+    reason
 ) => {
+
+    const mongoSession =
+        await mongoose.startSession();
+
+    try {
+
+        mongoSession.startTransaction();
+
+        console.log(`Revoking ${sessionId} for reason ${reason}`)
+
+
         const revokedAt = new Date();
 
-        const updatedSession =
+
+        const session =
             await Session.findOneAndUpdate(
                 {
                     sessionId,
+                    revoked: false,
                     revokedAt: null,
                 },
+
                 {
                     $set: {
+                        revoked: true,
                         revokedAt,
                     },
+
                     $inc: {
                         version: 1,
                     },
                 },
+
                 {
                     new: true,
-                    runValidators: true,
+                    session: mongoSession,
                 }
             );
 
-        if (!updatedSession) {
-            /*
-             * Another concurrent request may have revoked
-             * the session first.
-             *
-             * Read the current authoritative MongoDB state.
-             */
-            return await Session.findOne({
-                sessionId,
-            });
+
+        if (!session) {
+
+            await mongoSession.commitTransaction();
+
+            return null;
         }
 
-        console.info(
-            `Session ${sessionId} revoked: ${reason}`
+
+        await OutboxEvent.create(
+            [
+                {
+                    type: 'SESSION_REVOKED',
+
+                    payload: {
+                        sessionId:
+                            session.sessionId,
+
+                        absoluteExpiresAt:
+                            session.absoluteExpiresAt,
+
+                        version:
+                            session.version
+                    },
+                },
+            ],
+            {
+                session: mongoSession,
+            }
         );
 
-        return updatedSession;
+
+        await mongoSession.commitTransaction();
+
+
+        return session;
+
+
+    } catch (error) {
+
+        if (mongoSession.inTransaction()) {
+            await mongoSession.abortTransaction();
+        }
+
+        throw error;
+
+    } finally {
+
+        await mongoSession.endSession();
+    }
 };
 
-const syncRevokedSessionToRedis = async (
-    session
-) => {
-        await markSessionRevoked(
-            session.sessionId,
-            session.absoluteExpiresAt,
-            session.version
-        );
-};
-
-const revokeAndSyncSessionToRedis = async(session, reason) => {
-    let revokedSession;
-
-    try {
-        revokedSession = 
-            await revokeSession(
-                    session.sessionId,
-                    reason
-                );
-    }catch(revokedError){
-        console.error(
-            'Mongodb session revoke failed:',
-            revokedError
-        );
-        throw new AppError(
-            'Authentication service is temporarily unavailable. Please try again.',
-            503,
-            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
-        );
-    }
-
-    try {
-        await syncRevokedSessionToRedis(
-            revokedSession
-        );
-    } catch (redisError) {
-        console.error(
-            'Failed to synchronize a revoked session to Redis:',
-            redisError
-        );
-        throw new AppError(
-            'Authentication service is temporarily unavailable. Please try again.',
-            503,
-            'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
-        );
-    }
-
-}
 
 const rotateSession = async (
     incomingRefreshHash,
@@ -163,6 +167,8 @@ const rotateSession = async (
                 refreshJti:
                     session.refreshJti,
 
+                revoked: false,
+
                 revokedAt: null,
 
                 expiresAt: {
@@ -206,8 +212,8 @@ const rotateSession = async (
         );
 
     if (!updatedSession) {
-        await revokeAndSyncSessionToRedis(
-            session, 'Concurrent refresh detected'
+        await revokeSession(
+            session.sessionId, 'Concurrent refresh detected'
         );
 
         throw new AppError(

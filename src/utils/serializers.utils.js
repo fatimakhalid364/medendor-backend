@@ -6,7 +6,7 @@ const convertToPublicUser = (user) => ({
 });
 
 const serializeSessionForRedis = (session, role) => ({
-    userId: session.user.toString(),
+    userId: session.userId.toString(),
 
     sessionId: session.sessionId,
 

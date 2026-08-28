@@ -137,7 +137,26 @@ const cacheSession = async (session, role) => {
         * 0 = Redis rejected it because it was stale or would
         *      resurrect a revoked session.
         */
-    return Number(result) === 1;
+    const numericResult = Number(result);
+
+
+    if (numericResult === 1) {
+        return {
+            status: 'APPLIED',
+        };
+    }
+
+    if (numericResult === 3) {
+        return {
+            status: 'STALE_VERSION',
+        };
+    }
+
+    if (numericResult === 2) {
+        return {
+            status: 'WOULD_RESURRECT_REVOKED',
+        };
+    }
 };
 
 const getCachedSession = async (sessionId) => {
@@ -216,7 +235,20 @@ const markSessionRevoked = async (
             }
         );
 
-    return Number(result) === 1;
+    const numericResult = Number(result);
+
+
+    if (numericResult === 1) {
+
+        return {
+            status: 'APPLIED',
+        };
+    }
+
+    return {
+        status: 'STALE',
+    };
+
 };
 
 

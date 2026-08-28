@@ -35,8 +35,10 @@ const validateSignup = (req, res, next) => {
         )
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     try{
-        validateEmail(email);
+        validateEmail(normalizedEmail);
     }catch(error){
         return next(error)
     }
@@ -47,8 +49,37 @@ const validateSignup = (req, res, next) => {
         return next(error)
     }
 
+    req.body.email = normalizedEmail;
 
     next(); 
+}
+
+const validateResendVerificationCode = (req, res, next) => {
+    console.log('Inside resenVerificationCode validator');
+    const {email} = req.body;
+
+    if (!email){
+        return next(
+            new AppError(
+                'Email missing. Please send email to get a verification code.',
+                401,
+                'EMAIL_MISSING'
+            )
+        )
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    try{
+        validateEmail(normalizedEmail);
+    }catch(error){
+        return next(error)
+    }
+
+    req.body.email = normalizedEmail;
+
+    next();
+
 }
 
 const validateCode = (req, res, next) => {
@@ -65,11 +96,8 @@ const validateCode = (req, res, next) => {
         )
     }
 
-    try{
-        validateEmail(email);
-    }catch(error){
-        return next(error)
-    }
+    const normalizedEmail = email.trim().toLowerCase();
+
 
     if (typeof code !== 'string' || code.length !== 6) {
         return next(
@@ -80,6 +108,8 @@ const validateCode = (req, res, next) => {
             )
         )
     }
+
+    req.body.email = normalizedEmail;
 
     next();
 };
@@ -95,7 +125,11 @@ const validateLogin = (req, res, next) => {
                 'INVALID_CREDENTIALS'
             )
         )
-    } 
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    req.body.email = normalizedEmail;
+
     next();
 };
 
@@ -109,11 +143,10 @@ const loginLimiter = rateLimit({
 });
 
 const validateForgotPassword = (req, res, next) => {
-    try{
-        validateEmail(email);
-    }catch(error){
-        return next(error)
-    }
+    const {email} = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
+
+    req.body.email = normalizedEmail;
 
     next();
 }
@@ -158,8 +191,6 @@ const validateResetPassword = async(req, res, next) => {
         return next(error)
     }
 
-    req.resetToken = resetToken;
-
     next();
 }
 
@@ -168,12 +199,9 @@ const validateCangePassword = (req, res, next)=>{
 
     try{
         validatePassword(newPassword);
-        validatePassword(currentPassword)
     }catch(error){
         return next(error)
     }
-
-    req.resetToken = resetToken;
 
     next();
 }
@@ -198,35 +226,55 @@ const validateRefreshAccessToken = async(req, res, next) => {
 
     const {sub: userId, sid, jti: incomingRefreshJti, type} = decoded;
 
-    let redisSession;
+    let session;
 
     try{
-        redisSession = await getCachedSession(sid);
+        session = await getCachedSession(sid);
     }catch(error){
         console.error('Failed to retrieve cached session from redis: ', error);
+
+        try {
+            session = await Session.findOne(
+                {
+                    sessionId: sid
+                }
+            );
+        }catch(error){
+            return next(
+                new AppError(
+                    'Service temporarily unavailable. Please try again.',
+                    503,
+                    'SESSION_STORE_UNAVAILABLE'
+                )
+            )
+        }
+
+    }
+
+    if (!session) {
         return next(
             new AppError(
-                'Service is temporarily unavailable. Please try again later.',
-                503,
-                'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+                'Your session has expired. Please login again',
+                401,
+                'SESSION_NOT_FOUND'
             )
-        )
+        );
     }
 
     const {
         csrfTokenHash: storedCsrfHash,
         refreshTokenHash: storedRefreshHash,
         refreshJti: storedRefreshJti 
-    } = redisSession;
+    } = session;
 
     try{
-        await validateSession(redisSession, userId);
+        await validateSession(session, userId);
         await validateRefreshToken(
             refreshToken,
             incomingRefreshJti,
             storedRefreshJti,
             storedRefreshHash,
-            redisSession
+            session
         )
         validateCsrfToken(csrfToken, storedCsrfHash );
     }catch(error){
@@ -234,7 +282,7 @@ const validateRefreshAccessToken = async(req, res, next) => {
     }
 
     req.auth = {
-        redisSession,
+        session,
         refreshToken,
         userId
     };
@@ -249,7 +297,7 @@ const authenticateSession = async (req, res, next) => {
     const csrfToken = req.headers['csrf-token'];
 
     if (!accessToken) {
-            console.error('Access token missing in authenticate session middleware')
+            console.warn('Access token missing in authenticate session middleware')
             return next(
                 new AppError(
                     'Your session has expired. Please try again.',
@@ -261,7 +309,7 @@ const authenticateSession = async (req, res, next) => {
 
     let decoded;
     try {
-            decoded = verifyAccessToken(accessToken);
+        decoded = verifyAccessToken(accessToken);
     } catch (error) {
         console.error('Access token verification failed: ', error)
         return next (
@@ -275,28 +323,48 @@ const authenticateSession = async (req, res, next) => {
 
     const {sub: userId, sid, jti: incomingAccessJti, type} = decoded;
 
-    let redisSession;
+    let session;
 
     try{
-        redisSession = await getCachedSession(sid);
+        session = await getCachedSession(sid);
     }catch(error){
         console.error('Failed to retrieve cached session from redis: ', error);
+
+        try {
+            session = await Session.findOne(
+                {
+                    sessionId: sid
+                }
+            );
+        }catch(error){
+            return next(
+                new AppError(
+                    'Service temporarily unavailable. Please try again.',
+                    503,
+                    'SESSION_STORE_UNAVAILABLE'
+                )
+            )
+        }
+
+    }
+
+    if (!session) {
         return next(
             new AppError(
-                'Service is temporarily unavailable. Please try again later.',
-                503,
-                'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
+                'Your session has expired. Please login again',
+                401,
+                'SESSION_NOT_FOUND'
             )
-        ) 
+        );
     }
 
     const {
         csrfTokenHash: storedCsrfHash,
         role
-    } = redisSession;
+    } = session;
 
     try {
-        await validateSession(redisSession, userId);
+        await validateSession(session, userId);
         validateCsrfToken(csrfToken, storedCsrfHash );
     }catch(error){
         return next(error);
@@ -445,8 +513,8 @@ const validateRefreshToken = async (
         !hashMatches ||
         !jtiMatches
     ) {
-        await revokeAndSyncSessionToRedis(session, 'Refresh token reuse detected.');
-        console.error('Refresh token reuse detected.')
+        await revokeSession(session.sessionId, 'Refresh token reuse detected.');
+        console.warn('Refresh token reuse detected.')
         throw new AppError(
             'Refresh token reuse detected.',
             401,
@@ -461,7 +529,6 @@ const validateCsrfToken = (
 ) => {
 
     if (!csrfToken) {
-        console.error('csrf token missing');
         throw new AppError(
             'CSRF validation failed.',
             403,
@@ -489,15 +556,6 @@ const validateCsrfToken = (
 
 const validateSession = async (session, userId) => {
 
-    if (!session) {
-        console.error('Session not found')
-        throw new AppError(
-            'Session not found for this user. Please login.',
-            401,
-            'INVALID_SESSION'
-        );
-    }
-
     if (
         session.userId !== userId
     ) {
@@ -510,7 +568,6 @@ const validateSession = async (session, userId) => {
     }
 
     if (session.revoked) {
-        console.error('Session has been revoked.')
         throw new AppError(
             'Session has been revoked.',
             401,
@@ -525,9 +582,7 @@ const validateSession = async (session, userId) => {
         session.absoluteExpiresAt <= now
     ) {
 
-        await revokeAndSyncSessionToRedis(session, 'Session expired');
-
-        console.error('Session has expired.')
+        await revokeSession(session.sessionId, 'Session expired');
 
         throw new AppError(
             'Session has expired.',
@@ -544,6 +599,7 @@ const validateSession = async (session, userId) => {
 
 module.exports = {
     validateSignup,
+    validateResendVerificationCode,
     validateCode,
     validateLogin,
     loginLimiter,

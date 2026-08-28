@@ -35,13 +35,13 @@ const processOutboxEvent = async (event) => {
                 verificationCode,
             } = event.payload;
 
-            // const verificationCodeHash = await hashString(verificationCode);
+            const verificationCodeHash = await hashString(verificationCode);
 
-            // await redisClient.setEx(
-            //     `verifyCode:${email}`,
-            //     300,
-            //     verificationCodeHash
-            // );
+            await redisClient.setEx(
+                `verifyCode:${email}`,
+                300,
+                verificationCodeHash
+            );
 
             await sendMail(
                 email,
@@ -69,6 +69,41 @@ const processOutboxEvent = async (event) => {
 
             break;
         }
+
+        case 'SESSION_REVOKED': {
+
+            const {
+                sessionId,
+                absoluteExpiresAt,
+                version,
+            } = event.payload;
+
+
+            const result =
+                await markSessionRevoked(
+                    sessionId,
+                    absoluteExpiresAt,
+                    version
+                );
+
+
+            /*
+             * markSessionRevoked() should normally return
+             * true when Redis accepted the revocation.
+             *
+             * If it returns false, consider the event
+             * unsuccessful so that the outbox mechanism
+             * can retry it.
+             */
+             console.log(
+                `Session revocation event ${event._id} ` +
+                `result: ${result.status}`
+            );
+
+
+            break;
+        }
+
 
         default:
 
