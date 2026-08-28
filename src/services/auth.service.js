@@ -815,7 +815,7 @@ const refreshAccessToken = async (
         );
     }
 
-    if (cached.status === 'STALE_VERSION' || 'WOULD_RESURRECT_REVOKED') {
+    if (cached.status === 'STALE_VERSION' || cached.status === 'WOULD_RESURRECT_REVOKED') {
         console.warn(
             `Session cache update rejected as stale or resurrecting revoked session: ${updatedSession.sessionId}`
         );

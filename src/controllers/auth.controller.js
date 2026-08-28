@@ -153,13 +153,13 @@ const handleLogout = async(req, res) => {
 const handleRefreshAccessToken = async(req, res) => {
     console.log('Handling refresh access token request:', req.auth);
     const {
-        redisSession,
+        session,
         refreshToken,
         userId
     } = req.auth;
 
-    const {success, message, newAccessToken, newRefreshToken, newCsrfToken} = await refreshAccessToken(
-        redisSession,
+    const {success, code, message, newAccessToken, newRefreshToken, newCsrfToken} = await refreshAccessToken(
+        session,
         refreshToken,
         userId
     );
