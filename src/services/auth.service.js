@@ -2,16 +2,12 @@ const {user: User, token: Token} = require('models');
 const OutboxEvent = require('models/outboxEvent.model');
 const mongoose = require('mongoose');
 const {session: Session} = require('models/session.model');
-const {sendMail} = require('utils/mailer.utils');
 const {hashString, compareString} = require('utils/bcrypt.utils');
 const {generateAccessToken, generateRefreshToken} = require('utils/jwt.utils');
 const {redis: {redisClient}} = require('config');
-const {codeMailSub, codeMailHtml, resetPasswordMailSub, resetPasswordMailHtml} = require('constants/mails');
-const { v4: uuidv4 } = require('uuid');
-const {generateRandomToken, generateRandomIntString, safeCompare, hashToken, generateRandomIdOrJti} = require('utils/crypto.utils');
-const {ACCESS_TOKEN_TTL_MS, ABSOLUTE_TTL_MS, SLIDING_TTL_MS} = require('config/auth.config');
-const {calculateSessionExpiry, cacheSession, markSessionRevoked} = require('utils/session.utils');
-const {syncRevokedSessionToRedis, revokeSession, revokeAndSyncSessionToRedis, rotateSession} = require('./session.service');
+const {generateRandomToken, generateRandomIntString, hashToken, generateRandomIdOrJti} = require('utils/crypto.utils');
+const {calculateSessionExpiry, cacheSession} = require('utils/session.utils');
+const {revokeSession, rotateSession} = require('./session.service');
 const {convertToPublicUser} = require('utils/serializers.utils');
 const AppError = require('utils/AppError');
 const {FRONTEND_URL} = require('config/env');
@@ -478,7 +474,7 @@ const forgotPassword = async(email) => {
 
     return ({
         success: true,
-        code: RESET_PASSWORD_TOKEN_SENT,
+        code: 'RESET_PASSWORD_TOKEN_SENT',
         message: 'If an account exists for this email, you will receive a password reset email.'
     })
 }
@@ -487,40 +483,103 @@ const resetPassword = async(newPassword, resetToken) => {
     console.log('resetting password with: ', newPassword, resetToken);
 
     const resetTokenHash = hashToken(resetToken);
-    const user = await User.findOneAndUpdate(
-        {
-            passwordResetTokenHash: resetTokenHash,
-            passwordResetExpiresAt: {$gt: new Date()}
+    const hashedNewPassword = await hashString(newPassword);
 
-        },
-        { 
-            $set: {
-                password: newPassword,
-                passwordResetTokenHash: null,
-                passwordResetExpiresAt: null
-            },
-            
-        },
-        {
-            new: true,
-            runValidators: true,
-            strict: true
-        }
+    const session = await mongoose.startSession();
 
-    );
+    try {
+        let revokedSessions = [];
 
-    if (!user){
-        throw new AppError(
-            'Invalid or expired reset token',
-            401,
-            'INVALID_OR_EXPIRED_TOKEN'
-        )
-    }
+        await session.withTransaction(async () => {
 
-    return {
-        success: true,
-        code: 'PASSWORD_RESET_SUCCESSFUL',
-        message: 'Your password has been reset successfully. Please login with the new password.'
+            // 1. Reset password
+            const user = await User.findOneAndUpdate(
+                {
+                    passwordResetTokenHash: resetTokenHash,
+                    passwordResetExpiresAt: { $gt: new Date() }
+                },
+                {
+                    $set: {
+                        password: hashedNewPassword,
+                        passwordResetTokenHash: null,
+                        passwordResetExpiresAt: null
+                    }
+                },
+                {
+                    new: true,
+                    runValidators: true,
+                    strict: true,
+                    session
+                }
+            );
+
+            if (!user) {
+                throw new AppError(
+                    'Invalid or expired reset token',
+                    401,
+                    'INVALID_OR_EXPIRED_TOKEN'
+                );
+            }
+
+            // 2. Find all currently active sessions
+            revokedSessions = await Session.find(
+                {
+                    userId: user._id,
+                    revoked: false
+                }
+            )
+            .select(
+                'sessionId absoluteExpiresAt version'
+            )
+            .session(session);
+
+            if (revokedSessions.length === 0) {
+                return;
+            }
+
+            // 3. Revoke them in MongoDB
+            await Session.updateMany(
+                {
+                    userId: user._id,
+                    revoked: false
+                },
+                {
+                    $set: {
+                        revoked: true,
+                        revokedAt: new Date()
+                    },
+                    $inc: {
+                        version: 1
+                    }
+                },
+                {
+                    session
+                }
+            );
+
+            // 4. Create outbox events
+            const events = revokedSessions.map((revokedSession) => ({
+                type: 'SESSION_REVOKED',
+                payload: {
+                    sessionId: revokedSession.sessionId,
+                    absoluteExpiresAt: revokedSession.absoluteExpiresAt,
+                    version: revokedSession.version + 1
+                },
+                status: 'pending'
+            }));
+
+            await OutboxEvent.insertMany(events, { session });
+        });
+
+        return {
+            success: true,
+            code: 'PASSWORD_RESET_SUCCESSFUL',
+            message:
+                'Your password has been reset successfully. Please login with the new password.'
+        };
+
+    } finally {
+        await session.endSession();
     }
 
 }
@@ -776,13 +835,11 @@ const logout = async (sessionId) => {
 
 const refreshAccessToken = async (
     session,
-    refreshToken,
-    userId
+    refreshToken
 ) => {
 
     console.log('Inside refreshAccessToken service with session: ', session, 'refreshToken: ', refreshToken, 'and userId: ', userId)
 
-    const user = await User.findOne({ userId });
     const incomingRefreshHash = hashToken(refreshToken);
 
     const {
@@ -799,7 +856,7 @@ const refreshAccessToken = async (
 
     try {
         cached =
-            await cacheSession(updatedSession, user.role);
+            await cacheSession(updatedSession, updatedSession.userId.role);
 
     } catch (cacheError) {
         console.error(

@@ -207,19 +207,36 @@ const rotateSession = async (
             },
             {
                 new: true,
-                runValidators: true
+                runValidators: true,
+                strict: true
             }
-        );
+        ).populate({
+            path: 'userId',
+            select: 'role'
+        });
 
     if (!updatedSession) {
-        await revokeSession(
-            session.sessionId, 'Concurrent refresh detected'
-        );
+         const currentSession = await Session.findOne({
+            sessionId: session.sessionId
+        });
+        if (
+            currentSession.refreshTokenHash !== incomingRefreshHash
+        ) {
+            await revokeSession(
+                session.sessionId,
+                'Refresh token reuse detected'
+            );
 
+            throw new AppError(
+                'Refresh token reuse detected.',
+                401,
+                'REFRESH_TOKEN_REUSE_DETECTED'
+            );
+        }
         throw new AppError(
-            'Refresh token reuse detected.',
-            401,
-            'REFRESH_TOKEN_REUSE_DETECTED'
+            'Session refresh failed.',
+            500,
+            'SESSION_REFRESH_FAILED'
         );
     }
 
@@ -235,7 +252,5 @@ const rotateSession = async (
 
 module.exports = {
     revokeSession,
-    syncRevokedSessionToRedis,
-    revokeAndSyncSessionToRedis,
     rotateSession
 }

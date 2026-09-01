@@ -21,7 +21,7 @@ const {
     validateLogin,
     validateForgotPassword,
     validateResetPassword,
-    validateCangePassword, 
+    validateChangePassword, 
     validateRefreshAccessToken,
     authenticateSession
 } = require('middlewares/auth.middleware');
@@ -32,7 +32,7 @@ router.post('/verify-code', validateCode, handleVerifyCode);
 router.post('/login', loginLimiter, validateLogin, handleLogin);
 router.post('/forgot-password', validateForgotPassword, handleForgotPassword);
 router.post('/reset-password', validateResetPassword, handleResetPassword);
-router.post('/change-password', authenticateSession, validateCangePassword, handleChangePassword  )
+router.post('/change-password', authenticateSession, validateChangePassword, handleChangePassword  )
 router.post('/logout', authenticateSession, handleLogout);
 router.post('/refresh', validateRefreshAccessToken, handleRefreshAccessToken)
 

@@ -132,11 +132,6 @@ const cacheSession = async (session, role) => {
             }
         );
 
-    /*
-        * 1 = Redis accepted the state.
-        * 0 = Redis rejected it because it was stale or would
-        *      resurrect a revoked session.
-        */
     const numericResult = Number(result);
 
 

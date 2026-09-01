@@ -41,23 +41,23 @@ const handleLogin = async (req, res) => {
 
     res
     .status(200)
-    .cookie('access_token', accessToken, {
+    .cookie('access-token', accessToken, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        path: '/'
+        
     })
-    .cookie('refresh_token', refreshToken, {
+    .cookie('refresh-token', refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        path: '/'
+        
     })
-    .cookie('csrf_token', csrfToken, {
+    .cookie('csrf-token', csrfToken, {
         httpOnly: false,
         secure: true,
         sameSite: 'none',
-        path: '/'
+        
     })
     .json({
         success: success,
@@ -127,21 +127,21 @@ const handleLogout = async(req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        path: '/'
+        
     });
 
     res.clearCookie('refresh-token', {
         httpOnly: true,
         secure: true,
         sameSite: 'none',
-        path: '/'
+        
     });
 
     res.clearCookie('csrf-token', {
         httpOnly: false,
         secure: true,
         sameSite: 'none',
-        path: '/'
+        
     });
     return res.status(200).json({
         success,
@@ -154,18 +154,16 @@ const handleRefreshAccessToken = async(req, res) => {
     console.log('Handling refresh access token request:', req.auth);
     const {
         session,
-        refreshToken,
-        userId
+        refreshToken
     } = req.auth;
 
     const {success, code, message, newAccessToken, newRefreshToken, newCsrfToken} = await refreshAccessToken(
         session,
         refreshToken,
-        userId
     );
     res.status(200)
         .cookie(
-            'access_token',
+            'access-token',
             newAccessToken,
             {
                 httpOnly: true,
@@ -174,17 +172,16 @@ const handleRefreshAccessToken = async(req, res) => {
             }
         )
         .cookie(
-            'refresh_token',
+            'refresh-token',
             newRefreshToken,
             {
                 httpOnly: true,
                 secure: true,
                 sameSite: 'none',
-                path: '/',
             }
         )
         .cookie(
-            'csrf_token',
+            'csrf-token',
             newCsrfToken,
             {
                 httpOnly: false,

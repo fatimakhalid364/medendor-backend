@@ -3,10 +3,8 @@ const rateLimit = require('express-rate-limit');
 const {jwtUtils: {verifyAccessToken, verifyRefreshToken}} = require('utils');
 const AppError = require('utils/AppError');
 const {safeCompare, hashToken} = require('utils/crypto.utils');
-const { revokeAndSyncSessionToRedis } = require('services/session.service');
 const {session: Session} = require('models/session.model');
 const { getCachedSession } = require('../utils/session.utils');
-const { redisClient } = require('config/redis');
 
 
 const validateSignup = (req, res, next) => {
@@ -58,14 +56,14 @@ const validateResendVerificationCode = (req, res, next) => {
     console.log('Inside resenVerificationCode validator');
     const {email} = req.body;
 
-    if (!email){
+    if (typeof email !== 'string' || !email.trim()) {
         return next(
             new AppError(
-                'Email missing. Please send email to get a verification code.',
-                401,
-                'EMAIL_MISSING'
+                'Email is required.',
+                400,
+                'EMAIL_REQUIRED'
             )
-        )
+        );
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -86,10 +84,20 @@ const validateCode = (req, res, next) => {
     console.log('Validating code:', req.body);
     const { email, code } = req.body;
 
-    if (!email || !code) {
+    if (typeof email !== 'string' || !email.trim()) {
         return next(
             new AppError(
-                'Email or code is missing.',
+                'Email and code are required.',
+                400,
+                'EMAIL_REQUIRED'
+            )
+        );
+    }
+
+    if (!code) {
+        return next(
+            new AppError(
+                'Email and code are required.',
                 400,
                 'REQUIRED_FIELD_MISSING'
             )
@@ -117,10 +125,16 @@ const validateCode = (req, res, next) => {
 const validateLogin = (req, res, next) => {
     console.log('Validating login:', req.body);
     const { email, password } = req.body;
-    if (!email || !password){
+
+    if (
+        typeof email !== 'string' ||
+        !email.trim() ||
+        typeof password !== 'string' ||
+        !password
+    ) {
         return next(
             new AppError(
-                'Email or password is missing.',
+                'Email or password is missing or wrongly formatted.',
                 400,
                 'INVALID_CREDENTIALS'
             )
@@ -144,6 +158,17 @@ const loginLimiter = rateLimit({
 
 const validateForgotPassword = (req, res, next) => {
     const {email} = req.body;
+
+    if (typeof email !== 'string' || !email.trim()) {
+        return next(
+            new AppError(
+                'Email is required.',
+                400,
+                'EMAIL_REQUIRED'
+            )
+        );
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
 
     req.body.email = normalizedEmail;
@@ -156,34 +181,15 @@ const validateResetPassword = async(req, res, next) => {
 
     const {resetToken, newPassword} = req.body;
 
-    // const resetTokenHash = hashToken(resetToken);
-
-    // const key = `password-reset:${resetTokenHash}`;
-
-    // let userId;
-
-    // try {
-    //     userId = await redisClient.get(key)
-    // }catch(error){
-    //     console.error('Failed to extract password reset key from redis', error);
-    //     return next(
-    //         new AppError(
-    //             'Authentication service is temporarily unavailable.',
-    //             503,
-    //             'AUTH_SERVICE_TEMPORARILY_UNAVAILABLE'
-    //         )
-    //     )
-    // }
-
-    // if (!userId) {
-    //     return next(
-    //         new AppError(
-    //             'This password reset link is invalid or has expired.',
-    //             400,
-    //             'INVALID_OR_EXPIRED_PASSWORD_RESET_TOKEN'
-    //         )
-    //     );
-    // }
+    if (!resetToken) {
+        return next(
+            new AppError(
+                'Password reset token is required.',
+                400,
+                'RESET_TOKEN_MISSING'
+            )
+        );
+    }
 
     try{
         validatePassword(newPassword);
@@ -194,8 +200,22 @@ const validateResetPassword = async(req, res, next) => {
     next();
 }
 
-const validateCangePassword = (req, res, next)=>{
+const validateChangePassword = (req, res, next)=>{
     const {newPassword, currentPassword} = req.body;
+
+    if (
+        typeof currentPassword !== 'string' ||
+        !currentPassword
+    ) {
+        return next(
+            new AppError(
+                'Current password is required.',
+                400,
+                'CURRENT_PASSWORD_REQUIRED'
+            )
+        );
+    }
+
 
     try{
         validatePassword(newPassword);
@@ -207,8 +227,19 @@ const validateCangePassword = (req, res, next)=>{
 }
 
 const validateRefreshAccessToken = async(req, res, next) => {
-    const refreshToken = req.cookies['refreshToken'];
-    const csrfToken = req.cookies['csrfToken'];
+    const refreshToken = req.cookies['refresh-token'];
+
+    if (!refreshToken) {
+        return next(
+            new AppError(
+                'Refresh token is missing.',
+                401,
+                'REFRESH_TOKEN_MISSING'
+            )
+        );
+    }
+
+    const csrfToken = req.cookies['csrf-token'];
 
     let decoded
     try {
@@ -225,6 +256,14 @@ const validateRefreshAccessToken = async(req, res, next) => {
     }
 
     const {sub: userId, sid, jti: incomingRefreshJti, type} = decoded;
+
+    if (type !== 'refresh') {
+        throw new AppError(
+            'Invalid access token.',
+            401,
+            'INVALID_ACCESS_TOKEN'
+        );
+    }
 
     let session;
 
@@ -269,13 +308,13 @@ const validateRefreshAccessToken = async(req, res, next) => {
 
     try{
         await validateSession(session, userId);
-        await validateRefreshToken(
-            refreshToken,
-            incomingRefreshJti,
-            storedRefreshJti,
-            storedRefreshHash,
-            session
-        )
+        // await validateRefreshToken(
+        //     refreshToken,
+        //     incomingRefreshJti,
+        //     storedRefreshJti,
+        //     storedRefreshHash,
+        //     session
+        // )
         validateCsrfToken(csrfToken, storedCsrfHash );
     }catch(error){
         return next(error)
@@ -322,6 +361,14 @@ const authenticateSession = async (req, res, next) => {
     }
 
     const {sub: userId, sid, jti: incomingAccessJti, type} = decoded;
+
+    if (type !== 'access') {
+        throw new AppError(
+            'Invalid access token.',
+            401,
+            'INVALID_ACCESS_TOKEN'
+        );
+    }
 
     let session;
 
@@ -382,7 +429,7 @@ const authenticateSession = async (req, res, next) => {
         )
     }
     req.user = {
-        userId: sub,
+        userId,
         role: role,
         sessionId: sid
     };
@@ -557,7 +604,7 @@ const validateCsrfToken = (
 const validateSession = async (session, userId) => {
 
     if (
-        session.userId !== userId
+        (String(session.userId) !== String(userId))
     ) {
         console.error('Invalid userId');
         throw new AppError(
@@ -592,11 +639,6 @@ const validateSession = async (session, userId) => {
     }
 };
 
-
-
-
-
-
 module.exports = {
     validateSignup,
     validateResendVerificationCode,
@@ -607,5 +649,5 @@ module.exports = {
     validateResetPassword,
     authenticateSession,
     validateRefreshAccessToken,
-    validateCangePassword
+    validateChangePassword
 };

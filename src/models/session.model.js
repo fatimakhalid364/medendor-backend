@@ -6,7 +6,6 @@ const sessionSchema = new mongoose.Schema(
             type: String,
             required: true,
             unique: true,
-            index: true,
         },
 
         userId: {
@@ -77,7 +76,7 @@ const sessionSchema = new mongoose.Schema(
 );
 
 sessionSchema.index({
-    user: 1,
+    userId: 1,
     revokedAt: 1,
 });
 
