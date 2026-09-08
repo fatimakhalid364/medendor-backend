@@ -87,9 +87,9 @@ const validateCode = (req, res, next) => {
     if (typeof email !== 'string' || !email.trim()) {
         return next(
             new AppError(
-                'Email and code are required.',
+                'Email IS required.',
                 400,
-                'EMAIL_REQUIRED'
+                'EMAIL_MISSING'
             )
         );
     }
@@ -97,9 +97,9 @@ const validateCode = (req, res, next) => {
     if (!code) {
         return next(
             new AppError(
-                'Email and code are required.',
+                'Code is required.',
                 400,
-                'REQUIRED_FIELD_MISSING'
+                'CODE_MISSING'
             )
         )
     }
