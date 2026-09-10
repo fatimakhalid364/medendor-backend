@@ -27,7 +27,7 @@ const {
 } = require('middlewares/auth.middleware');
 
 router.post('/signup', validateSignup, handleSignup);
-router.get('/resend-verification-code', validateResendVerificationCode, handleResendVerificationCode )
+router.post('/resend-verification-code', validateResendVerificationCode, handleResendVerificationCode )
 router.post('/verify-code', validateCode, handleVerifyCode);
 router.post('/login', loginLimiter, validateLogin, handleLogin);
 router.post('/forgot-password', validateForgotPassword, handleForgotPassword);
