@@ -431,7 +431,7 @@ const forgotPassword = async(email) => {
 
     const resetToken = generateRandomToken();
 
-    const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const resetUrl = `${FRONTEND_URL}/authentication/reset-password?token=${resetToken}`;
 
     const resetTokenHash = hashToken(resetToken);
     const user = await User.findOneAndUpdate(
