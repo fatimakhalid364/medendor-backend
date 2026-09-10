@@ -4,6 +4,7 @@ module.exports = {
     PORT: process.env.PORT || 3000,
     MODE: process.env.MODE,
     MONGO_URI: process.env.MODE === "development" ? process.env.MONGO_URI_LOCAL : process.env.MONGO_URI_LIVE,
+    REDIS_URL: process.env.REDIS_URL,
     GMAIL_USER: process.env.GMAIL_USER,
     GMAIL_APP_PASS: process.env.GMAIL_APP_PASS,
     GMAIL_CLIENT_ID: process.env.GMAIL_CLIENT_ID,
