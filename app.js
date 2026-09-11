@@ -2,12 +2,12 @@ const express = require('express');
 const routes = require('routes');
 const app = express();
 const cors = require('cors');
-const globalErrorHandler =
-    require('middlewares/error.middleware');
+const globalErrorHandler = require('middlewares/error.middleware');
+const {FRONTEND_URL} = require('config/env');
 
 
 app.use(cors({
-    origin: 'https://a5edd1d013d7.ngrok-free.app', 
+    origin: FRONTEND_URL, 
     credentials: true 
 }));
 

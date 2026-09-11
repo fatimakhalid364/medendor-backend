@@ -2,7 +2,7 @@ const {env: {ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, JWT_ISSUER, JWT_AUDIENCE
 const jwt = require('jsonwebtoken');
 const {ACCESS_TOKEN_TTL_MS, SLIDING_TTL_MS, ABSOLUTE_TTL_MS} = require('config/auth.config');
 const {safeCompare, hashToken} = require('utils/crypto.utils');
-const AppError = require('utils/AppError');
+const AppError = require('utils/appError.utils');
 const { revokeAndSyncSessionToRedis } = require('services/session.service');
 
 

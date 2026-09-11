@@ -1,10 +1,9 @@
 const {session: Session} = require('models/session.model');
 const {markSessionRevoked} = require('utils/session.utils');
-const AppError = require('utils/AppError');
+const AppError = require('utils/appError.utils');
 const {generateAccessToken, generateRefreshToken} = require('utils/jwt.utils');
 const {generateRandomToken, safeCompare, hashToken, generateRandomIdOrJti} = require('utils/crypto.utils');
 const {ACCESS_TOKEN_TTL_MS, ABSOLUTE_TTL_MS, SLIDING_TTL_MS} = require('config/auth.config');
-const {session: Session} = require('models/session.model');
 
 
 

@@ -9,7 +9,7 @@ const {generateRandomToken, generateRandomIntString, hashToken, generateRandomId
 const {calculateSessionExpiry, cacheSession} = require('utils/session.utils');
 const {revokeSession, rotateSession} = require('./session.service');
 const {convertToPublicUser} = require('utils/serializers.utils');
-const AppError = require('utils/AppError');
+const AppError = require('utils/appError.utils');
 const {FRONTEND_URL} = require('config/env');
 const {checkEmailRateLimit} = require('scripts/rateLimit.scripts')
 

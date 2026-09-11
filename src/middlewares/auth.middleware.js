@@ -1,7 +1,7 @@
 const {enum: {rolesArray}} = require('constants');
 const rateLimit = require('express-rate-limit');
 const {jwtUtils: {verifyAccessToken, verifyRefreshToken}} = require('utils');
-const AppError = require('utils/AppError');
+const AppError = require('utils/appError.utils');
 const {safeCompare, hashToken} = require('utils/crypto.utils');
 const {session: Session} = require('models/session.model');
 const { getCachedSession } = require('../utils/session.utils');

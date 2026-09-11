@@ -83,7 +83,7 @@ router.put(
 
 router.post(
     '/credentials',
-    validateCredentials,
+    validateCredentialDetails,
     handleAddCredentials
 );
 

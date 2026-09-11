@@ -10,10 +10,6 @@ const {
     MARK_SESSION_REVOKED_SCRIPT
 } = require('scripts/session.scripts');
 
-const {
-    redisClient,
-} = require('config').redis;
-
 const {serializeSessionForRedis} = require('./serializers.utils')
 
 const calculateSessionExpiry = (now = Date.now()) => {

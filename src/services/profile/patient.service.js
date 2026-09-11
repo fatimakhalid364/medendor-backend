@@ -5,7 +5,7 @@ const {
   finalTouchesModel: { finalTouchesSchema },
   healthInterestsModel: {healthInterestsSchema},
   privacyPreferencesModel: {privacyPreferencesSchema}
-} = require('models/profileSubModels/patient');
+} = require('models/profileChunks/patient');
 
 const { isEmptyDeep } = require('utils/basic.utils');
 
