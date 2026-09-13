@@ -7,7 +7,7 @@ const globalErrorHandler = (
     next
 ) => {
     console.error(
-        'Unhandled application error:',
+        'Application error:',
         error
     );
 

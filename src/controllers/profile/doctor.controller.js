@@ -1,4 +1,4 @@
-const { doctorProfileServices: {
+const {
     addBasicDoctorInfo,
     updateBasicDoctorInfo,
     addProfessionalDetails,
@@ -11,7 +11,7 @@ const { doctorProfileServices: {
     leaveCommunities,
     addFinalTouches,
     updateFinalTouches
-}} = require('services');
+} = require('services/profile/doctor.service');
 
 
 const handleAddBasicDoctorInfo = async(req, res) => {

@@ -1,4 +1,4 @@
-const redisClient = require('config/redis');
+const {redisClient} = require('config/redis');
 
 const COOLDOWN_SECONDS = 60;
 const WINDOW_SECONDS = 60 * 60;
@@ -8,10 +8,7 @@ const MAX_REQUESTS = 5;
 const EMAIL_RATE_LIMIT_SCRIPT = `
     local cooldownKey = KEYS[1]
     local hourlyKey = KEYS[2]
-
-    /*
-     * Check cooldown.
-     */
+     
     local cooldownExists =
         redis.call('EXISTS', cooldownKey)
 
@@ -23,9 +20,6 @@ const EMAIL_RATE_LIMIT_SCRIPT = `
         return {0, 1, ttl}
     end
 
-    /*
-     * Check hourly limit.
-     */
     local currentCount =
         tonumber(redis.call('GET', hourlyKey) or '0')
 
@@ -37,9 +31,7 @@ const EMAIL_RATE_LIMIT_SCRIPT = `
         return {0, 2, ttl}
     end
 
-    /*
-     * Set cooldown.
-     */
+
     redis.call(
         'SET',
         cooldownKey,
@@ -48,16 +40,11 @@ const EMAIL_RATE_LIMIT_SCRIPT = `
         tonumber(ARGV[2])
     )
 
-    /*
-     * Increment hourly attempts.
-     */
+
     local newCount =
         redis.call('INCR', hourlyKey)
 
-    /*
-     * Give the hourly counter its TTL
-     * only when it is created.
-     */
+
     if newCount == 1 then
 
         redis.call(

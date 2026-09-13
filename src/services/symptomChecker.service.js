@@ -1,6 +1,6 @@
 const {conditions: Conditions} = require('models');
 const {redis: {redisClient}} = require('config');
-const {pipelineUtils: {matchConditionsPipeline}} = require('utils');
+const {matchConditionsPipeline} = require('utils/pipeline.utils');
 
 const getMatchingConditions = async (symptomsArray) => {
     const cacheKey = `conditionSearch:${symptomsArray.join(",")}`;

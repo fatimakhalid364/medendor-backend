@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { enum: { genderArray } } = require('constants');
+const { genderArray } = require('constants/enum');
 
 const privacyPreferencesSchema = new mongoose.Schema({
     preferredDoctorGender: {

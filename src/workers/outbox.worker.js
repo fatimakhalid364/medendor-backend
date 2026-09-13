@@ -1,10 +1,14 @@
+require('module-alias/register');
+
 const OutboxEvent = require('models/outboxEvent.model');
 
-const redisClient = require('config/redis');
+const {redisClient} = require('config/redis');
 
 const {
     sendMail,
 } = require('utils/mailer.utils');
+
+const {markSessionRevoked} = require('utils/session.utils');
 
 const {
     codeMailSub,

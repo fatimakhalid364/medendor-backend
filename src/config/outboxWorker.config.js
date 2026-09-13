@@ -1,34 +1,36 @@
-const mongoose = require('mongoose');
+// require('module-alias/register');
 
-const { MONGO_URI} = require('config/env');
+// const mongoose = require('mongoose');
 
-const {
-    processOutbox,
-} = require('workers/outbox.worker');
+// const { MONGO_URI} = require('config/env');
 
-
-const start = async () => {
-
-    try {
-
-        await mongoose.connect(MONGO_URI);
-
-        console.log(
-            'MongoDB connected for outbox worker.'
-        );
-
-        await processOutbox();
-
-    } catch (error) {
-
-        console.error(
-            'Outbox worker failed to start:',
-            error
-        );
-
-        process.exit(1);
-    }
-};
+// const {
+//     processOutbox,
+// } = require('workers/outbox.worker');
 
 
-start();
+// const start = async () => {
+
+//     try {
+
+//         await mongoose.connect(MONGO_URI);
+
+//         console.log(
+//             'MongoDB connected for outbox worker.'
+//         );
+
+//         await processOutbox();
+
+//     } catch (error) {
+
+//         console.error(
+//             'Outbox worker failed to start:',
+//             error
+//         );
+
+//         process.exit(1);
+//     }
+// };
+
+
+// start();

@@ -1,5 +1,14 @@
-const {authServices: {signup, verifyCode, login, logout, refreshAccessToken}} = require('services');
-const { forgotPassword, resendVerificationCode, resetPassword, changePassword } = require('../services/auth.service');
+const { 
+    forgotPassword, 
+    resendVerificationCode, 
+    resetPassword, 
+    changePassword,
+    signup, 
+    verifyCode, 
+    login, 
+    logout, 
+    refreshAccessToken
+ } = require('services/auth.service');
 
 const handleSignup = async(req, res) => {
     console.log('Handling signup request:', req.body);

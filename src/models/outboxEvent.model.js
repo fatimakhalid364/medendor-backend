@@ -1,3 +1,5 @@
+require('module-alias/register');
+
 const mongoose = require('mongoose');
 const {eventOutboxStatusArray} = require('constants/enum');
 

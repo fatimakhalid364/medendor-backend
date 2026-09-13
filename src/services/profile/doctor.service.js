@@ -1,7 +1,8 @@
-const {basicProfile: BasicProfile, doctor: Doctor} = require('models');
+const {BasicProfile}= require('models/basicProfile.model.js');
+const {Doctor}= require('models/doctor.model.js');
 const mongoose = require('mongoose');
-const {basicUtils: { isEmptyDeep }} = require('utils');
-const {mails: {verifyDocMailSub, verifyDocMailHtml}} = require('constants');
+const {isEmptyDeep } = require('utils/basic.utils');
+const {verifyDocMailSub, verifyDocMailHtml} = require('constants/mails');
 
 
 //basicDoctorInfo

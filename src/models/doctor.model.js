@@ -4,7 +4,7 @@ const {
     credentialsModel: {credentialsSchema}, 
     professionalDetailsModel: {professionalDetailsSchema},
     finalTouchesModel: {finalTouchesSchema}} = require('doctorProfile');
-const {enum: {verificationStatusArray, communitiesArray}} = require('constants');
+const {verificationStatusArray, communitiesArray} = require('constants/enum');
 
 
 const doctorSchema = new mongoose.Schema({

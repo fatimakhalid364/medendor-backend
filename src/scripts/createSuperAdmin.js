@@ -2,7 +2,7 @@ require('module-alias/register');
 const mongoose = require('mongoose');
 const {user: User} = require('models');
 const {env: {MONGO_URI, SUPER_ADMIN_PASSWORD}} = require('config');
-const {bcryptUtils: {hashPassword}} = require('utils');
+const {hashString} = require('utils/bcrypt.utils');
 
 async function createSuperAdmin() {
     try {

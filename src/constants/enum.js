@@ -1,6 +1,4 @@
-const { basicUtils } = require('utils');
-
-const createFrozenEnumArray = basicUtils.createFrozenEnumArray;
+const {createFrozenEnumArray} = require('utils/basic.utils');
 
 const rolesArray = createFrozenEnumArray(['doctor', 'patient', 'admin', 'super-admin']);
 

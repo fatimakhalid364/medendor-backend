@@ -1,7 +1,7 @@
-const {user: User, token: Token} = require('models');
+const User = require('models/user.model');
 const OutboxEvent = require('models/outboxEvent.model');
 const mongoose = require('mongoose');
-const {session: Session} = require('models/session.model');
+const Session = require('models/session.model');
 const {hashString, compareString} = require('utils/bcrypt.utils');
 const {generateAccessToken, generateRefreshToken} = require('utils/jwt.utils');
 const {redis: {redisClient}} = require('config');
@@ -344,7 +344,7 @@ const login = async (email, password, ip, userAgent) => {
 
     const session = new Session({
         sessionId,
-        user: user._id,
+        userId: user._id,
         refreshTokenHash: refreshTokenHash,
         refreshJti,
         csrfTokenHash: csrfTokenHash,

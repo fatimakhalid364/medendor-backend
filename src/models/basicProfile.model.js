@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { enum: { genderArray } } = require('constants');
+const { genderArray } = require('constants/enum');
 
 const basicProfileSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

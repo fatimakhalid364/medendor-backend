@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const {educationSchema} = require('./education.schema');
-const {enum: {issuingAuthArray}} = require('constants');
+const {issuingAuthArray} = require('constants/enum');
 
 const credentialsSchema = new mongoose.Schema({
     medicalLicenseNumber: { type: String, trim: true, required: true },

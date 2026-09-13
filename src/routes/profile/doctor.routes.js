@@ -1,20 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const {
-        doctorProfileMiddlewares: 
-        {
-            validateIsDoctor, 
-            validateBasicDoctorInfo,
-            validateAvailabilityDetails, 
-            validateCredentialDetails, 
-            validateProfessionalDetails, 
-            validateDoctorFinalTouches,
-            validateCommunitiesArray
-        },
-        authMiddlewares: {authenticateSession}
-    } = require('middlewares');
+        validateIsDoctor, 
+        validateBasicDoctorInfo,
+        validateAvailabilityDetails, 
+        validateCredentialDetails, 
+        validateProfessionalDetails, 
+        validateDoctorFinalTouches,
+        validateCommunitiesArray
+    } = require('middlewares/profile/doctor.middleware');
+const {authenticateSession} = require('middlewares/auth.middleware')
 const multer = require('multer');
-const { cloudinary: {storage} } = require('config');
+const {storage} = require('config/cloudinary');
 const { 
     doctorProfileControllers: {
         handleAddBasicDoctorInfo,

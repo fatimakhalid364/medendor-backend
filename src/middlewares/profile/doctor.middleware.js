@@ -1,4 +1,4 @@
-const {enum: {workPlaceStatusArray, mimeTypesArray, openToArray}} = require('constants');
+const {workPlaceStatusArray, mimeTypesArray, openToArray} = require('constants/enum');
 
 
 const validateIsDoctor = (req, res, next) => {
