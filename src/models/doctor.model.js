@@ -10,15 +10,15 @@ const {verificationStatusArray, communitiesArray} = require('constants/enum');
 const doctorSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
     basicProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'BasicProfile', required: true},
-    professionalDetails: {type: professionalDetailsSchema, default: () => ({})},
-    credentials: {type: credentialsSchema, default: () => ({})},
-    availability: {type: availabilitySchema, default: () => ({})},
+    professionalDetails: {type: professionalDetailsSchema},
+    credentials: {type: credentialsSchema},
+    availability: {type: availabilitySchema},
     joinedCommunities: {
         type: [String],
         default: [],
         enum: communitiesArray
     },
-    finalTouches: {type: finalTouchesSchema, default: () => ({})},
+    finalTouches: {type: finalTouchesSchema},
     verificationStatus: {
         type: String,
         enum: verificationStatusArray,

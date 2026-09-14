@@ -75,12 +75,12 @@ const updateBasicPatientInfo = async (userId, basicPatientInfo) => {
 const addHealthInterests = async(userId, healthInterestsData)=> {
     try {
         console.log("Inside addHealthInterests service")
-        const existingPatientDetails = await Patient.findOne({user: userId, healthInterests: {exists: true}});
+        const existingPatientDetails = await Patient.findOne({user: userId});
         if (!existingPatientDetails){
             throw new Error("Please add basic profile before adding health interests.")
         }
-        const detailsObj = existingPatientDetails?.toObject?.() || {}
-        if (!isEmptyDeep(detailsObj.healthInterests)){
+        // const detailsObj = existingPatientDetails?.toObject?.() || {}
+        if (existingPatientDetails.healthInterests){
             throw new Error("Health interests already added.")
         }
         existingPatientDetails.healthInterests = healthInterestsData;
@@ -129,13 +129,13 @@ const updateHealthInterests = async(userId, updateData)=> {
 const addPrivacyPreferences = async(userId, privacyPreferencesData)=> {
     try{
         console.log("inside addPrivacyPreferences service");
-        const existingPatientDetails = Patient.findOne({user: userId, privacyPreferences: {$exists: true}})
+        const existingPatientDetails = await Patient.findOne({user: userId})
         if (!existingPatientDetails){
             throw new Error("Please add basic profile before adding privacy preferences.")
         }
-        const detailsObj = existingPatientDetails?.privacyPreferences?.toObject?.() || {};
+        // const detailsObj = existingPatientDetails?.privacyPreferences?.toObject?.() || {};
 
-        if(!isEmptyDeep(detailsObj)){
+        if(existingPatientDetails.privacyPreferences){
             throw new Error("Privacy preferences already added.");
         }
 
@@ -193,8 +193,7 @@ const addPatientFinalTouches = async (userId, finalTouchesData) => {
             throw new Error('Please add basic profile before adding final touches.');
         }
 
-        const detailsObj = existingPatientDetails.finalTouches?.toObject?.() ?? {};
-        if (!isEmptyDeep(detailsObj)) {
+        if (existingPatientDetails.finalTouches) {
             throw new Error("Final touches already added");
         } 
 
@@ -225,7 +224,7 @@ const updatePatientFinalTouches = async (userId, updateData) => {
         //     }
         // }
 
-        const patientDetails = Patient.findOneAndUpdate(
+        const patientDetails = await Patient.findOneAndUpdate(
             {user: userId},
             {$set: updateData},
             {
@@ -254,14 +253,13 @@ const addJoinedCommunitiesArray = async (userId, joinedCommunitiesArray) => {
         if (!existingPatientDetails) {
             throw new Error('Please add basic profile before adding communities.');
         }
-        if (existingPatientDetails.joinedCommunities) {
-            existingPatientDetails.joinedCommunities = [
-                ...new Set([...existingPatientDetails.joinedCommunities, ...joinedCommunitiesArray])
-            ];
-            await existingPatientDetails.save();
-            return { success: true, message: `Joined communities added successfully.` };
-        }
-    } catch (error) {
+       
+        existingPatientDetails.joinedCommunities = [
+            ...new Set([...existingPatientDetails.joinedCommunities, ...joinedCommunitiesArray])
+        ];
+        await existingPatientDetails.save();
+        return { success: true, message: `Joined communities added successfully.` };
+} catch (error) {
         console.error('Error during adding joined communities:', error);
         throw new Error(error.message || 'addCommunitiesToJoin failed');
     }
