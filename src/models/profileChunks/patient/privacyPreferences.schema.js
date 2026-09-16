@@ -40,4 +40,4 @@ const privacyPreferencesSchema = new mongoose.Schema({
     },
 }, { _id: false });
 
-module.exports = { privacyPreferencesSchema };
+module.exports = privacyPreferencesSchema;

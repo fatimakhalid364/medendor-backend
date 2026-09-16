@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
 const {
-    healthInterestsModel: {healthInterestsSchema},
-    privacyPreferencesModel: {privacyPreferencesSchema},
-    finalTouchesModel: {finalTouchesSchema}} = require('models/profileChunks/patient');
+    healthInterestsSchema,
+    privacyPreferencesSchema,
+    finalTouchesSchema
+} = require('models/profileChunks/patient');
 
 const patientSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

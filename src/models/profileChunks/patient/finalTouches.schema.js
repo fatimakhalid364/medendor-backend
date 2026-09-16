@@ -23,4 +23,4 @@ const finalTouchesSchema = new mongoose.Schema({
     },
 }, { _id: false });
 
-module.exports = { finalTouchesSchema };
+module.exports = finalTouchesSchema ;

@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const {
-    availabilityModel: {availabilitySchema}, 
-    credentialsModel: {credentialsSchema}, 
-    professionalDetailsModel: {professionalDetailsSchema},
-    finalTouchesModel: {finalTouchesSchema}} = require('doctorProfile');
+    availabilitySchema, 
+    credentialsSchema, 
+    professionalDetailsSchema,
+    finalTouchesSchema
+} = require('models/profileChunks/doctor');
 const {verificationStatusArray, communitiesArray} = require('constants/enum');
 
 

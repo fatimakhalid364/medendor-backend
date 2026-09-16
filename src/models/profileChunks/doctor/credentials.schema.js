@@ -24,4 +24,4 @@ const credentialsSchema = new mongoose.Schema({
     }
 }, { _id: false });
 
-module.exports = { credentialsSchema };
+module.exports = credentialsSchema;

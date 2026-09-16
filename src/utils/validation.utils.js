@@ -1,9 +1,15 @@
+const AppError = require('utils/appError.utils');
+
 const validateKeys = (data, schemaObj) => {
 
     for (const key of Object.keys(data)) {
 
         if (!(key in schemaObj)) {
-            throw new Error(`Invalid field: ${key}`);
+            throw new AppError(
+                `Invalid field: ${key}`,
+                400,
+                INVALID_FIELD           
+            );
         }
 
         const schemaValue = schemaObj[key];

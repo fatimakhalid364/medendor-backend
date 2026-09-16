@@ -6,7 +6,13 @@ const validateIsDoctor = (req, res, next) => {
     console.log('Validating if user is doctor:', user);
 
     if (!user || user.role !== 'doctor') {
-        return res.status(403).json({ message: 'Access denied. Only doctors can create, update or get doctor details.' });
+        return next(
+            new AppError(
+                'Only doctors an access this route',
+                403,
+                'INVALID_ROLE'
+            )
+        );
     }
 
     next();

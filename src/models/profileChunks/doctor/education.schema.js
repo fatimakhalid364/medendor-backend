@@ -25,4 +25,4 @@ const educationSchema = new mongoose.Schema({
     currentlyStudying: { type: Boolean, default: false },
 }, { _id: false });
 
-module.exports = { educationSchema };
+module.exports = educationSchema;

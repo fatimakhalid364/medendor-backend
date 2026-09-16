@@ -1,6 +1,6 @@
 module.exports = {
-    availabilityModel: require('./availability.schema'),
-    credentialsModel: require('./credentials.schema'),
-    professionalDetailsModel: require('./professionalDetails.schema'),
-    finalTouchesModel: require('./finalTouches.schema'),
+    availabilitySchema: require('./availability.schema'),
+    credentialsSchema: require('./credentials.schema'),
+    professionalDetailsSchema: require('./professionalDetails.schema'),
+    finalTouchesSchema: require('./finalTouches.schema'),
 }

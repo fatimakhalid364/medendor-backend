@@ -20,4 +20,4 @@ const professionalDetailsSchema = new mongoose.Schema({
     about: { type: String, trim: true }
 }, { _id: false, strict: true });
 
-module.exports = { professionalDetailsSchema };
+module.exports = professionalDetailsSchema ;

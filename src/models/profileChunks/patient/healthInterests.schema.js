@@ -25,4 +25,4 @@ const healthInterestsSchema = new mongoose.Schema({
     }
 }, { _id: false });
 
-module.exports = { healthInterestsSchema };
+module.exports = healthInterestsSchema ;

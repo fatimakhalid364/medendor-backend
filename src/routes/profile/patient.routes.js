@@ -32,6 +32,12 @@ const {
     }
 } = require('controllers');
 
+const {
+    healthInterestsSchema,
+    privacyPreferencesSchema,
+    finalTouchesSchema
+} = require('models/profileChunks/patient');
+
 const upload = multer({ storage });
 
 /*
@@ -76,7 +82,7 @@ router.post(
 
 router.put(
     '/health-interests',
-    validateRequestFields,
+    validateRequestFields(healthInterestsSchema, 'healthInterests'),
     handleUpdateHealthInterests
 );
 
@@ -93,7 +99,7 @@ router.post(
 
 router.put(
     '/privacy-preferences',
-    validateRequestFields,
+    validateRequestFields(privacyPreferencesSchema, 'privacyPreferences'),
     handleUpdatePrivacyPreferences
 );
 
@@ -110,7 +116,7 @@ router.post(
 
 router.put(
     '/final-touches',
-    validateRequestFields,
+    validateRequestFields(finalTouchesSchema, 'finalTouches'),
     handleUpdatePatientFinalTouches
 );
 

@@ -13,20 +13,26 @@ const {authenticateSession} = require('middlewares/auth.middleware')
 const multer = require('multer');
 const {storage} = require('config/cloudinary');
 const { 
-    doctorProfileControllers: {
-        handleAddBasicDoctorInfo,
-        handleUpdateBasicDoctorInfo,
-        handleAddProfessionalDetails,
-        handleUpdateProfessionalDetails,
-        handleAddCredentials,
-        handleUpdateCredentials,
-        handleAddAvailabilityDetails,
-        handleUpdateAvailabilityDetails,
-        handleAddJoinedCommunitiesArray,
-        handleLeaveCommunities,
-        handleAddFinalTouches,
-        handleUpdateFinalTouches
-    }} = require('controllers');
+    handleAddBasicDoctorInfo,
+    handleUpdateBasicDoctorInfo,
+    handleAddProfessionalDetails,
+    handleUpdateProfessionalDetails,
+    handleAddCredentials,
+    handleUpdateCredentials,
+    handleAddAvailabilityDetails,
+    handleUpdateAvailabilityDetails,
+    handleAddJoinedCommunitiesArray,
+    handleLeaveCommunities,
+    handleAddFinalTouches,
+    handleUpdateFinalTouches
+} = require('controllers/profile/doctor.controller');
+
+const {
+    availabilitySchema, 
+    credentialsSchema, 
+    professionalDetailsSchema,
+    finalTouchesSchema
+} = require('models/profileChunks/doctor');
 
 const {validateRequestFields} = require('middlewares/profile.middleware');
 
@@ -68,7 +74,7 @@ router.post(
 
 router.put(
     '/professional-details',
-    validateRequestFields,
+    validateRequestFields(professionalDetailsSchema, 'professionalDetails'),
     handleUpdateProfessionalDetails
 );
 
@@ -86,7 +92,7 @@ router.post(
 
 router.put(
     '/credentials',
-    validateRequestFields,
+    validateRequestFields(credentialsSchema, 'credentials'),
     handleUpdateCredentials
 );
 
@@ -104,7 +110,7 @@ router.post(
 
 router.put(
     '/availability',
-    validateRequestFields,
+    validateRequestFields(availabilitySchema, 'availability'),
     handleUpdateAvailabilityDetails
 );
 
@@ -139,7 +145,7 @@ router.post(
 
 router.put(
     '/final-touches',
-    validateRequestFields,
+    validateRequestFields(finalTouchesSchema, 'finalTouches'),
     handleUpdateFinalTouches
 );
 

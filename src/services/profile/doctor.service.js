@@ -1,8 +1,8 @@
 const {BasicProfile}= require('models/basicProfile.model.js');
 const {Doctor}= require('models/doctor.model.js');
 const mongoose = require('mongoose');
-const {isEmptyDeep } = require('utils/basic.utils');
-const {verifyDocMailSub, verifyDocMailHtml} = require('constants/mails');
+const AppError = require('utils/appError.utils');
+
 
 
 //basicDoctorInfo
@@ -17,7 +17,11 @@ const addBasicDoctorInfo = async (userId, basicDoctorInfo) => {
 
         const existingProfile = await BasicProfile.findOne({ user: userId }).session(session);
         if (existingProfile) {
-            throw new Error('Basic doctor info already registered.');
+            throw new AppError(
+                    'Basic doctor info already registered.',
+                    409,
+                    'BASIC_DOCTOR_INFO_ALREADY_ADDED'
+                );
         }
 
         const basicProfile = new BasicProfile({
@@ -43,286 +47,292 @@ const addBasicDoctorInfo = async (userId, basicDoctorInfo) => {
             await session.abortTransaction();
         }
 
-        console.error('Error during adding basic doctor info:', error);
-        throw new Error(`addBasicDoctorInfo failed: ${error.message}`);
+        console.error('Error during adding basic patient info:', error);
+        if (error instanceof AppError) {
+            throw error;
+        }
+
+        throw new AppError(
+            'Unable to add basic doctor info.',
+            500,
+            'ADD_BASIC_DOCTOR_INFO_FAILED'
+        );
     } finally {
         session.endSession();
     }
 };
 
 const updateBasicDoctorInfo = async (userId, basicDoctorInfo) => {
-    try {
-        const updatedProfile = await BasicProfile.findOneAndUpdate(
-            { user: userId },
-            { $set: basicDoctorInfo },
-            { runValidators: true, strict: true }, 
+    const updatedProfile = await BasicProfile.findOneAndUpdate(
+        { user: userId },
+        { $set: basicDoctorInfo },
+        { runValidators: true, strict: true }, 
+    );
+
+    if (!updatedProfile) {
+            throw new AppError(
+            "Basic doctor info not found for this user.",
+            404,
+            "BASIC_DOCTOR_INFO_NOT_FOUND"
         );
-
-        if (!updatedProfile) {
-        throw new Error("Basic doctor info not found for this user.");
-        }
-
-        return { success: true, message: `Basic Doctor Info updated successfully.` };
-        } catch (error) {
-        console.error("Error in updateBasicDoctorInfo service:", error);
-        throw new Error(error.message || "Unable to update basic doctor info");
     }
-};
+
+    return { success: true, message: `Basic Doctor Info updated successfully.` };
+} 
 
 //professionalDetails
 
 const addProfessionalDetails = async (userId, professionalDetailsData) => {
-    try {
-        console.log('Inside addProfessionalDetails service:', 'data:',professionalDetailsData, 'and id:', userId);
-        let existingDoctorDetails = await Doctor.findOne({ user: userId });
+    console.log('Inside addProfessionalDetails service:', 'data:',professionalDetailsData, 'and id:', userId);
+    let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
-        if (!existingDoctorDetails) {
-            throw new Error('Please add basic profile before adding professional details.');
-        }
-
-        const detailsObj = existingDoctorDetails.professionalDetails?.toObject?.() ?? {};
-        if (!isEmptyDeep(detailsObj)) {
-            throw new Error("Professional details already added");
-        } 
-
-        existingDoctorDetails.professionalDetails = professionalDetailsData;
-        await existingDoctorDetails.save();
-        return { success: true, message: `Professional details added successfully.` };
-
-    } catch (error) {
-        console.error('Error during adding professsional details:', error);
-        throw new Error(error.message || 'addProfessionalDetails failed');
+    if (!existingDoctorDetails) {
+        throw new AppError(
+            "Please add basic profile before adding professional details.",
+            409,
+            'BASIC_PROFILE_MISSING'
+        )
     }
-};
+
+    // const detailsObj = existingDoctorDetails.professionalDetails?.toObject?.() ?? {};
+    if (existingDoctorDetails.professionalDetails) {
+        throw new AppError(
+            "Professional details already added.",
+            409,
+            'PROFESSIONAL_DETAILS_ALREADY_ADDED'
+        )
+    } 
+
+    existingDoctorDetails.professionalDetails = professionalDetailsData;
+    await existingDoctorDetails.save();
+    return { success: true, message: `Professional details added successfully.` };
+
+}
 
 const updateProfessionalDetails = async (userId, updateData) => {
-    try {
-        const doctorDetails = await Doctor.findOneAndUpdate(
-            {user: userId}, 
-            {$set: updateData},
-                {
-                    runValidators: true,
-                    strict: true,
-                    new: true
-                }
-            );
-        
-        if (!doctorDetails){
-            throw new Error("Basic profile not added for this user.")
-        }
-
-        return { success: true, message: "Professional details updated successfully." };
-    } catch (error) {
-        console.error("Error in updateProfessionalDetails service:", error);
-        throw new Error(error.message || "Unable to update professional details");
+    const doctorDetails = await Doctor.findOneAndUpdate(
+        {user: userId}, 
+        {$set: updateData},
+            {
+                runValidators: true,
+                strict: true,
+                new: true
+            }
+        );
+    
+    if (!doctorDetails){
+        throw new AppError(
+            "Please add basic profile before updating professional details.",
+            409,
+            'BASIC_PROFILE_MISSING'
+        )
     }
-};
+
+    return { success: true, message: "Professional details updated successfully." };
+} 
 
 //credentials
 
 
 const addCredentials = async (userId, credentialsData) => {
-    try {
-        console.log('Inside addCredentials service:', 'data:',credentialsData, 'and id:', userId);
-        let existingDoctorDetails = await Doctor.findOne({ user: userId });
+    console.log('Inside addCredentials service:', 'data:',credentialsData, 'and id:', userId);
+    let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
-        if (!existingDoctorDetails) {
-            throw new Error('Please add basic profile before adding credentials.');
-        }
-
-        const detailsObj = existingDoctorDetails.credentials?.toObject?.() ?? {};
-        if (!isEmptyDeep(detailsObj)) {
-            throw new Error("Credentials already added");
-        } 
-
-        existingDoctorDetails.credentials = credentialsData;
-        await existingDoctorDetails.save();
-        return { success: true, message: `Credentials added successfully.` };
-
-    } catch (error) {
-        console.error('Error during adding credentials:', error);
-        throw new Error(error.message || 'addCredentials failed');
+    if (!existingDoctorDetails) {
+        throw new AppError(
+            "Please add basic profile before adding credentials.",
+            409,
+            'BASIC_PROFILE_MISSING'
+        )
     }
-};
 
+    if (existingDoctorDetails.credentials) {
+        throw new AppError(
+            "Credentials already added.",
+            409,
+            'CREDENTIALS_ALREADY_ADDED'
+        )
+    } 
+
+    existingDoctorDetails.credentials = credentialsData;
+    await existingDoctorDetails.save();
+    return { success: true, message: `Credentials added successfully.` };
+
+} 
 
 const updateCredentials = async (userId, updateData) => {
-    try {
-        const doctorDetails = await Doctor.findOneAndUpdate(
-            {user: userId}, 
-            {$set: updateData},
-            {
-                runValidators: true,
-                strict: true,
-                new: true
-            }
-        );
-        
-        if (!doctorDetails){
-            throw new Error("Basic profile not added for this user.")
+    const doctorDetails = await Doctor.findOneAndUpdate(
+        {user: userId}, 
+        {$set: updateData},
+        {
+            runValidators: true,
+            strict: true,
+            new: true
         }
-
-        return { success: true, message: "Credentials updated successfully." };
-    } catch (error) {
-        console.error("Error in updateCredentials service:", error);
-        throw new Error(error.message || "Unable to update credentials");
+    );
+    
+    if (!doctorDetails){
+        throw new AppError(
+            "Please add basic profile before updating credentials.",
+            409,
+            'BASIC_PROFILE_MISSING'
+        )
     }
-};
+
+    return { success: true, message: "Credentials updated successfully." };
+} 
 
 //availability
 
 
 const addAvailabilityDetails = async (userId, availabilityDetails) => {
-    try {
-        console.log('Inside addAvailabilityDetails service:', 'data:',availabilityDetails, 'and id:', userId);
-        let existingDoctorDetails = await Doctor.findOne({ user: userId });
+    console.log('Inside addAvailabilityDetails service:', 'data:',availabilityDetails, 'and id:', userId);
+    let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
-        if (!existingDoctorDetails) {
-            throw new Error('Please add basic profile before adding availability details.');
-        }
-
-        const detailsObj = existingDoctorDetails.availability?.toObject?.() ?? {};
-        if (!isEmptyDeep(detailsObj)) {
-            throw new Error("Availability details already added");
-        } 
-
-        existingDoctorDetails.availability = availabilityDetails;
-        await existingDoctorDetails.save();
-        return { success: true, message: `Availability details added successfully.` };
-
-    } catch (error) {
-        console.error('Error during adding availability details:', error);
-        throw new Error(error.message || 'addAvailabilityDetails failed');
+    if (!existingDoctorDetails) {
+        throw new AppError(
+            "Please add basic profile before adding availability details.",
+            409,
+            'BASIC_PROFILE_MISSING'
+        )
     }
-};
+
+    if (existingDoctorDetails.availability) {
+        throw new AppError(
+            "Availability details already added.",
+            409,
+            'AVALABILITY_DETAILS_ALREADY_ADDED'
+        )
+    } 
+
+    existingDoctorDetails.availability = availabilityDetails;
+    await existingDoctorDetails.save();
+    return { success: true, message: `Availability details added successfully.` };
+
+} 
 
 
 const updateAvailabilityDetails = async (userId, updateData) => {
-    try {
-        const doctorDetails = await Doctor.findOneAndUpdate(
-            {user: userId}, 
-            {$set: updateData},
-            {
-                runValidators: true,
-                strict: true,
-                new: true
-            }
-        );
-        
-        if (!doctorDetails){
-            throw new Error("Basic profile not added for this user.")
+    const doctorDetails = await Doctor.findOneAndUpdate(
+        {user: userId}, 
+        {$set: updateData},
+        {
+            runValidators: true,
+            strict: true,
+            new: true
         }
-
-        return { success: true, message: "Availability details updated successfully." };
-    } catch (error) {
-        console.error("Error in updateAvailabilityDetails service:", error);
-        throw new Error(error.message || "Unable to update availability details");
+    );
+    
+    if (!doctorDetails){
+        throw new AppError(
+            "Please add basic profile before updating availability details.",
+            409,
+            'BASIC_PROFILE_MISSING'
+        )
     }
-};
+
+    return { success: true, message: "Availability details updated successfully." };
+} 
 
 
 //communitiesToJoin
 
 const addJoinedCommunitiesArray = async (userId, joinedCommunitiesArray) => {
-    try {
-        console.log('Inside addJoinedCommunities service:', 'data:',joinedCommunitiesArray, 'and id:', userId);
-        let existingDoctorDetails = await Doctor.findOne({ user: userId });
+    console.log('Inside addJoinedCommunities service:', 'data:',joinedCommunitiesArray, 'and id:', userId);
+    let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
-        if (!existingDoctorDetails) {
-            throw new Error('Please add basic profile before adding communities.');
-        }
-        if (existingDoctorDetails.joinedCommunities) {
-            existingDoctorDetails.joinedCommunities = [
-                ...new Set([...existingDoctorDetails.joinedCommunities, ...joinedCommunitiesArray])
-            ];
-            await existingDoctorDetails.save();
-            return { success: true, message: `Joined communities added successfully.` };
-        }
-    } catch (error) {
-        console.error('Error during adding joined communities:', error);
-        throw new Error(error.message || 'addCommunitiesToJoin failed');
+    if (!existingDoctorDetails) {
+        throw new AppError(
+            "Please add basic profile before adding joined communities.",
+            409,
+            'BASIC_PROFILE_MISSING'
+        )
     }
-};
+    existingDoctorDetails.joinedCommunities = [
+        ...new Set([...existingDoctorDetails.joinedCommunities, ...joinedCommunitiesArray])
+    ];
+    await existingDoctorDetails.save();
+    return { success: true, message: `Joined communities added successfully.` };
+} 
 
 
 const leaveCommunities = async (userId, leftCommunitiesArray) => {
-    try {
-        console.log('Inside leaveCommunities service:', 'data:', leftCommunitiesArray, 'and id:', userId);
+    console.log('Inside leaveCommunities service:', 'data:', leftCommunitiesArray, 'and id:', userId);
 
-        const existingDoctorDetails = await Doctor.findOne({ user: userId });
-        if (!existingDoctorDetails) {
-            throw new Error('Doctor profile not found');
-        }
-
-        if (Array.isArray(existingDoctorDetails.joinedCommunities) && existingDoctorDetails.joinedCommunities.length > 0) {
-            existingDoctorDetails.joinedCommunities = existingDoctorDetails.joinedCommunities.filter(
-                (community) => !leftCommunitiesArray.includes(community)
-            );
-
-            await existingDoctorDetails.save();
-            return { success: true, message: 'Communities left successfully.' };
-        }
-
-        return { success: false, message: 'No joined communities found.' };
-
-    } catch (error) {
-        console.error('Error during leaving communities:', error);
-        throw new Error(error.message || 'leaveCommunities failed');
+    const existingDoctorDetails = await Doctor.findOne({ user: userId });
+    if (!existingDoctorDetails) {
+        throw new AppError(
+            "Please add basic profile before leaving communities.",
+            409,
+            'BASIC_PROFILE_MISSING'
+        )
     }
-};
+
+    if (Array.isArray(existingDoctorDetails.joinedCommunities) && existingDoctorDetails.joinedCommunities.length > 0) {
+        existingDoctorDetails.joinedCommunities = existingDoctorDetails.joinedCommunities.filter(
+            (community) => !leftCommunitiesArray.includes(community)
+        );
+
+        await existingDoctorDetails.save();
+        return { success: true, message: 'Communities left successfully.' };
+    }
+
+    return { success: false, message: 'No joined communities found.' };
+
+} 
 
 
 
 //final touches
 
 const addFinalTouches = async (userId, finalTouchesData) => {
-    try {
-        console.log('Inside addFinalTouches service:', 'data:',finalTouchesData, 'and id:', userId);
-        let existingDoctorDetails = await Doctor.findOne({ user: userId });
+    console.log('Inside addFinalTouches service:', 'data:',finalTouchesData, 'and id:', userId);
+    let existingDoctorDetails = await Doctor.findOne({ user: userId });
 
-        if (!existingDoctorDetails) {
-            throw new Error('Please add basic profile before adding final touches.');
-        }
-
-        const detailsObj = existingDoctorDetails.finalTouches?.toObject?.() ?? {};
-        if (!isEmptyDeep(detailsObj)) {
-            throw new Error("Final touches already added");
-        } 
-
-        existingDoctorDetails.finalTouches = finalTouchesData;
-        await existingDoctorDetails.save();
-        return { success: true, message: `Final touches added successfully.` };
-
-    } catch (error) {
-        console.error('Error during adding final touches:', error);
-        throw new Error(error.message || 'addFinalTouches failed');
+    if (!existingDoctorDetails) {
+        throw new AppError(
+            "Please add basic profile before adding fonal touches.",
+            409,
+            'BASIC_PROFILE_MISSING'
+        )
     }
-};
+
+    if (existingDoctorDetails.finalTouches) {
+        throw new AppError(
+            "Final touches already added.",
+            409,
+            'FINAL_TOUCHES_ALREADY_ADDED'
+        )
+    } 
+
+    existingDoctorDetails.finalTouches = finalTouchesData;
+    await existingDoctorDetails.save();
+    return { success: true, message: `Final touches added successfully.` };
+
+} 
 
 
 const updateFinalTouches = async (userId, updateData) => {
-    try {
-       const doctorDetails = await Doctor.findOneAndUpdate(
-            {user: userId}, 
-            {$set: updateData},
-            {
-                runValidators: true,
-                strict: true,
-                new: true
-            }
-        );
-        
-        if (!doctorDetails){
-            throw new Error("Basic profile not added for this user.")
+    const doctorDetails = await Doctor.findOneAndUpdate(
+        {user: userId}, 
+        {$set: updateData},
+        {
+            runValidators: true,
+            strict: true,
+            new: true
         }
-
-        return { success: true, message: "Final touches updated successfully." };
-    } catch (error) {
-        console.error("Error in updateFinalTouches service:", error);
-        throw new Error(error.message || "Unable to update final touches");
+    );
+    
+    if (!doctorDetails){
+        throw new AppError(
+            "Please add basic profile before updating final touches.",
+            409,
+            'BASIC_PROFILE_MISSING'
+        )
     }
-};
 
+    return { success: true, message: "Final touches updated successfully." };
+} 
 
 module.exports = {
     addBasicDoctorInfo,
