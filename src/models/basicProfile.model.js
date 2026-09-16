@@ -19,6 +19,6 @@ const basicProfileSchema = new mongoose.Schema({
     },
 }, { timestamps: true, strict: true, optimisticConcurrency: true });
 
-basicProfileSchema.index({ user: 1 });
+basicProfileSchema.index({ user: 1 }, {unique: true});
 
 module.exports = mongoose.model('BasicProfile', basicProfileSchema);

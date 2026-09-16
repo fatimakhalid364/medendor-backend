@@ -16,9 +16,9 @@ const patientSchema = new mongoose.Schema({
     privacyPreferences: privacyPreferencesSchema,
     finalTouches: finalTouchesSchema,
 
-}, { timestamps: true });
+}, { timestamps: true, strict: true, optimisticConcurrency: true });
 
 
-patientSchema.index({ user: 1 });
+patientSchema.index({ user: 1 }, { unique: true });
 
 module.exports = mongoose.model('Patient', patientSchema);
