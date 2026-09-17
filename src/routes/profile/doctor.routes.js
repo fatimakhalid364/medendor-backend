@@ -34,7 +34,7 @@ const {
     finalTouchesSchema
 } = require('models/profileChunks/doctor');
 
-const {validateRequestFields} = require('middlewares/profile.middleware');
+const {validateRequestFieldsForUpdate} = require('middlewares/profile.middleware');
 
 const upload = multer({ storage });
 
@@ -74,7 +74,7 @@ router.post(
 
 router.patch(
     '/professional-details',
-    validateRequestFields(professionalDetailsSchema, 'professionalDetails'),
+    validateRequestFieldsForUpdate(professionalDetailsSchema, 'professionalDetails'),
     handleUpdateProfessionalDetails
 );
 
@@ -92,7 +92,7 @@ router.post(
 
 router.patch(
     '/credentials',
-    validateRequestFields(credentialsSchema, 'credentials'),
+    validateRequestFieldsForUpdate(credentialsSchema, 'credentials'),
     handleUpdateCredentials
 );
 
@@ -110,7 +110,7 @@ router.post(
 
 router.patch(
     '/availability',
-    validateRequestFields(availabilitySchema, 'availability'),
+    validateRequestFieldsForUpdate(availabilitySchema, 'availability'),
     handleUpdateAvailabilityDetails
 );
 
@@ -144,7 +144,7 @@ router.post(
 
 router.patch(
     '/final-touches',
-    validateRequestFields(finalTouchesSchema, 'finalTouches'),
+    validateRequestFieldsForUpdate(finalTouchesSchema, 'finalTouches'),
     handleUpdateFinalTouches
 );
 

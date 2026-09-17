@@ -5,7 +5,7 @@ const {validateKeys, makeSetObj} = require('utils/validation.utils')
  * Creates a whitelist + sanitizer middleware for nested updates
  */
 
-const validateRequestFields = (schema, path) => {
+const validateRequestFieldsForUpdate = (schema, path) => {
 
     console.log('inside valideRequestFields middelware')
 
@@ -40,4 +40,4 @@ const validateRequestFields = (schema, path) => {
 
 };
 
-module.exports = {validateRequestFields}
+module.exports = {validateRequestFieldsForUpdate}

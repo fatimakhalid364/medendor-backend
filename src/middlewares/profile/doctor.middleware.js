@@ -26,8 +26,7 @@ const validateBasicDoctorInfo = (req, res, next) => {
         dateOfBirth,
         country,
         city,
-        languagesSpoken,
-        age
+        languagesSpoken
     } = req.body;
 
     const profilePicture = req.file;
@@ -42,7 +41,36 @@ const validateBasicDoctorInfo = (req, res, next) => {
         );
     }
 
-    if (age && age < 25){
+    // Convert dateOfBirth to a Date
+    const birthDate = new Date(dateOfBirth);
+
+    // Make sure the date is valid
+    if (Number.isNaN(birthDate.getTime())) {
+        return next(
+            new AppError(
+                'Invalid date of birth.',
+                400,
+                'INVALID_DATE_OF_BIRTH'
+            )
+        );
+    }
+
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+
+    const hasHadBirthdayThisYear =
+        today.getMonth() > birthDate.getMonth() ||
+        (
+            today.getMonth() === birthDate.getMonth() &&
+            today.getDate() >= birthDate.getDate()
+        );
+
+    if (!hasHadBirthdayThisYear) {
+        age--;
+    }
+
+    if (age < 25) {
         return next(
             new AppError(
                 'A doctor should be 25 years or older.',
