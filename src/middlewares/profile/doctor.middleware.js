@@ -1,4 +1,6 @@
 const {workPlaceStatusArray, mimeTypesArray, openToArray} = require('constants/enum');
+const AppError = require('utils/appError.utils');
+const {communitiesArray, issuingAuthArray} = require('constants/enum');
 
 
 const validateIsDoctor = (req, res, next) => {
@@ -20,24 +22,44 @@ const validateIsDoctor = (req, res, next) => {
 
 const validateBasicDoctorInfo = (req, res, next) => {
     const {
-       dateOfBirth,
+        gender,
+        dateOfBirth,
+        country,
+        city,
         languagesSpoken,
+        age
     } = req.body;
 
     const profilePicture = req.file;
 
-    if (!languagesSpoken?.length) {
-        return res.status(400).json({ message: 'Missing required basic info for doctor.' });
+    if (!languagesSpoken?.length || !profilePicture || !gender || !dateOfBirth || !country || !city) {
+        return next(
+            new AppError(
+                'Required fields are missing',
+                400,
+                'MISSING_REQUIRED_FIELDS'
+            )
+        );
     }
 
-    if (age < 25){
-        return res.status(400).json({ message: 'A doctor should either be 25 years or older.' });
+    if (age && age < 25){
+        return next(
+            new AppError(
+                'A doctor should be 25 years or older.',
+                400,
+                'INVALID_AGE'
+            )
+        );
     }
 
-    if (profilePicture && !mimeTypesArray.includes(profilePicture.mimetype)) {
-        return res.status(400).json({ 
-            message: 'Invalid file type. Only JPEG, PNG, JPG, AVIF, and WEBP images are allowed.' 
-        });
+    if (!mimeTypesArray.includes(profilePicture.mimetype)) {
+        return next(
+            new AppError(
+                'Invalid mime type. Only JPEG, JPG, PNG, AVIF and WEBP are allowed.',
+                400,
+                'INVALID_MIME_TYPE'
+            )
+        );
     }
 
     next();
@@ -45,23 +67,48 @@ const validateBasicDoctorInfo = (req, res, next) => {
 
 
 const validateAvailabilityDetails = (req, res, next) => {
-    const availability = req.body;
-
-    if (!availability) {
-        return res.status(400).json({ error: 'Missing entire availability info.' });
-    }
 
     const {
         workplaces,
+        appointmentTimeSlots,
+        consultationFee,
         availableForOnlineConsultation
-    } = availability;
+    } = req.body;
 
     if(
-        availability.availableForOnlineConsultation === false &&
-        availability.workplaces.length === 0
+        !availableForOnlineConsultation &&
+        !workplaces?.length
     ){
-        throw new Error(
-            "At least one workplace is required for offline consultation."
+         return next(
+            new AppError(
+                'At least one workplace is required.',
+                400,
+                'MISSING_WORKPLACE'
+            )
+        );
+    }
+
+    if(
+        !appointmentTimeSlots || !consultationFee
+    ){
+         return next(
+            new AppError(
+                'Required fields are missing',
+                400,
+                'MISSING_REQUIRED_FIELDS'
+            )
+        );
+    }
+
+     if(
+        appointmentTimeSlots?.length == 0
+    ){
+         return next(
+            new AppError(
+                'Please add appointment time slots',
+                400,
+                'MISSING_APPOINTMENT_TIME_SLOTS'
+            )
         );
     }
 
@@ -71,10 +118,66 @@ const validateAvailabilityDetails = (req, res, next) => {
 
 
 const validateCredentialDetails = (req, res, next) => {
-    const credentials = req.body;
-    
-    if (!credentials) {
-        return res.status(400).json({ error: 'Missing entire credentials info.' });
+    const {
+        medicalLicenseNumber,
+        issuingAuthority,
+        licenseCertificateUrl,
+        education,
+        certifications
+    } = req.body
+
+    if (!medicalLicenseNumber ||
+        !issuingAuthority ||
+        !licenseCertificateUrl ||
+        !education){
+            return next(
+                new AppError(
+                    'Required fields are missing',
+                    400,
+                    'MISSING_REQUIRED_FIELDS'
+                )
+        );
+    }
+
+    if (!issuingAuthArray.includes(issuingAuthority)){
+        return next(
+                new AppError(
+                    'Please enter a valid issuing authority',
+                    400,
+                    'INVALID_ISSUING_AUTHORITY'
+                )
+        );
+
+    }
+
+    if (!Array.isArray(education)) {
+     return next(
+                new AppError(
+                    'Education must be an array.',
+                    400,
+                    'INVALID_EDUCATION_FORMAT'
+                )
+        );
+    }
+
+    if (education.length > 5){
+        return next(
+                new AppError(
+                    'Maximum 5 education entries are allowed',
+                    400,
+                    'EXCEEDING_ENTRY_LIMIT'
+                )
+        );
+    }
+
+    if (certifications && certifications.length > 5){
+        return next(
+                new AppError(
+                    'Maximum 5 certification entries are allowed',
+                    400,
+                    'EXCEEDING_ENTRY_LIMIT'
+                )
+        );
     }
 
     next();
@@ -82,10 +185,26 @@ const validateCredentialDetails = (req, res, next) => {
 
 
 const validateProfessionalDetails = (req, res, next) => {
-    const professionalDetails = req.body;
+    const {specialty, experience} = req.body;
 
-    if (!professionalDetails) {
-        return res.status(400).json({ error: 'Missing entire info for professional details.' });
+    if (!specialty || !experience) {
+         return next(
+            new AppError(
+                'Required fields are missing',
+                400,
+                'MISSING_REQUIRED_FIELDS'
+            )
+        );
+    }
+
+    if (experience.length > 5){
+         return next(
+                new AppError(
+                    'Maximum 5 experience entries are allowed',
+                    400,
+                    'EXCEEDING_ENTRY_LIMIT'
+                )
+        );
     }
 
     next();
@@ -93,23 +212,40 @@ const validateProfessionalDetails = (req, res, next) => {
 
 
 
-const validateDoctorFinalTouches = (req, res, next) => {
-    const finalTouches = req.body;
-
-    if (!finalTouches) {
-        return res.status(400).json({ error: 'Missing or invalid finalTouches object.' });
-    }
-
-
-    next();
-};
-
-
 const validateCommunitiesArray = (req, res, next) => {
     const communities = req.body;
-    if (!communities) {
-        return res.status(400).json({ error: 'At least one community is required.' });
+    if (!Array.isArray(communities)) {
+     return next(
+                new AppError(
+                    'Communities must be an array.',
+                    400,
+                    'INVALID_COMMUNITIES_FORMAT'
+                )
+        );
     }
+    if (!communities?.length) {
+        return next(
+                new AppError(
+                    'At least one community is required.',
+                    400,
+                    'MISSING_COMMUNITY'
+                )
+        );
+    }
+
+    if (!communities.every(
+        community => communitiesArray.includes(community)
+    )){
+         return next(
+                new AppError(
+                    'Please submit from the available communities only.',
+                    400,
+                    'INVALID_COMMUNITY'
+                )
+        );
+    }
+
+    next();
 }
 
 
@@ -119,6 +255,5 @@ module.exports = {
     validateAvailabilityDetails, 
     validateCredentialDetails, 
     validateProfessionalDetails, 
-    validateDoctorFinalTouches,
     validateCommunitiesArray
 };

@@ -15,25 +15,17 @@ const {
 
 
 const handleAddBasicDoctorInfo = async(req, res) => {
-    try {
-        console.log('Handling addBasicDoctorInfo request:', req.body, req.user);
-        const userId = req.user.id;
-        const textFields = req.body;
-        const profilePictureUrl = req.file?.path;
-        const basicDoctorInfo = { ...textFields, profilePicture: profilePictureUrl };
+    console.log('Handling addBasicDoctorInfo request:', req.body, req.user);
+    const userId = req.user.id;
+    const textFields = req.body;
+    const profilePictureUrl = req.file?.path;
+    const basicDoctorInfo = { ...textFields, profilePicture: profilePictureUrl };
 
-        const result = await addBasicDoctorInfo(userId, basicDoctorInfo);
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while adding basic doctor info',
-        });
-    }
+    const result = await addBasicDoctorInfo(userId, basicDoctorInfo);
+    res.status(201).json(result);
 }
 
 const handleUpdateBasicDoctorInfo = async(req, res) => {
-    try {
         console.log('Handling updateBasicDoctorInfo request:', req.body, req.user);
         const userId = req.user.id;
         const textFields = req.body;
@@ -46,177 +38,103 @@ const handleUpdateBasicDoctorInfo = async(req, res) => {
         }
 
         const result = await updateBasicDoctorInfo(userId, basicDoctorInfo);
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while updating basic doctor info',
-        });
+        res.status(200).json(result);
     }
-}
+
 
 const handleAddProfessionalDetails = async(req, res) => {
-    try {
         console.log('Handling addProfessionalDetails request:', req.body, req.user);
         const userId = req.user.id;
         const professionalDetailsData = req.body;
 
         const result = await addProfessionalDetails(userId, professionalDetailsData);
         res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while adding professional details',
-        });
-    }
-}
+} 
 
 
 const handleUpdateProfessionalDetails = async(req, res) => {
-    try {
         console.log('Handling updateProfessionalDetails request:', req.body, req.user);
         const userId = req.user.id;
         const updateData = req.updateData;
 
         const result = await updateProfessionalDetails(userId, updateData);
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while updating professional details',
-        });
-    }
+        res.status(200).json(result);
 }
 
+
 const handleAddCredentials = async(req, res) => {
-    try {
         console.log('Handling addCredentials request:', req.body, req.user);
         const userId = req.user.id;
         const credentialsData = req.body;
 
         const result = await addCredentials(userId, credentialsData);
         res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while adding credentials',
-        });
-    }
-}
+} 
 
 const handleUpdateCredentials = async(req, res) => {
-    try {
         console.log('Handling updateCredentials request:', req.body, req.user);
         const userId = req.user.id;
         const updateData = req.updateData;
 
         const result = await updateCredentials(userId, updateData);
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while updating credentials',
-        });
-    }
-}
+        res.status(200).json(result);
+} 
 
 const handleAddAvailabilityDetails = async(req, res) => {
-    try {
         console.log('Handling addAvailabilityDetails request:', req.body, req.user);
         const userId = req.user.id;
         const availabilityDetails = req.body;
 
         const result = await addAvailabilityDetails(userId, availabilityDetails);
         res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while adding availability details',
-        });
-    }
-}
+} 
 
 const handleUpdateAvailabilityDetails = async(req, res) => {
-    try {
         console.log('Handling updateAvailabilityDetails request:', req.body, req.user);
         const userId = req.user.id;
         const updateData = req.updateData;
 
         const result = await updateAvailabilityDetails(userId, updateData);
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while updating availability details',
-        });
-    }
-}
+        res.status(200).json(result);
+} 
 
 
 const handleAddJoinedCommunitiesArray = async(req, res) => {
-    try {
         console.log('Handling addJoinedCommunitiesArray request:', req.body, req.user);
         const userId = req.user.id;
         const joinedCommunitiesArray = req.body;
 
         const result = await addJoinedCommunitiesArray(userId, joinedCommunitiesArray);
         res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while adding joined communities',
-        });
-    }
-}
+    } 
 
 const handleLeaveCommunities = async(req, res) => {
-    try {
         console.log('Handling leaveCommunities request:', req.body, req.user);
         const userId = req.user.id;
         const leftCommunitiesArray = req.body;
 
         const result = await leaveCommunities(userId, leftCommunitiesArray);
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while leaving communities',
-        });
-    }
-}
+        res.status(200).json(result);
+    } 
 
 const handleAddFinalTouches = async(req, res) => {
-    try {
         console.log('Handling addFinalTouches request:', req.body, req.user);
         const userId = req.user.id;
         const finalTouchesData = req.body;
 
         const result = await addFinalTouches(userId, finalTouchesData);
         res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while adding final touches',
-        });
-    }
-}
+    } 
 
 
 const handleUpdateFinalTouches = async(req, res) => {
-    try {
         console.log('Handling updateFinalTouches request:', req.body, req.user);
         const userId = req.user.id;
         const updateData = req.updateData;
 
         const result = await updateFinalTouches(userId, updateData);
-        res.status(201).json(result);
-    } catch (error) {
-        res.status(400).json({
-            success: false,
-            message: error.message || 'An error occurred while updating final touches',
-        });
-    }
-}
+        res.status(200).json(result);
+} 
 
 module.exports = {
     handleAddBasicDoctorInfo,

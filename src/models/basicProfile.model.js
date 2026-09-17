@@ -5,7 +5,7 @@ const basicProfileSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     gender: { type: String, trim: true, enum: genderArray, required: true },
     dateOfBirth: {type: Date, required: true},
-    profilePicture: { type: String, trim: true },
+    profilePicture: { type: String, trim: true, required: true },
     country: { type: String, trim: true, required: true },
     city: { type: String, trim: true, required: true },
     languagesSpoken: { type: [String], default: [] },

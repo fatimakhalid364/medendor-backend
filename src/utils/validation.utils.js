@@ -8,7 +8,7 @@ const validateKeys = (data, schemaObj) => {
             throw new AppError(
                 `Invalid field: ${key}`,
                 400,
-                INVALID_FIELD           
+                'INVALID_FIELD'         
             );
         }
 

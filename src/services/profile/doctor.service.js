@@ -1,5 +1,5 @@
-const {BasicProfile}= require('models/basicProfile.model.js');
-const {Doctor}= require('models/doctor.model.js');
+const BasicProfile= require('models/basicProfile.model.js');
+const Doctor = require('models/doctor.model.js');
 const mongoose = require('mongoose');
 const AppError = require('utils/appError.utils');
 
@@ -40,6 +40,7 @@ const addBasicDoctorInfo = async (userId, basicDoctorInfo) => {
 
         return {
             success: true,
+            code: 'BASIC_DOCTOR_INFO_ADDED',
             message: 'Basic doctor info created and linked successfully.',
         };
     } catch (error) {
@@ -66,7 +67,10 @@ const updateBasicDoctorInfo = async (userId, basicDoctorInfo) => {
     const updatedProfile = await BasicProfile.findOneAndUpdate(
         { user: userId },
         { $set: basicDoctorInfo },
-        { runValidators: true, strict: true }, 
+        { 
+            new: true,
+            runValidators: true, 
+            strict: true }, 
     );
 
     if (!updatedProfile) {
@@ -77,7 +81,10 @@ const updateBasicDoctorInfo = async (userId, basicDoctorInfo) => {
         );
     }
 
-    return { success: true, message: `Basic Doctor Info updated successfully.` };
+    return { 
+        success: true,
+        CODE: 'BASIC_DOCTOR_INFO_UPDATED', 
+        message: `Basic Doctor Info updated successfully.` };
 } 
 
 //professionalDetails
@@ -105,13 +112,19 @@ const addProfessionalDetails = async (userId, professionalDetailsData) => {
 
     existingDoctorDetails.professionalDetails = professionalDetailsData;
     await existingDoctorDetails.save();
-    return { success: true, message: `Professional details added successfully.` };
+    return { 
+        success: true,
+        code: 'PROFESSIONAL_DETAILS_ADDED', 
+        message: `Professional details added successfully.` };
 
 }
 
 const updateProfessionalDetails = async (userId, updateData) => {
     const doctorDetails = await Doctor.findOneAndUpdate(
-        {user: userId}, 
+        {
+            user: userId,
+            professionalDetails: { $exists: true }
+        }, 
         {$set: updateData},
             {
                 runValidators: true,
@@ -128,7 +141,10 @@ const updateProfessionalDetails = async (userId, updateData) => {
         )
     }
 
-    return { success: true, message: "Professional details updated successfully." };
+    return { 
+        success: true,
+        code: 'PROFESSIONAL_DETAILS_UPDATED',
+        message: "Professional details updated successfully." };
 } 
 
 //credentials
@@ -156,13 +172,19 @@ const addCredentials = async (userId, credentialsData) => {
 
     existingDoctorDetails.credentials = credentialsData;
     await existingDoctorDetails.save();
-    return { success: true, message: `Credentials added successfully.` };
+    return { 
+        success: true,
+        code: 'CREDENTIALS_ADDED', 
+        message: `Credentials added successfully.` };
 
 } 
 
 const updateCredentials = async (userId, updateData) => {
     const doctorDetails = await Doctor.findOneAndUpdate(
-        {user: userId}, 
+        {
+            user: userId,
+            credentials: { $exists: true }
+        }, 
         {$set: updateData},
         {
             runValidators: true,
@@ -179,7 +201,10 @@ const updateCredentials = async (userId, updateData) => {
         )
     }
 
-    return { success: true, message: "Credentials updated successfully." };
+    return { 
+        success: true,
+        code: 'CREDENTIALS_UPDATED', 
+        message: "Credentials updated successfully." };
 } 
 
 //availability
@@ -207,14 +232,20 @@ const addAvailabilityDetails = async (userId, availabilityDetails) => {
 
     existingDoctorDetails.availability = availabilityDetails;
     await existingDoctorDetails.save();
-    return { success: true, message: `Availability details added successfully.` };
+    return { 
+        success: true,
+        code: 'AVAILABILITY_DETAILS_ADDED', 
+        message: `Availability details added successfully.` };
 
 } 
 
 
 const updateAvailabilityDetails = async (userId, updateData) => {
     const doctorDetails = await Doctor.findOneAndUpdate(
-        {user: userId}, 
+        {
+            user: userId,
+            availability: { $exists: true }
+        }, 
         {$set: updateData},
         {
             runValidators: true,
@@ -231,7 +262,10 @@ const updateAvailabilityDetails = async (userId, updateData) => {
         )
     }
 
-    return { success: true, message: "Availability details updated successfully." };
+    return { 
+        success: true,
+        code: 'AVAILABILITY_DETAILS_UPDATED', 
+        message: "Availability details updated successfully." };
 } 
 
 
@@ -239,47 +273,81 @@ const updateAvailabilityDetails = async (userId, updateData) => {
 
 const addJoinedCommunitiesArray = async (userId, joinedCommunitiesArray) => {
     console.log('Inside addJoinedCommunities service:', 'data:',joinedCommunitiesArray, 'and id:', userId);
-    let existingDoctorDetails = await Doctor.findOne({ user: userId });
+    const doctorDetails = await Doctor.findOneAndUpdate(
+        { user: userId },
+        {
+            $addToSet: {
+                joinedCommunities: {
+                    $each: joinedCommunitiesArray
+                }
+            }
+        },
+        {
+            new: true,
+            runValidators: true
+        }
+    );
 
-    if (!existingDoctorDetails) {
+    if (!doctorDetails) {
         throw new AppError(
-            "Please add basic profile before adding joined communities.",
-            409,
-            'BASIC_PROFILE_MISSING'
-        )
+            "Doctor profile not found.",
+            404,
+            "DOCTOR_NOT_FOUND"
+        );
     }
-    existingDoctorDetails.joinedCommunities = [
-        ...new Set([...existingDoctorDetails.joinedCommunities, ...joinedCommunitiesArray])
-    ];
-    await existingDoctorDetails.save();
-    return { success: true, message: `Joined communities added successfully.` };
+    return { 
+        success: true,
+        code: 'JOINED_COMMUNITIES_ADDED', 
+        message: `Joined communities added successfully.` 
+    };
 } 
 
 
 const leaveCommunities = async (userId, leftCommunitiesArray) => {
-    console.log('Inside leaveCommunities service:', 'data:', leftCommunitiesArray, 'and id:', userId);
+    console.log(
+        'Inside leaveCommunities service:',
+        'data:',
+        leftCommunitiesArray,
+        'and id:',
+        userId
+    );
 
-    const existingDoctorDetails = await Doctor.findOne({ user: userId });
-    if (!existingDoctorDetails) {
+    const result = await Doctor.updateOne(
+        { user: userId },
+        {
+            $pull: {
+                joinedCommunities: {
+                    $in: leftCommunitiesArray
+                }
+            }
+        },
+        {
+            runValidators: true
+        }
+    );
+
+    if (result.matchedCount === 0) {
         throw new AppError(
             "Please add basic profile before leaving communities.",
             409,
             'BASIC_PROFILE_MISSING'
-        )
-    }
-
-    if (Array.isArray(existingDoctorDetails.joinedCommunities) && existingDoctorDetails.joinedCommunities.length > 0) {
-        existingDoctorDetails.joinedCommunities = existingDoctorDetails.joinedCommunities.filter(
-            (community) => !leftCommunitiesArray.includes(community)
         );
-
-        await existingDoctorDetails.save();
-        return { success: true, message: 'Communities left successfully.' };
     }
 
-    return { success: false, message: 'No joined communities found.' };
+    if (result.modifiedCount === 0) {
+        return {
+            success: true,
+            code: 'COMMUNITIES_ALREADY_LEFT',
+            message: 'None of the requested communities were joined.'
+        };
+    }
 
-} 
+    return {
+        success: true,
+        code: 'COMMUNITIES_LEFT',
+        message: 'Communities left successfully.'
+    };
+};
 
 
 
@@ -307,14 +375,20 @@ const addFinalTouches = async (userId, finalTouchesData) => {
 
     existingDoctorDetails.finalTouches = finalTouchesData;
     await existingDoctorDetails.save();
-    return { success: true, message: `Final touches added successfully.` };
+    return { 
+        success: true,
+        code: 'FINAL_TOUCHES_ADDED', 
+        message: `Final touches added successfully.` };
 
 } 
 
 
 const updateFinalTouches = async (userId, updateData) => {
     const doctorDetails = await Doctor.findOneAndUpdate(
-        {user: userId}, 
+        {
+            user: userId,
+            finalTouces: { $exists: true }
+        }, 
         {$set: updateData},
         {
             runValidators: true,
@@ -331,7 +405,10 @@ const updateFinalTouches = async (userId, updateData) => {
         )
     }
 
-    return { success: true, message: "Final touches updated successfully." };
+    return { 
+        success: true,
+        code: 'FINAL_TOUCHES_UPDATED', 
+        message: "Final touches updated successfully." };
 } 
 
 module.exports = {

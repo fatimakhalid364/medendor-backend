@@ -54,7 +54,7 @@ router.post(
     handleAddBasicDoctorInfo
 );
 
-router.put(
+router.patch(
     '/basic-info',
     upload.single('profilePicture'),
     handleUpdateBasicDoctorInfo
@@ -72,7 +72,7 @@ router.post(
     handleAddProfessionalDetails
 );
 
-router.put(
+router.patch(
     '/professional-details',
     validateRequestFields(professionalDetailsSchema, 'professionalDetails'),
     handleUpdateProfessionalDetails
@@ -90,7 +90,7 @@ router.post(
     handleAddCredentials
 );
 
-router.put(
+router.patch(
     '/credentials',
     validateRequestFields(credentialsSchema, 'credentials'),
     handleUpdateCredentials
@@ -108,7 +108,7 @@ router.post(
     handleAddAvailabilityDetails
 );
 
-router.put(
+router.patch(
     '/availability',
     validateRequestFields(availabilitySchema, 'availability'),
     handleUpdateAvailabilityDetails
@@ -139,11 +139,10 @@ router.delete(
 
 router.post(
     '/final-touches',
-    validateDoctorFinalTouches,
     handleAddFinalTouches
 );
 
-router.put(
+router.patch(
     '/final-touches',
     validateRequestFields(finalTouchesSchema, 'finalTouches'),
     handleUpdateFinalTouches
