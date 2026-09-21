@@ -8,7 +8,7 @@ const educationSchema = new mongoose.Schema({
         type: Number,
         validate: {
             validator(value) {
-                value <= this.endYear;
+                return value == null || value == undefined || value <= this.endYear;
             },
             message: "Start year cannot be after end year."
         }
@@ -17,7 +17,7 @@ const educationSchema = new mongoose.Schema({
         type: Number,
         validate: {
             validator(value) {
-                return value == null || value >= this.startYear;
+                return value == null || value == undefined || value >= this.startYear;
             },
             message: "End year cannot be before start year."
         }

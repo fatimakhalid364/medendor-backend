@@ -87,7 +87,9 @@ const makeSetObj = (obj, currentPath = '') => {
         }
 
         // Array (including array of objects)
-        else if (Array.isArray(value)) {
+        else if (
+            Array.isArray(value) 
+        ) {
 
             setObj[newPath] = value;
 
