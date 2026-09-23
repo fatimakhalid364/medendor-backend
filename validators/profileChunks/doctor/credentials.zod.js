@@ -7,33 +7,33 @@ const credentialsAdditionZodSchema = z.strictObject({
     medicalLicenseNumber: z.string({
         error: 'Medical license number is required.'
     })
-        .trim()
-        .min(1, {
-            error: 'Medical license number is required.'
-        }),
+    .trim()
+    .min(1, {
+        error: 'Medical license number is required.'
+    }),
 
     issuingAuthority: z.string({
         error: 'Issuing authority is required.'
     })
-        .trim()
-        .min(1, {
-            error: 'Issuing authority is required.'
-        }),
+    .trim()
+    .min(1, {
+        error: 'Issuing authority is required.'
+    }),
 
     licenseCertificateUrl: z.string({
         error: 'License certificate URL is required.'
     })
-        .trim()
-        .min(1, {
-            error: 'License certificate URL is required.'
-        }),
+    .trim()
+    .min(1, {
+        error: 'License certificate URL is required.'
+    }),
 
     education: z.array(educationAdditionZodSchema, {
         error: 'Education must be an array.'
     })
-        .max(5, {
-            error: 'Maximum 5 degree entries allowed.'
-        }),
+    .max(5, {
+        error: 'Maximum 5 degree entries allowed.'
+    }),
 
     certifications: z.array(
         z.string()
@@ -45,9 +45,9 @@ const credentialsAdditionZodSchema = z.strictObject({
             error: 'Certifications must be an array.'
         }
     )
-        .max(5, {
-            error: 'Maximum 5 certifications allowed.'
-        })
+    .max(5, {
+        error: 'Maximum 5 certifications allowed.'
+    })
 
 });
 
@@ -56,33 +56,37 @@ const credentialsUpdateZodSchema = z.strictObject({
     medicalLicenseNumber: z.string({
         error: 'Medical license number is required.'
     })
-        .trim()
-        .min(1, {
-            error: 'Medical license number is required.'
-        }),
+    .trim()
+    .min(1, {
+        error: 'Medical license number is required.'
+    })
+    .optional(),
 
     issuingAuthority: z.string({
         error: 'Issuing authority is required.'
     })
-        .trim()
-        .min(1, {
-            error: 'Issuing authority is required.'
-        }),
+    .trim()
+    .min(1, {
+        error: 'Issuing authority is required.'
+    })
+    .optional(),
 
     licenseCertificateUrl: z.string({
         error: 'License certificate URL is required.'
     })
-        .trim()
-        .min(1, {
-            error: 'License certificate URL is required.'
-        }),
+    .trim()
+    .min(1, {
+        error: 'License certificate URL is required.'
+    })
+    .optional(),
 
-    education: z.array(educationAdditionZodSchema, {
+    education: z.array(educationUpdateZodSchema, {
         error: 'Education must be an array.'
     })
-        .max(5, {
-            error: 'Maximum 5 degree entries allowed.'
-        }),
+    .max(5, {
+        error: 'Maximum 5 degree entries allowed.'
+    })
+    .optional(),
 
     certifications: z.array(
         z.string()
@@ -94,9 +98,12 @@ const credentialsUpdateZodSchema = z.strictObject({
             error: 'Certifications must be an array.'
         }
     )
-        .max(5, {
-            error: 'Maximum 5 certifications allowed.'
-        })
+    .max(5, {
+        error: 'Maximum 5 certifications allowed.'
+    })
+    .optional()
 
 });
+
+module.exports = {credentialsAdditionZodSchema, credentialsUpdateZodSchema}
 

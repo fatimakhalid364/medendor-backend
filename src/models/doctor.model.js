@@ -14,7 +14,7 @@ const doctorSchema = new mongoose.Schema({
     professionalDetails: {type: professionalDetailsSchema},
     credentials: {type: credentialsSchema},
     availability: {type: availabilitySchema},
-    joinedCommunities: {
+    communities: {
         type: [String],
         default: [],
         enum: communitiesArray

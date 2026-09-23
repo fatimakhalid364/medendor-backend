@@ -267,8 +267,8 @@ const updatePatientFinalTouches = async (userId, updateData) => {
 
 }
 
-const addJoinedCommunitiesArray = async (userId, joinedCommunitiesArray) => {
-    console.log('Inside addJoinedCommunities service:', 'data:',joinedCommunitiesArray, 'and id:', userId);
+const addJoinedCommunitiesArray = async (userId, communitiesArray) => {
+    console.log('Inside addJoinedCommunities service:', 'data:',communitiesArray, 'and id:', userId);
     let existingPatientDetails = await Patient.findOne({ user: userId });
 
     if (!existingPatientDetails) {
@@ -279,8 +279,8 @@ const addJoinedCommunitiesArray = async (userId, joinedCommunitiesArray) => {
         )
     }
     
-    existingPatientDetails.joinedCommunities = [
-        ...new Set([...existingPatientDetails.joinedCommunities, ...joinedCommunitiesArray])
+    existingPatientDetails.communities = [
+        ...new Set([...existingPatientDetails.communities, ...communitiesArray])
     ];
     await existingPatientDetails.save();
     return { success: true, message: `Joined communities added successfully.` };
@@ -299,8 +299,8 @@ const leaveCommunities = async (userId, leftCommunitiesArray) => {
         )
     }
 
-    if (Array.isArray(existingPatientDetails.joinedCommunities) && existingPatientDetails.joinedCommunities.length > 0) {
-        existingPatientDetails.joinedCommunities = existingPatientDetails.joinedCommunities.filter(
+    if (Array.isArray(existingPatientDetails.communities) && existingPatientDetails.communities.length > 0) {
+        existingPatientDetails.communities = existingPatientDetails.communities.filter(
             (community) => !leftCommunitiesArray.includes(community)
         );
 

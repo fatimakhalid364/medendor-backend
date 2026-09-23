@@ -9,7 +9,7 @@ const patientSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     basicProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'BasicProfile', required: true },
     healthInterests: healthInterestsSchema,
-    joinedCommunities: {
+    communities: {
         type: [String],
         default: [],
     },

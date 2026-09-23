@@ -271,14 +271,14 @@ const updateAvailabilityDetails = async (userId, updateData) => {
 
 //communitiesToJoin
 
-const addJoinedCommunitiesArray = async (userId, joinedCommunitiesArray) => {
-    console.log('Inside addJoinedCommunities service:', 'data:',joinedCommunitiesArray, 'and id:', userId);
+const addJoinedCommunitiesArray = async (userId, communitiesArray) => {
+    console.log('Inside addJoinedCommunities service:', 'data:',communitiesArray, 'and id:', userId);
     const doctorDetails = await Doctor.findOneAndUpdate(
         { user: userId },
         {
             $addToSet: {
-                joinedCommunities: {
-                    $each: joinedCommunitiesArray
+                communities: {
+                    $each: communitiesArray
                 }
             }
         },
@@ -316,7 +316,7 @@ const leaveCommunities = async (userId, leftCommunitiesArray) => {
         { user: userId },
         {
             $pull: {
-                joinedCommunities: {
+                communities: {
                     $in: leftCommunitiesArray
                 }
             }

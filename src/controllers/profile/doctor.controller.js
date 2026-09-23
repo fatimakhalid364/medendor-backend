@@ -102,9 +102,9 @@ const handleUpdateAvailabilityDetails = async(req, res) => {
 const handleAddJoinedCommunitiesArray = async(req, res) => {
         console.log('Handling addJoinedCommunitiesArray request:', req.body, req.user);
         const userId = req.user.id;
-        const joinedCommunitiesArray = req.body;
+        const communitiesArray = req.body;
 
-        const result = await addJoinedCommunitiesArray(userId, joinedCommunitiesArray);
+        const result = await addJoinedCommunitiesArray(userId, communitiesArray);
         res.status(201).json(result);
     } 
 
