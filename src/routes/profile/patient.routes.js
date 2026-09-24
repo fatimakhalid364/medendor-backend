@@ -12,7 +12,7 @@ const {
     },
 } = require('middlewares');
 
-const {validateRequestFieldsForUpdate} = require('middlewares/profile.middleware')
+const {makeUpdatePath} = require('middlewares/profile.middleware')
 
 const multer = require('multer');
 const { cloudinary: { storage } } = require('config');
@@ -82,7 +82,7 @@ router.post(
 
 router.put(
     '/health-interests',
-    validateRequestFieldsForUpdate(healthInterestsSchema, 'healthInterests'),
+    makeUpdatePath(healthInterestsSchema, 'healthInterests'),
     handleUpdateHealthInterests
 );
 
@@ -99,7 +99,7 @@ router.post(
 
 router.put(
     '/privacy-preferences',
-    validateRequestFieldsForUpdate(privacyPreferencesSchema, 'privacyPreferences'),
+    makeUpdatePath(privacyPreferencesSchema, 'privacyPreferences'),
     handleUpdatePrivacyPreferences
 );
 
@@ -116,7 +116,7 @@ router.post(
 
 router.put(
     '/final-touches',
-    validateRequestFieldsForUpdate(finalTouchesSchema, 'finalTouches'),
+    makeUpdatePath(finalTouchesSchema, 'finalTouches'),
     handleUpdatePatientFinalTouches
 );
 

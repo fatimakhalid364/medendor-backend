@@ -1,15 +1,20 @@
 const express = require('express');
 const router = express.Router();
+
+const {basicProfileZodSchema} = require('validators/basicProfile.zod');
 const {
-        validateIsDoctor, 
-        validateBasicDoctorInfo,
-        validateAvailabilityDetails, 
-        validateCredentialDetails, 
-        validateProfessionalDetails, 
-        validateDoctorFinalTouches,
-        validateCommunitiesArray
-    } = require('middlewares/profile/doctor.middleware');
-const {authenticateSession} = require('middlewares/auth.middleware')
+    availabilityZodSchema,
+    communitiesZodSchema,
+    professionalDetailsZodSchema,
+    credentialsZodSchema,
+    finalTouchesZodSchema
+} = require('validators/profileChunks/doctor');
+
+const validate = require('middlewares/validation.middleware');
+const {authenticateSession} = require('middlewares/auth.middleware');
+const makeUpdatePath = require('middlewares/profile.middleware');
+const {validateIsDoctor} = require('middlewares/profile/doctor.middleware');
+
 const multer = require('multer');
 const {storage} = require('config/cloudinary');
 const { 
@@ -27,16 +32,32 @@ const {
     handleUpdateFinalTouches
 } = require('controllers/profile/doctor.controller');
 
-const {
-    availabilitySchema, 
-    credentialsSchema, 
-    professionalDetailsSchema,
-    finalTouchesSchema
-} = require('models/profileChunks/doctor');
 
-const {validateRequestFieldsForUpdate} = require('middlewares/profile.middleware');
 
-const upload = multer({ storage });
+
+
+const upload = multer({
+    storage,
+
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5 MB
+    },
+
+    fileFilter: (req, file, cb) => {
+
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+            return cb(
+                new AppError(
+                    'Profile picture must be a JPEG, PNG, or WebP image.',
+                    400,
+                    'INVALID_PROFILE_PICTURE_TYPE'
+                )
+            );
+        }
+
+        cb(null, true);
+    }
+});
 
 router.use(authenticateSession);
 router.use(validateIsDoctor);
@@ -50,13 +71,14 @@ router.use(validateIsDoctor);
 router.post(
     '/basic-info',
     upload.single('profilePicture'),
-    validateBasicDoctorInfo,
+    validate(basicProfileZodSchema.addition),
     handleAddBasicDoctorInfo
 );
 
 router.patch(
     '/basic-info',
     upload.single('profilePicture'),
+    validate(basicProfileZodSchema.update),
     handleUpdateBasicDoctorInfo
 );
 
@@ -68,13 +90,14 @@ router.patch(
 
 router.post(
     '/professional-details',
-    validateProfessionalDetails,
+    validate(professionalDetailsZodSchema.addition),
     handleAddProfessionalDetails
 );
 
 router.patch(
     '/professional-details',
-    validateRequestFieldsForUpdate(professionalDetailsSchema, 'professionalDetails'),
+    validate(professionalDetailsZodSchema.update),
+    makeUpdatePath('professionalDetails'),
     handleUpdateProfessionalDetails
 );
 
@@ -86,13 +109,14 @@ router.patch(
 
 router.post(
     '/credentials',
-    validateCredentialDetails,
+    validate(credentialsZodSchema.addition),
     handleAddCredentials
 );
 
 router.patch(
     '/credentials',
-    validateRequestFieldsForUpdate(credentialsSchema, 'credentials'),
+    validate(credentialsZodSchema.update),
+    makeUpdatePath('credentials'),
     handleUpdateCredentials
 );
 
@@ -104,13 +128,14 @@ router.patch(
 
 router.post(
     '/availability',
-    validateAvailabilityDetails,
+    validate(availabilityZodSchema.addition),
     handleAddAvailabilityDetails
 );
 
 router.patch(
     '/availability',
-    validateRequestFieldsForUpdate(availabilitySchema, 'availability'),
+    validate(availabilityZodSchema.update),
+    makeUpdatePath('availability'),
     handleUpdateAvailabilityDetails
 );
 
@@ -122,12 +147,13 @@ router.patch(
 
 router.post(
     '/communities',
-    validateCommunitiesArray,
+    validate(communitiesZodSchema),
     handleAddJoinedCommunitiesArray
 );
 
 router.delete(
     '/communities',
+    validate(communitiesZodSchema),
     handleLeaveCommunities
 );
 
@@ -139,12 +165,14 @@ router.delete(
 
 router.post(
     '/final-touches',
+    validate(finalTouchesZodSchema.addition),
     handleAddFinalTouches
 );
 
 router.patch(
     '/final-touches',
-    validateRequestFieldsForUpdate(finalTouchesSchema, 'finalTouches'),
+    validate(finalTouchesZodSchema.update),
+    makeUpdatePath('finalTouches'),
     handleUpdateFinalTouches
 );
 

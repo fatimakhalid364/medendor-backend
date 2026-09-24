@@ -1,6 +1,6 @@
 const { z } = require('zod');
 
-const finalTouchesAdditionZodSchema = z.strictObject({
+const addition = z.strictObject({
     openTo: z.strictObject({
         collaborations: z.boolean({
             error: 'Collaborations must be true or false.'
@@ -47,7 +47,7 @@ const finalTouchesAdditionZodSchema = z.strictObject({
     })
 });
 
-const finalTouchesUpdateZodSchema = z.strictObject({
+const update = z.strictObject({
     openTo: z.strictObject({
         collaborations: z.boolean({
             error: 'Collaborations must be true or false.'
@@ -94,4 +94,7 @@ const finalTouchesUpdateZodSchema = z.strictObject({
     }).optional()
 });
 
-module.exports = {finalTouchesAdditionZodSchema, finalTouchesUpdateZodSchema};
+module.exports = {
+    addition,
+    update
+};

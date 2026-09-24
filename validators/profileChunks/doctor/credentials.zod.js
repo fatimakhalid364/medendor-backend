@@ -2,7 +2,7 @@ const { z } = require('zod');
 
 const {educationAdditionZodSchema, educationUpdateZodSchema} = require('./education.zod');
 
-const credentialsAdditionZodSchema = z.strictObject({
+const addition = z.strictObject({
 
     medicalLicenseNumber: z.string({
         error: 'Medical license number is required.'
@@ -51,7 +51,7 @@ const credentialsAdditionZodSchema = z.strictObject({
 
 });
 
-const credentialsUpdateZodSchema = z.strictObject({
+const update = z.strictObject({
 
     medicalLicenseNumber: z.string({
         error: 'Medical license number is required.'
@@ -105,5 +105,8 @@ const credentialsUpdateZodSchema = z.strictObject({
 
 });
 
-module.exports = {credentialsAdditionZodSchema, credentialsUpdateZodSchema}
+module.exports = {
+    addition,
+    update
+};
 

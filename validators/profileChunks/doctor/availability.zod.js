@@ -18,7 +18,7 @@ const workplaceZodSchema = z.strictObject({
     })
 });
 
-const availabilityAdditionZodSchema = z.strictObject({
+const addition = z.strictObject({
 
     workplaces: z.array(workplaceZodSchema, {
         error: 'Workplaces must be an array.'
@@ -68,7 +68,7 @@ const availabilityAdditionZodSchema = z.strictObject({
     }
 );
 
-const availabilityUpdateZodSchema = z.strictObject({
+const update = z.strictObject({
 
     workplaces: z.array(workplaceZodSchema, {
         error: 'Workplaces must be an array.'
@@ -123,6 +123,6 @@ const availabilityUpdateZodSchema = z.strictObject({
 
 
 module.exports = {
-    availabilityAdditionZodSchema,
-    availabilityUpdateZodSchema
+    addition,
+    update
 };

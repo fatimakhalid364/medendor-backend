@@ -43,6 +43,7 @@
     "doctorProfile": "./src/models/profileChunks/doctor",
     "patientProfile": "./src/models/profileChunks/patient",
     "workers": "./src/workers",
-    "scripts": "./src/scripts"
+    "scripts": "./src/scripts",
+    "validators": "./src/validators"
   }
 }

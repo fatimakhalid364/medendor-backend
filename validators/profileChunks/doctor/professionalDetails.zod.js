@@ -35,7 +35,7 @@ const experienceZodSchema = z.strictObject({
     }
 );
 
-const professionalDetailsAdditionZodSchema = z.strictObject({
+const addition = z.strictObject({
 
     specialty: z.string({
         error: 'Specialty is required.'
@@ -68,7 +68,7 @@ const professionalDetailsAdditionZodSchema = z.strictObject({
 
 });
 
-const professionalDetailsUpdateZodSchema = z.strictObject({
+const update = z.strictObject({
 
     specialty: z.string({
         error: 'Specialty is required.'
@@ -104,6 +104,6 @@ const professionalDetailsUpdateZodSchema = z.strictObject({
 });
 
 module.exports = {
-    professionalDetailsAdditionZodSchema,
-    professionalDetailsUpdateZodSchema
+    addition,
+    update
 };
