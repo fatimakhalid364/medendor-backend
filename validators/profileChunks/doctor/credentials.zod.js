@@ -48,32 +48,27 @@ const addition = z.strictObject({
     .max(5, {
         error: 'Maximum 5 certifications allowed.'
     })
+    .optional()
 
 });
 
 const update = z.strictObject({
 
-    medicalLicenseNumber: z.string({
-        error: 'Medical license number is required.'
-    })
+    medicalLicenseNumber: z.string()
     .trim()
     .min(1, {
-        error: 'Medical license number is required.'
+        error: 'Medical license number can not be empty.'
     })
     .optional(),
 
-    issuingAuthority: z.string({
-        error: 'Issuing authority is required.'
-    })
+    issuingAuthority: z.string()
     .trim()
     .min(1, {
         error: 'Issuing authority is required.'
     })
     .optional(),
 
-    licenseCertificateUrl: z.string({
-        error: 'License certificate URL is required.'
-    })
+    licenseCertificateUrl: z.string()
     .trim()
     .min(1, {
         error: 'License certificate URL is required.'
@@ -103,7 +98,12 @@ const update = z.strictObject({
     })
     .optional()
 
-});
+}).refine(
+    data => Object.keys(data).length > 0,
+    {
+        error: 'At least one field must be provided for update.'
+    }
+);;
 
 module.exports = {
     addition,

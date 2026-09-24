@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const {validateKeys, makeSetObj} = require('utils/validation.utils')
+const {makeSetObj} = require('utils/validation.utils')
 
 /**
  * Creates a whitelist + sanitizer middleware for nested updates

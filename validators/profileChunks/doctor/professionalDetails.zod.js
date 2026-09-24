@@ -26,14 +26,38 @@ const experienceZodSchema = z.strictObject({
         error: 'Currently working must be true or false.'
     })
 
-}).refine(
-    data =>
-        data.startDate <= data.endDate,
-    {
-        path: ['startDate'],
-        error: 'Start date cannot be after end date.'
+}).superRefine((data, ctx) => {
+
+    // Ongoing experience should not have an end date
+    if (data.currentlyWorking && data.endDate !== undefined) {
+        ctx.addIssue({
+            code: 'custom',
+            path: ['endDate'],
+            message: 'End date should not be provided for ongoing experience.'
+        });
     }
-);
+
+    // Completed experience must have an end date
+    if (!data.currentlyWorking && data.endDate === undefined) {
+        ctx.addIssue({
+            code: 'custom',
+            path: ['endDate'],
+            message: 'End date is required when experience is not ongoing.'
+        });
+    }
+
+    // If both dates exist, start cannot be after end
+    if (
+        data.endDate !== undefined &&
+        data.startDate > data.endDate
+    ) {
+        ctx.addIssue({
+            code: 'custom',
+            path: ['startDate'],
+            message: 'Start date cannot be after end date.'
+        });
+    }
+});
 
 const addition = z.strictObject({
 
@@ -70,12 +94,10 @@ const addition = z.strictObject({
 
 const update = z.strictObject({
 
-    specialty: z.string({
-        error: 'Specialty is required.'
-    })
+    specialty: z.string()
         .trim()
         .min(1, {
-            error: 'Specialty is required.'
+            error: 'Specialty can not be empty.'
         })
         .optional(),
 

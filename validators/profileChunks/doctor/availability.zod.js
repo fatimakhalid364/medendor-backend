@@ -26,17 +26,17 @@ const addition = z.strictObject({
     .max(5, {
         error: 'Maximum 5 workplaces entries allowed.'
     })
-    .optional(),
+    .default([]),
 
     availableForOnlineConsultation: z.boolean({
         error: 'Available for online consultation must be true or false.'
     })
-    .optional(),
+    .default(false),
 
     acceptingNewPatients: z.boolean({
         error: 'Accepting new patients must be true or false.'
     })
-    .optional(),
+    .default(false),
 
     consultationFee: z.number({
         error: 'Consultation fee is required.'
@@ -88,9 +88,7 @@ const update = z.strictObject({
     })
     .optional(),
 
-    consultationFee: z.number({
-        error: 'Consultation fee is required.'
-    })
+    consultationFee: z.number()
     .min(0, {
         error: 'Consultation fee cannot be negative.'
     })
@@ -112,11 +110,9 @@ const update = z.strictObject({
     .optional()
 
 }).refine(
-    data =>
-        data.workplaces.length > 0 ||
-        data.availableForOnlineConsultation === true,
+    data => Object.keys(data).length > 0,
     {
-        error: 'Provide at least one workplace or enable online consultation.'
+        error: 'At least one field must be provided for update.'
     }
 );
 

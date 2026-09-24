@@ -13,7 +13,7 @@ const {
 const validate = require('middlewares/validation.middleware');
 const {authenticateSession} = require('middlewares/auth.middleware');
 const makeUpdatePath = require('middlewares/profile.middleware');
-const {validateIsDoctor} = require('middlewares/profile/doctor.middleware');
+const {validateIsDoctor, validateDoctorAge} = require('middlewares/profile/doctor.middleware');
 
 const multer = require('multer');
 const {storage} = require('config/cloudinary');
@@ -71,6 +71,7 @@ router.use(validateIsDoctor);
 router.post(
     '/basic-info',
     upload.single('profilePicture'),
+    validateDoctorAge,
     validate(basicProfileZodSchema.addition),
     handleAddBasicDoctorInfo
 );
@@ -78,6 +79,7 @@ router.post(
 router.patch(
     '/basic-info',
     upload.single('profilePicture'),
+    validateDoctorAge,
     validate(basicProfileZodSchema.update),
     handleUpdateBasicDoctorInfo
 );

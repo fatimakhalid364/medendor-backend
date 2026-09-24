@@ -241,10 +241,38 @@ const addAvailabilityDetails = async (userId, availabilityDetails) => {
 
 
 const updateAvailabilityDetails = async (userId, updateData) => {
+    console.log('inside updateAvailabilityDetails service', userId, updateData);
+
+    const workplacesPath = 'availability.workplaces';
+    const onlinePath = 'availability.availableForOnlineConsultation';
+
+    const hasWorkplacesUpdate = Object.hasOwn(updateData, workplacesPath);
+    const hasOnlineUpdate = Object.hasOwn(updateData, onlinePath);
+
+    const validFinalState = {
+        $or: [
+            {
+                $expr: {
+                    $gt: [
+                        {
+                            $size: hasWorkplacesUpdate
+                                ? { $literal: updateData[workplacesPath] }
+                                : { $ifNull: [`$${workplacesPath}`, []] }
+                        },
+                        0
+                    ]
+                }
+            },
+            hasOnlineUpdate
+                ? { [onlinePath]: updateData[onlinePath] }
+                : { [onlinePath]: true }
+        ]
+    };
     const doctorDetails = await Doctor.findOneAndUpdate(
         {
             user: userId,
-            availability: { $exists: true }
+            availability: { $exists: true },
+            ...validFinalState
         }, 
         {$set: updateData},
         {

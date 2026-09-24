@@ -108,6 +108,13 @@ const educationUpdateZodSchema = z.strictObject({
 })
 .superRefine((data, ctx) => {
 
+    if (Object.keys(data).length === 0) {
+        ctx.addIssue({
+            code: 'custom',
+            message: 'At least one field must be provided for update.'
+        });
+    }
+
     if (
         data.startYear !== undefined &&
         data.endYear !== undefined &&

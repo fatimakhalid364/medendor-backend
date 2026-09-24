@@ -20,75 +20,51 @@ const validateIsDoctor = (req, res, next) => {
     next();
 }
 
-const validateBasicDoctorInfo = (req, res, next) => {
+const validateDoctorAge = (req, res, next) => {
     const {
-        gender,
-        dateOfBirth,
-        country,
-        city,
-        languagesSpoken
+        dateOfBirth
     } = req.body;
 
-    const profilePicture = req.file;
+    if (dateOfBirth){
+        const birthDate = new Date(dateOfBirth);
 
-    if (!languagesSpoken?.length || !profilePicture || !gender || !dateOfBirth || !country || !city) {
-        return next(
-            new AppError(
-                'Required fields are missing',
-                400,
-                'MISSING_REQUIRED_FIELDS'
-            )
-        );
-    }
+        if (Number.isNaN(birthDate.getTime())) {
+            return next(
+                new AppError(
+                    'Invalid date of birth.',
+                    400,
+                    'INVALID_DATE_OF_BIRTH'
+                )
+            );
+        }
 
-    // Convert dateOfBirth to a Date
-    const birthDate = new Date(dateOfBirth);
+        const today = new Date();
 
-    // Make sure the date is valid
-    if (Number.isNaN(birthDate.getTime())) {
-        return next(
-            new AppError(
-                'Invalid date of birth.',
-                400,
-                'INVALID_DATE_OF_BIRTH'
-            )
-        );
-    }
+        let age = today.getFullYear() - birthDate.getFullYear();
 
-    const today = new Date();
+        const hasHadBirthdayThisYear =
+            today.getMonth() > birthDate.getMonth() ||
+            (
+                today.getMonth() === birthDate.getMonth() &&
+                today.getDate() >= birthDate.getDate()
+            );
 
-    let age = today.getFullYear() - birthDate.getFullYear();
+        if (!hasHadBirthdayThisYear) {
+            age--;
+        }
 
-    const hasHadBirthdayThisYear =
-        today.getMonth() > birthDate.getMonth() ||
-        (
-            today.getMonth() === birthDate.getMonth() &&
-            today.getDate() >= birthDate.getDate()
-        );
+        if (age < 25) {
+            return next(
+                new AppError(
+                    'A doctor should be 25 years or older.',
+                    400,
+                    'INVALID_AGE'
+                )
+            );
+        }
+    } 
 
-    if (!hasHadBirthdayThisYear) {
-        age--;
-    }
-
-    if (age < 25) {
-        return next(
-            new AppError(
-                'A doctor should be 25 years or older.',
-                400,
-                'INVALID_AGE'
-            )
-        );
-    }
-
-    if (!mimeTypesArray.includes(profilePicture.mimetype)) {
-        return next(
-            new AppError(
-                'Invalid mime type. Only JPEG, JPG, PNG, AVIF and WEBP are allowed.',
-                400,
-                'INVALID_MIME_TYPE'
-            )
-        );
-    }
+    
 
     next();
 };
@@ -279,7 +255,7 @@ const validateCommunitiesArray = (req, res, next) => {
 
 module.exports = {
     validateIsDoctor, 
-    validateBasicDoctorInfo, 
+    validateDoctorAge, 
     validateAvailabilityDetails, 
     validateCredentialDetails, 
     validateProfessionalDetails, 
