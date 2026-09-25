@@ -282,12 +282,25 @@ const updateAvailabilityDetails = async (userId, updateData) => {
         }
     );
     
-    if (!doctorDetails){
+    if (!doctorDetails) {
+        const doctorExists = await Doctor.exists({
+            user: userId,
+            availability: { $exists: true }
+        });
+
+        if (!doctorExists) {
+            throw new AppError(
+                "Please add basic profile before updating availability details.",
+                409,
+                'BASIC_PROFILE_MISSING'
+            );
+        }
+
         throw new AppError(
-            "Please add basic profile before updating availability details.",
+            "Availability must contain at least one workplace or allow online consultation.",
             409,
-            'BASIC_PROFILE_MISSING'
-        )
+            'INVALID_AVAILABILITY_STATE'
+        );
     }
 
     return { 

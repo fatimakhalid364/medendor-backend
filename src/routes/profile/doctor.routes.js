@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const {basicProfileZodSchema} = require('validators/basicProfile.zod');
+const {communitiesZodSchema} = require('validators/communities.zod');
 const {
     availabilityZodSchema,
     communitiesZodSchema,
@@ -15,8 +16,7 @@ const {authenticateSession} = require('middlewares/auth.middleware');
 const makeUpdatePath = require('middlewares/profile.middleware');
 const {validateIsDoctor, validateDoctorAge} = require('middlewares/profile/doctor.middleware');
 
-const multer = require('multer');
-const {storage} = require('config/cloudinary');
+const upload = require('config/multer');
 const { 
     handleAddBasicDoctorInfo,
     handleUpdateBasicDoctorInfo,
@@ -32,32 +32,6 @@ const {
     handleUpdateFinalTouches
 } = require('controllers/profile/doctor.controller');
 
-
-
-
-
-const upload = multer({
-    storage,
-
-    limits: {
-        fileSize: 5 * 1024 * 1024 // 5 MB
-    },
-
-    fileFilter: (req, file, cb) => {
-
-        if (!allowedMimeTypes.includes(file.mimetype)) {
-            return cb(
-                new AppError(
-                    'Profile picture must be a JPEG, PNG, or WebP image.',
-                    400,
-                    'INVALID_PROFILE_PICTURE_TYPE'
-                )
-            );
-        }
-
-        cb(null, true);
-    }
-});
 
 router.use(authenticateSession);
 router.use(validateIsDoctor);

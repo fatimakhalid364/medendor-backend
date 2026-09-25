@@ -9,8 +9,6 @@ const {
 
 const AppError = require('utils/appError.utils');
 
-const { isEmptyDeep } = require('utils/basic.utils');
-
 const addBasicPatientInfo = async(userId, basicPatientInfo)=> {
     const session = await mongoose.startSession();
     

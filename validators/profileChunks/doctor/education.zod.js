@@ -103,8 +103,7 @@ const educationUpdateZodSchema = z.strictObject({
 
     endYear: endYearSchema.optional(),
 
-    currentlyStudying: z.boolean()
-        .optional()
+    currentlyStudying: z.boolean().optional()
 })
 .superRefine((data, ctx) => {
 

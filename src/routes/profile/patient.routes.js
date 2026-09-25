@@ -1,24 +1,23 @@
 const express = require('express');
 const router = express.Router();
 
-const {
-    patientMiddlewares: {
-        validateIsPatient,
-        validateBasicPatientInfo,
-        validateHealthInterests
-    },
-    authMiddlewares: {
-        authenticateSession
-    },
-} = require('middlewares');
+const {validateIsPatient} = require('middlewares/patient.middleware');
 
 const {makeUpdatePath} = require('middlewares/profile.middleware')
+const {basicProfileZodSchema} = require('validators/basicProfile.zod');
+const {communitiesZodSchema} = require('validators/communities.zod');
+const {
+    healthInterestsZodSchema,
+    privacyPreferencesZodSchema,
+    finalTouchesZodSchema
+} = require('validators/profileChunks/pateint');
 
-const multer = require('multer');
-const { cloudinary: { storage } } = require('config');
+const {authenticateSession} = require('middlewares/auth.middleware');
+const validate = require('middlewares/validation.middleware');
+
+const upload = require('config/multer');
 
 const {
-    patientControllers: {
         handleAddBasicPatientInfo,
         handleUpdateBasicPatientInfo,
         handleAddHealthInterests,
@@ -29,16 +28,7 @@ const {
         handleUpdatePatientFinalTouches,
         handleAddJoinedCommunitiesArray,
         handleLeaveCommunities
-    }
-} = require('controllers');
-
-const {
-    healthInterestsSchema,
-    privacyPreferencesSchema,
-    finalTouchesSchema
-} = require('models/profileChunks/patient');
-
-const upload = multer({ storage });
+    } = require('controllers/profile/patient.controller');
 
 /*
 |--------------------------------------------------------------------------
@@ -58,13 +48,14 @@ router.use(validateIsPatient);
 router.post(
     '/basic-info',
     upload.single('profilePicture'),
-    validateBasicPatientInfo,
+    validate(basicProfileZodSchema.addition),
     handleAddBasicPatientInfo
 );
 
 router.put(
     '/basic-info',
     upload.single('profilePicture'),
+    validate(basicProfileZodSchema.update),
     handleUpdateBasicPatientInfo
 );
 
@@ -76,13 +67,14 @@ router.put(
 
 router.post(
     '/health-interests',
-    validateHealthInterests,
+    validate(healthInterestsZodSchema.addition),
     handleAddHealthInterests
 );
 
 router.put(
     '/health-interests',
-    makeUpdatePath(healthInterestsSchema, 'healthInterests'),
+    validate(healthInterestsZodSchema.update),
+    makeUpdatePath('healthInterests'),
     handleUpdateHealthInterests
 );
 
@@ -94,12 +86,14 @@ router.put(
 
 router.post(
     '/privacy-preferences',
+    validate(privacyPreferencesZodSchema.addition),
     handleAddPrivacyPreferences
 );
 
 router.put(
     '/privacy-preferences',
-    makeUpdatePath(privacyPreferencesSchema, 'privacyPreferences'),
+    validate(privacyPreferencesZodSchema.update),
+    makeUpdatePath('privacyPreferences'),
     handleUpdatePrivacyPreferences
 );
 
@@ -111,12 +105,14 @@ router.put(
 
 router.post(
     '/final-touches',
+    validate(finalTouchesZodSchema.addition),
     handleAddPatientFinalTouches
 );
 
 router.put(
     '/final-touches',
-    makeUpdatePath(finalTouchesSchema, 'finalTouches'),
+    validate(finalTouchesZodSchema.update),
+    makeUpdatePath('finalTouches'),
     handleUpdatePatientFinalTouches
 );
 
@@ -128,11 +124,13 @@ router.put(
 
 router.post(
     '/communities',
+    validate(communitiesZodSchema),
     handleAddJoinedCommunitiesArray
 );
 
 router.delete(
     '/communities',
+    validate(communitiesZodSchema),
     handleLeaveCommunities
 );
 

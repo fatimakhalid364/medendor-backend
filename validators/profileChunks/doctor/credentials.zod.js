@@ -71,7 +71,7 @@ const update = z.strictObject({
     licenseCertificateUrl: z.string()
     .trim()
     .min(1, {
-        error: 'License certificate URL is required.'
+        error: 'License certificate URL can not be empty.'
     })
     .optional(),
 
