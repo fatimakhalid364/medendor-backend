@@ -1,11 +1,6 @@
 const BasicProfile = require('models/basicProfile.model');
 const mongoose = require('mongoose');
 const Patient = require('models/patient.model');
-const {
-  finalTouchesModel: { finalTouchesSchema },
-  healthInterestsModel: {healthInterestsSchema},
-  privacyPreferencesModel: {privacyPreferencesSchema}
-} = require('models/profileChunks/patient');
 
 const AppError = require('utils/appError.utils');
 
@@ -42,6 +37,7 @@ const addBasicPatientInfo = async(userId, basicPatientInfo)=> {
     
             return {
                 success: true,
+                code: 'BASIC_PATIENT_INFO_ADDED',
                 message: 'Basic patient info created and linked successfully.',
             };
         } catch (error) {
@@ -66,7 +62,6 @@ const addBasicPatientInfo = async(userId, basicPatientInfo)=> {
 
 
 const updateBasicPatientInfo = async (userId, basicPatientInfo) => {
-    try {
         const updatedProfile = await BasicProfile.findOneAndUpdate(
             { user: userId },
             { $set: basicPatientInfo },
@@ -81,12 +76,12 @@ const updateBasicPatientInfo = async (userId, basicPatientInfo) => {
             );
         }
 
-        return { success: true, message: `Basic Patient Info updated successfully.` };
-        } catch (error) {
-        console.error("Error in updateBasicPatientInfo service:", error);
-        throw new Error(error.message || "Unable to update basic patient info");
-    }
-};
+        return { 
+            success: true,
+            CODE: 'BASIC_PATIENT_INFO_UPDATED', 
+            message: `Basic Patient Info updated successfully.` };
+} 
+
 
 const addHealthInterests = async(userId, healthInterestsData)=> {
     console.log("Inside addHealthInterests service")
@@ -109,7 +104,10 @@ const addHealthInterests = async(userId, healthInterestsData)=> {
     existingPatientDetails.healthInterests = healthInterestsData;
     await existingPatientDetails.save();
 
-    return { success: true, message: `Health interests added successfully.` };
+    return { 
+        success: true, 
+        code: 'HEALTH_INTERESTS_ADDED',
+        message: `Health interests added successfully.` };
 }
 
 const updateHealthInterests = async(userId, updateData)=> {
@@ -140,7 +138,10 @@ const updateHealthInterests = async(userId, updateData)=> {
         )
     }
 
-    return { success: true, message: `Health interests updated successfully.` };
+    return { 
+        success: true,
+        code: 'HEALTH_INTERESTS_UPDATED', 
+        message: `Health interests updated successfully.` };
 }
 
 const addPrivacyPreferences = async(userId, privacyPreferencesData)=> {
@@ -167,7 +168,11 @@ const addPrivacyPreferences = async(userId, privacyPreferencesData)=> {
 
     await existingPatientDetails.save();
 
-    return { success: true, message: `Privacy preferences added successfully.` };
+    return { 
+        success: true,
+        code: 'PRIVACY_PREFERENCES_ADDED', 
+        message: `Privacy preferences added successfully.` 
+    };
 
 }
 
@@ -199,7 +204,11 @@ const updatePrivacyPreferences = async(userId, updateData)=> {
             'BASIC_PROFILE_MISSING'
         )
     }
-    return { success: true, message: `Privacy preferences updated successfully.` };
+    return { 
+        success: true, 
+        code: 'PRIVACY_PREFERENCES_UPDATED',
+        message: `Privacy preferences updated successfully.` 
+    };
 
 }
 
@@ -225,7 +234,11 @@ const addPatientFinalTouches = async (userId, finalTouchesData) => {
 
     existingPatientDetails.finalTouches = finalTouchesData;
     await existingPatientDetails.save();
-    return { success: true, message: `Final touches added successfully.` };
+    return { 
+        success: true,
+        code: 'FINAL_TOUCHES_ADDED', 
+        message: `Final touches added successfully.` 
+    };
 } 
 
 const updatePatientFinalTouches = async (userId, updateData) => {
@@ -261,54 +274,91 @@ const updatePatientFinalTouches = async (userId, updateData) => {
             'BASIC_PROFILE_MISSING'
         )
     }
-    return { success: true, message: `Patient's final touches updated successfully.` };
+    return { 
+        success: true,
+        code: 'FINAL_TOUCHES_UPDATED', 
+        message: `Patient's final touches updated successfully.` };
 
 }
 
 const addJoinedCommunitiesArray = async (userId, communitiesArray) => {
     console.log('Inside addJoinedCommunities service:', 'data:',communitiesArray, 'and id:', userId);
-    let existingPatientDetails = await Patient.findOne({ user: userId });
+    const patientDetails = await Patient.findOneAndUpdate(
+        { user: userId },
+        {
+            $addToSet: {
+                communities: {
+                    $each: communitiesArray
+                }
+            }
+        },
+        {
+            new: true,
+            runValidators: true
+        }
+    );
 
-    if (!existingPatientDetails) {
+    if (!patientDetails) {
         throw new AppError(
-            "Please add basic profile before adding health interests.",
-            409,
-            'BASIC_PROFILE_MISSING'
-        )
+            "Patient profile not found.",
+            404,
+            "PATIENT_NOT_FOUND"
+        );
     }
-    
-    existingPatientDetails.communities = [
-        ...new Set([...existingPatientDetails.communities, ...communitiesArray])
-    ];
-    await existingPatientDetails.save();
-    return { success: true, message: `Joined communities added successfully.` };
+    return { 
+        success: true,
+        code: 'JOINED_COMMUNITIES_ADDED', 
+        message: `Joined communities added successfully.` 
+    };
 } 
 
 
 const leaveCommunities = async (userId, leftCommunitiesArray) => {
-    console.log('Inside leaveCommunities service:', 'data:', leftCommunitiesArray, 'and id:', userId);
+    console.log(
+        'Inside leaveCommunities service:',
+        'data:',
+        leftCommunitiesArray,
+        'and id:',
+        userId
+    );
 
-    const existingPatientDetails = await Patient.findOne({ user: userId });
-    if (!existingPatientDetails) {
+    const result = await Patient.updateOne(
+        { user: userId },
+        {
+            $pull: {
+                communities: {
+                    $in: leftCommunitiesArray
+                }
+            }
+        },
+        {
+            runValidators: true
+        }
+    );
+
+    if (result.matchedCount === 0) {
         throw new AppError(
-            "Basic profile not added for this user.",
+            "Please add basic profile before leaving communities.",
             409,
             'BASIC_PROFILE_MISSING'
-        )
-    }
-
-    if (Array.isArray(existingPatientDetails.communities) && existingPatientDetails.communities.length > 0) {
-        existingPatientDetails.communities = existingPatientDetails.communities.filter(
-            (community) => !leftCommunitiesArray.includes(community)
         );
-
-        await existingPatientDetails.save();
-        return { success: true, message: 'Communities left successfully.' };
     }
 
-    return { success: false, message: 'No joined communities found.' };
+    if (result.modifiedCount === 0) {
+        return {
+            success: true,
+            code: 'COMMUNITIES_ALREADY_LEFT',
+            message: 'None of the requested communities were joined.'
+        };
+    }
 
-} 
+    return {
+        success: true,
+        code: 'COMMUNITIES_LEFT',
+        message: 'Communities left successfully.'
+    };
+};
+
 
 module.exports = {
     addBasicPatientInfo,
