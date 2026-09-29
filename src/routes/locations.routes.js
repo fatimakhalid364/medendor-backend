@@ -9,4 +9,6 @@ router.get(
     '/cities',
     validate(getCitiesQuerySchema, 'query'),
     handleGetCities
-)
+);
+
+module.exports = router;

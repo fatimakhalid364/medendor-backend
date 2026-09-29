@@ -28,8 +28,12 @@ const citySchema = new mongoose.Schema(
 );
 
 citySchema.index(
-  { state: 1, name: 1 },
-  { unique: true }
+    { country: 1, name: 1 }
+);
+
+citySchema.index(
+    { state: 1, name: 1 },
+    { unique: true }
 );
 
 module.exports = mongoose.model("City", citySchema);
