@@ -8,7 +8,7 @@ const {
 const {
     CACHE_SESSION_SCRIPT,
     MARK_SESSION_REVOKED_SCRIPT
-} = require('scripts/session.scripts');
+} = require('redis/lua/session.scripts');
 
 const {serializeSessionForRedis} = require('./serializers.utils')
 

@@ -11,7 +11,7 @@ const {revokeSession, rotateSession} = require('./session.service');
 const {convertToPublicUser} = require('utils/serializers.utils');
 const AppError = require('utils/appError.utils');
 const {FRONTEND_URL} = require('config/env');
-const {checkEmailRateLimit} = require('scripts/rateLimit.scripts')
+const {checkEmailRateLimit} = require('redis/lua/rateLimit.scripts')
 
 const signup = async (data, role) => {
     const session = await mongoose.startSession();
