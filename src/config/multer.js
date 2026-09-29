@@ -1,6 +1,7 @@
 const multer = require('multer');
 const {storage} = require('config/cloudinary');
 const {mimeTypesArray} = require('constants/enum');
+const AppError = require('utils/appError.utils');
 
 const upload = multer({
     storage,

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
-const {basicProfileZodSchema} = require('validators/basicProfile.zod');
-const {communitiesZodSchema} = require('validators/communities.zod');
+const basicProfileZodSchema = require('validators/basicProfile.zod');
+const communitiesZodSchema = require('validators/communities.zod');
 const {
     availabilityZodSchema,
     communitiesZodSchema,

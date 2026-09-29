@@ -17,7 +17,11 @@ const addition = z.strictObject({
         .trim()
         .min(1, {
             error: 'Country is required.'
-        }),
+        })
+        .length(2, {
+            error: "Invalid country code."
+        })
+        .transform((value) => value.toUpperCase()),
 
     city: z.string({
         error: 'City is required.'
@@ -25,7 +29,11 @@ const addition = z.strictObject({
         .trim()
         .min(1, {
             error: 'City is required.'
+        })
+        .regex(/^[0-9a-fA-F]{24}$/, {
+            error: "Invalid city ID."
         }),
+        
 
     languagesSpoken: z.array(
         z.string()
@@ -61,6 +69,10 @@ const update = z.strictObject({
         .min(1, {
             error: 'Country cannot be empty.'
         })
+        .length(2, {
+            error: "Invalid country code."
+        })
+        .transform((value) => value.toUpperCase())
         .optional(),
 
     city: z.string({
@@ -69,6 +81,9 @@ const update = z.strictObject({
         .trim()
         .min(1, {
             error: 'City cannot be empty.'
+        })
+        .regex(/^[0-9a-fA-F]{24}$/, {
+            error: "Invalid city ID."
         })
         .optional(),
 
@@ -88,8 +103,6 @@ const update = z.strictObject({
 
 
 module.exports = {
-    basicProfileZodSchema: {
         addition,
         update
-    }
 };

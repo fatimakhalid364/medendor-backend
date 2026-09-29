@@ -4,8 +4,8 @@ const router = express.Router();
 const {validateIsPatient} = require('middlewares/patient.middleware');
 
 const {makeUpdatePath} = require('middlewares/profile.middleware')
-const {basicProfileZodSchema} = require('validators/basicProfile.zod');
-const {communitiesZodSchema} = require('validators/communities.zod');
+const basicProfileZodSchema = require('validators/basicProfile.zod');
+const communitiesZodSchema = require('validators/communities.zod');
 const {
     healthInterestsZodSchema,
     privacyPreferencesZodSchema,

@@ -6,8 +6,17 @@ const basicProfileSchema = new mongoose.Schema({
     gender: { type: String, trim: true, enum: genderArray, required: true },
     dateOfBirth: {type: Date, required: true},
     profilePicture: { type: String, trim: true, required: true },
-    country: { type: String, trim: true, required: true },
-    city: { type: String, trim: true, required: true },
+    country: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Country",
+        required: true
+    },
+
+    city: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "City",
+        required: true
+    },
     languagesSpoken: { type: [String], default: [] },
     followerCount: {
         type: Number,

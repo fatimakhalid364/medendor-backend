@@ -10,4 +10,4 @@ const communitiesZodSchema = z.array(
     }
 );
 
-module.exports = {communitiesZodSchema}
+module.exports = communitiesZodSchema

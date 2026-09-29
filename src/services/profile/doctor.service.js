@@ -24,10 +24,50 @@ const addBasicDoctorInfo = async (userId, basicDoctorInfo) => {
                 );
         }
 
+         const {
+            country: countryCode,
+            city: cityId,
+            ...profileData
+        } = basicDoctorInfo;
+
+        const country = await Country.findOne({
+            code: countryCode
+        })
+            .select("_id")
+            .session(session)
+            .lean();
+
+        if (!country) {
+            throw new AppError(
+                "Country not found.",
+                404,
+                "COUNTRY_NOT_FOUND"
+            );
+        }
+
+        const city = await City.findOne({
+            _id: cityId,
+            country: country._id
+        })
+            .select("_id")
+            .session(session)
+            .lean();
+
+        if (!city) {
+            throw new AppError(
+                "City not found for the selected country.",
+                404,
+                "CITY_NOT_FOUND"
+            );
+        }
+
         const basicProfile = new BasicProfile({
             user: userId,
-            ...basicDoctorInfo,
+            ...profileData,
+            country: country._id,
+            city: city._id
         });
+        
         await basicProfile.save({ session });
 
         const doctor = new Doctor({
@@ -59,7 +99,7 @@ const addBasicDoctorInfo = async (userId, basicDoctorInfo) => {
             'ADD_BASIC_DOCTOR_INFO_FAILED'
         );
     } finally {
-        session.endSession();
+        await session.endSession();
     }
 };
 
