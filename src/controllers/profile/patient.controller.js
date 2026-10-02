@@ -9,7 +9,7 @@ const {
     updatePatientFinalTouches,
     addJoinedCommunitiesArray,
     leaveCommunities
-} = require('services/patient.service');
+} = require('services/profile/patient.service');
 
 
 const handleAddBasicPatientInfo = async(req, res) => {

@@ -5,7 +5,6 @@ const basicProfileZodSchema = require('validators/basicProfile.zod');
 const communitiesZodSchema = require('validators/communities.zod');
 const {
     availabilityZodSchema,
-    communitiesZodSchema,
     professionalDetailsZodSchema,
     credentialsZodSchema,
     finalTouchesZodSchema

@@ -1,5 +1,5 @@
 const {conditions: Conditions} = require('models');
-const {redis: {redisClient}} = require('config');
+const {redisClient} = require('config/redis');
 const {matchConditionsPipeline} = require('utils/pipeline.utils');
 
 const getMatchingConditions = async (symptomsArray) => {

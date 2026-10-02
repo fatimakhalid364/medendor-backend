@@ -1,16 +1,16 @@
 const express = require('express');
 const router = express.Router();
 
-const {validateIsPatient} = require('middlewares/patient.middleware');
+const {validateIsPatient} = require('middlewares/profile/patient.middleware');
 
-const {makeUpdatePath} = require('middlewares/profile.middleware')
+const makeUpdatePath = require('middlewares/profile.middleware')
 const basicProfileZodSchema = require('validators/basicProfile.zod');
 const communitiesZodSchema = require('validators/communities.zod');
 const {
     healthInterestsZodSchema,
     privacyPreferencesZodSchema,
     finalTouchesZodSchema
-} = require('validators/profileChunks/pateint');
+} = require('validators/profileChunks/patient');
 
 const {authenticateSession} = require('middlewares/auth.middleware');
 const validate = require('middlewares/validation.middleware');

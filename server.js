@@ -1,6 +1,8 @@
 require('module-alias/register');
 const app = require('./app');
-const {db, env: {PORT: port}, redis: {connectRedis}} = require('config');
+const {connection} = require('config/db');
+const {PORT: port} = require('config/env');
+const {connectRedis} = require('config/redis');
 const {
     processOutbox,
 } = require('workers/outbox.worker');
@@ -8,7 +10,7 @@ const {
 (async () => {
     try {
         await connectRedis();             
-        await db.connection();
+        await connection();
         processOutbox();          
         app.listen(port, () => {
         console.log(`Server started at port ${port}`);

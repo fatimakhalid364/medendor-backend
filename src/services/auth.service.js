@@ -4,14 +4,14 @@ const mongoose = require('mongoose');
 const Session = require('models/session.model');
 const {hashString, compareString} = require('utils/bcrypt.utils');
 const {generateAccessToken, generateRefreshToken} = require('utils/jwt.utils');
-const {redis: {redisClient}} = require('config');
+const {redisClient} = require('config/redis');
 const {generateRandomToken, generateRandomIntString, hashToken, generateRandomIdOrJti} = require('utils/crypto.utils');
 const {calculateSessionExpiry, cacheSession} = require('utils/session.utils');
 const {revokeSession, rotateSession} = require('./session.service');
 const {convertToPublicUser} = require('utils/serializers.utils');
 const AppError = require('utils/appError.utils');
 const {FRONTEND_URL} = require('config/env');
-const {checkEmailRateLimit} = require('redis/lua/rateLimit.scripts')
+const {checkEmailRateLimit} = require('redisScripts/lua/rateLimit.scripts')
 
 const signup = async (data, role) => {
     const session = await mongoose.startSession();
